@@ -1,0 +1,22 @@
+---
+deployment:
+  tasks:
+    - /bin/echo "Starting deployment for fuma-frontend"
+
+    # 1. Install dependencies (only if node_modules not present; can remove later for speed)
+    - /usr/local/bin/npm install
+
+    # 2. Build React app
+    - /usr/local/bin/npm run build || { echo "React build failed"; exit 1; }
+
+    # 3. Set deployment path
+    - export DEPLOYPATH=/home/USERNAME/public_html/fumamain/
+
+    # 4. Create deployment path if it doesn't exist
+    - /bin/mkdir -p $DEPLOYPATH
+
+    # 5. Sync build folder to deployment path
+    #    If you use Vite, change build/ to dist/
+    - /bin/rsync -av --delete build/ $DEPLOYPATH
+
+    - /bin/echo "Deployment finished for fuma-frontend"
