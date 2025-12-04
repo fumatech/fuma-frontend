@@ -10,7 +10,7 @@ deployment:
     - /usr/local/bin/npm run build || { echo "React build failed"; exit 1; }
 
     # 3. Set deployment path
-    - export DEPLOYPATH=/home/USERNAME/public_html/fumamain/
+    - export DEPLOYPATH=/home/fuma/public_html/fumamain/
 
     # 4. Create deployment path if it doesn't exist
     - /bin/mkdir -p $DEPLOYPATH
