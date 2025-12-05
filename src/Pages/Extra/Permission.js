@@ -20,7 +20,7 @@ function Permission() {
         permission
       );
       alert("Permission saved Sucessfully");
-      console.log("Permission saved:", response.data);
+      // console.log("Permission saved:", response.data);
       setStartName("");
       setEndName("");
     } catch (error) {

@@ -598,7 +598,7 @@ function EditPurchase() {
       purchaseItems,
     };
 
-    console.log("Payload:", payload); // Debug the payload
+    // console.log("Payload:", payload); // Debug the payload
 
     try {
       const response = await fetch(
@@ -613,7 +613,7 @@ function EditPurchase() {
       );
 
       if (response.ok) {
-        console.log("Purchase updated successfully");
+        // console.log("Purchase updated successfully");
         // Optionally reset form or navigate to another page
       } else {
         const errorText = await response.text();

@@ -135,7 +135,7 @@ function AddDISale() {
       })),
     ];
     setTaxOptions(rateOptions);
-    console.log(taxOptions);
+    // console.log(taxOptions);
   }, [taxRates]);
 
   useEffect(() => {
@@ -199,7 +199,7 @@ function AddDISale() {
     });
 
     setSubTotalAmount(subtotal.toFixed(2));
-    console.log("Subtotal before discount:", subtotal);
+    // console.log("Subtotal before discount:", subtotal);
 
     // Total Discount Calculation
     let totalDiscount = 0;
@@ -211,7 +211,7 @@ function AddDISale() {
       totalDiscount = (subtotal * discountValue) / 100;
     }
 
-    console.log("Total Discount:", totalDiscount);
+    // console.log("Total Discount:", totalDiscount);
 
     // ✅ Use taxAmount from state directly
     const globalTaxRate = parseFloat(taxAmount) || 0;
@@ -233,7 +233,7 @@ function AddDISale() {
       taxAmountOnSubtotal +
       additionalExpensesTotal;
 
-    console.log("Final Amount:", finalAmount);
+    // console.log("Final Amount:", finalAmount);
     setFinalPurchaseAmount(finalAmount.toFixed(2));
   }, [
     selectedProducts,
@@ -617,7 +617,7 @@ function AddDISale() {
       stockTransactions: productStocks,
     };
 
-    console.log("Payload:", payload); // Debug payload before submitting
+    // console.log("Payload:", payload); // Debug payload before submitting
 
     try {
       const response = await fetch(
@@ -717,55 +717,58 @@ function AddDISale() {
                     <div className="row">
                       {/* Franchise Dropdown */}
                       <div className="col-md-4">
-  <div className="form-group position-relative">
-    <label>
-      Franchise <span className="text-danger">*</span>
-    </label>
-    <input
-      type="text"
-      className="form-control"
-      placeholder="Search Franchise"
-      value={franchiseSearchTerm}
-      onChange={(e) => {
-        setFranchiseSearchTerm(e.target.value);
-        setShowFranchiseDropdown(true);
-      }}
-      onFocus={() => setShowFranchiseDropdown(true)}
-      required
-    />
-    {showFranchiseDropdown && (
-      <ul
-        className="list-group position-absolute w-100"
-        style={{
-          zIndex: 1000,
-          maxHeight: "200px",
-          overflowY: "auto",
-        }}
-      >
-        {filteredFranchiseList.length === 0 ? (
-          <li className="list-group-item">No results found</li>
-        ) : (
-          filteredFranchiseList.map((item) => (
-            <li
-              key={item.id}
-              className="list-group-item list-group-item-action"
-              onClick={() => {
-                setFranchise(item.franchiseName); // You can also store full object if needed
-                setFranchiseSearchTerm(
-                  `${item.franchiseName} - ${item.mobileNumber} - ${item.city}`
-                );
-                setShowFranchiseDropdown(false);
-              }}
-              style={{ cursor: "pointer" }}
-            >
-              {item.franchiseName} - {item.mobileNumber} - {item.city}
-            </li>
-          ))
-        )}
-      </ul>
-    )}
-  </div>
-</div>
+                        <div className="form-group position-relative">
+                          <label>
+                            Franchise <span className="text-danger">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Search Franchise"
+                            value={franchiseSearchTerm}
+                            onChange={(e) => {
+                              setFranchiseSearchTerm(e.target.value);
+                              setShowFranchiseDropdown(true);
+                            }}
+                            onFocus={() => setShowFranchiseDropdown(true)}
+                            required
+                          />
+                          {showFranchiseDropdown && (
+                            <ul
+                              className="list-group position-absolute w-100"
+                              style={{
+                                zIndex: 1000,
+                                maxHeight: "200px",
+                                overflowY: "auto",
+                              }}
+                            >
+                              {filteredFranchiseList.length === 0 ? (
+                                <li className="list-group-item">
+                                  No results found
+                                </li>
+                              ) : (
+                                filteredFranchiseList.map((item) => (
+                                  <li
+                                    key={item.id}
+                                    className="list-group-item list-group-item-action"
+                                    onClick={() => {
+                                      setFranchise(item.franchiseName); // You can also store full object if needed
+                                      setFranchiseSearchTerm(
+                                        `${item.franchiseName} - ${item.mobileNumber} - ${item.city}`
+                                      );
+                                      setShowFranchiseDropdown(false);
+                                    }}
+                                    style={{ cursor: "pointer" }}
+                                  >
+                                    {item.franchiseName} - {item.mobileNumber} -{" "}
+                                    {item.city}
+                                  </li>
+                                ))
+                              )}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
 
                       {/* Reference No */}
                       <div className="col-md-4">

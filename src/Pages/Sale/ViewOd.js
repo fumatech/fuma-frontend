@@ -231,7 +231,7 @@ function ViewOd() {
       additionalNotes,
       franchiseOrderItems,
     };
-    console.log("Payload:", payload); // Debug payload before submitting
+    // console.log("Payload:", payload); // Debug payload before submitting
     try {
       const response = await fetch(
         `https://fusionmastertech.com:8443/franchisepurchaseorder/update/${id}`,
@@ -245,7 +245,7 @@ function ViewOd() {
       );
 
       if (response.ok) {
-        console.log("Purchase updated successfully");
+        // console.log("Purchase updated successfully");
         // Optionally reset form or navigate to another page
       } else {
         const errorText = await response.text();

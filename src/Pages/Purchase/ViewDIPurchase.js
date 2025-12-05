@@ -717,7 +717,7 @@ function ViewDIPurchase() {
       stockTransactions: productStocks,
     };
 
-    console.log("Payload:", payload); // Debug the payload
+    // console.log("Payload:", payload); // Debug the payload
 
     try {
       const response = await fetch(
@@ -736,8 +736,8 @@ function ViewDIPurchase() {
         // Optionally reset form or navigate to another page
       } else {
         const responseText = await response.text();
-        console.log("Response Status:", response.status);
-        console.log("Response Text:", responseText);
+        // console.log("Response Status:", response.status);
+        // console.log("Response Text:", responseText);
 
         alert("Purchase DI Order Not Updated");
       }
@@ -1374,8 +1374,6 @@ function ViewDIPurchase() {
                     </div>
                   </div>
                 </div>
-
-             
               </form>
             </div>
           </section>

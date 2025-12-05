@@ -93,16 +93,6 @@ const Accounts = () => {
 
         setAccounts(updatedAccounts);
         setFilteredAccounts(updatedAccounts);
-
-        const script = document.createElement("script");
-        script.src = "/js/JqueryContent.js";
-        script.async = true;
-
-        document.body.appendChild(script);
-
-        return () => {
-          document.body.removeChild(script);
-        };
       } catch (error) {
         console.error("Error fetching accounts:", error);
         setAccounts([]);

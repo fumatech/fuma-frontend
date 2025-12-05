@@ -47,14 +47,14 @@ const ListVendorWarrantyClaim = () => {
     vendors: [],
     statuses: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
     vendor: "",
     status: "",
   });
-  
+
   const [filteredVendorClaims, setFilteredVendorClaims] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -67,7 +67,7 @@ const ListVendorWarrantyClaim = () => {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-      console.log(data);
+      // console.log(data);
       if (Array.isArray(data)) {
         const sortedData = data.sort((a, b) => b.id - a.id);
         setListStockAdjustment(sortedData);
@@ -100,9 +100,13 @@ const ListVendorWarrantyClaim = () => {
   // Extract filter values when ListStockAdjustment data changes
   useEffect(() => {
     if (ListStockAdjustment.length > 0) {
-      const vendors = [...new Set(ListStockAdjustment.map(item => item.vendor))].filter(Boolean);
-      const statuses = [...new Set(ListStockAdjustment.map(item => item.status))].filter(Boolean);
-      
+      const vendors = [
+        ...new Set(ListStockAdjustment.map((item) => item.vendor)),
+      ].filter(Boolean);
+      const statuses = [
+        ...new Set(ListStockAdjustment.map((item) => item.status)),
+      ].filter(Boolean);
+
       setFilterValues({
         vendors,
         statuses,
@@ -114,14 +118,14 @@ const ListVendorWarrantyClaim = () => {
   useEffect(() => {
     const filteredData = ListStockAdjustment.filter((claim) => {
       const claimDate = new Date(claim.date);
-      
+
       // Date range filter
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = claimDate >= startDate && claimDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -131,18 +135,19 @@ const ListVendorWarrantyClaim = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = claimDate <= endDate;
       }
-      
+
       // Vendor filter
-      const vendorMatch = activeFilters.vendor === "" || 
-        claim.vendor === activeFilters.vendor;
-      
+      const vendorMatch =
+        activeFilters.vendor === "" || claim.vendor === activeFilters.vendor;
+
       // Status filter
-      const statusMatch = activeFilters.status === "" || 
+      const statusMatch =
+        activeFilters.status === "" ||
         claim.status.toString() === activeFilters.status;
-      
+
       return dateMatch && vendorMatch && statusMatch;
     });
-    
+
     setFilteredVendorClaims(filteredData);
   }, [activeFilters, ListStockAdjustment]);
 
@@ -171,10 +176,16 @@ const ListVendorWarrantyClaim = () => {
       Date: listStockAdjustment.date,
       ReferenceNo: listStockAdjustment.referenceNumber,
       Vendor: listStockAdjustment.vendor,
-      Status: listStockAdjustment.status === 0 ? "Pending" : 
-               listStockAdjustment.status === 1 ? "Accepted" : 
-               listStockAdjustment.status === 2 ? "Rejected" : 
-               listStockAdjustment.status === 3 ? "Shipped" : "Unknown",
+      Status:
+        listStockAdjustment.status === 0
+          ? "Pending"
+          : listStockAdjustment.status === 1
+          ? "Accepted"
+          : listStockAdjustment.status === 2
+          ? "Rejected"
+          : listStockAdjustment.status === 3
+          ? "Shipped"
+          : "Unknown",
       TotalAmount: listStockAdjustment.totalAmount,
       Reason: listStockAdjustment.reason,
       TotalUnits: listStockAdjustment.totalUnits,
@@ -205,10 +216,16 @@ const ListVendorWarrantyClaim = () => {
         Date: listStockAdjustment.date,
         ReferenceNo: listStockAdjustment.referenceNumber,
         Vendor: listStockAdjustment.vendor,
-        Status: listStockAdjustment.status === 0 ? "Pending" : 
-                listStockAdjustment.status === 1 ? "Accepted" : 
-                listStockAdjustment.status === 2 ? "Rejected" : 
-                listStockAdjustment.status === 3 ? "Shipped" : "Unknown",
+        Status:
+          listStockAdjustment.status === 0
+            ? "Pending"
+            : listStockAdjustment.status === 1
+            ? "Accepted"
+            : listStockAdjustment.status === 2
+            ? "Rejected"
+            : listStockAdjustment.status === 3
+            ? "Shipped"
+            : "Unknown",
         TotalAmount: listStockAdjustment.totalAmount,
         Reason: listStockAdjustment.reason,
         TotalUnits: listStockAdjustment.totalUnits,
@@ -232,20 +249,25 @@ const ListVendorWarrantyClaim = () => {
       "Total Units",
     ];
 
-    const body = filteredVendorClaims.slice(startIndex, endIndex).map(
-      (adjustment) => [
+    const body = filteredVendorClaims
+      .slice(startIndex, endIndex)
+      .map((adjustment) => [
         adjustment.date,
         adjustment.referenceNumber,
         adjustment.vendor,
-        adjustment.status === 0 ? "Pending" : 
-        adjustment.status === 1 ? "Accepted" : 
-        adjustment.status === 2 ? "Rejected" : 
-        adjustment.status === 3 ? "Shipped" : "Unknown",
+        adjustment.status === 0
+          ? "Pending"
+          : adjustment.status === 1
+          ? "Accepted"
+          : adjustment.status === 2
+          ? "Rejected"
+          : adjustment.status === 3
+          ? "Shipped"
+          : "Unknown",
         adjustment.totalAmount,
         adjustment.reason,
         adjustment.totalUnits,
-      ]
-    );
+      ]);
 
     doc.text("Vendor Warranty Claims List", 14, 20);
     doc.setFontSize(12);
@@ -317,7 +339,8 @@ const ListVendorWarrantyClaim = () => {
               </tr>
             </thead>
             <tbody>
-              ${filteredVendorClaims.slice(startIndex, endIndex)
+              ${filteredVendorClaims
+                .slice(startIndex, endIndex)
                 .map(
                   (listStockAdjustment) => `
                     <tr>
@@ -339,10 +362,15 @@ const ListVendorWarrantyClaim = () => {
                       ${
                         columnsVisibility.status
                           ? `<td>${
-                              listStockAdjustment.status === 0 ? "Pending" : 
-                              listStockAdjustment.status === 1 ? "Accepted" : 
-                              listStockAdjustment.status === 2 ? "Rejected" : 
-                              listStockAdjustment.status === 3 ? "Shipped" : "Unknown"
+                              listStockAdjustment.status === 0
+                                ? "Pending"
+                                : listStockAdjustment.status === 1
+                                ? "Accepted"
+                                : listStockAdjustment.status === 2
+                                ? "Rejected"
+                                : listStockAdjustment.status === 3
+                                ? "Shipped"
+                                : "Unknown"
                             }</td>`
                           : ""
                       }
@@ -455,7 +483,7 @@ const ListVendorWarrantyClaim = () => {
         })
           .then((response) => response.json())
           .then((data) => {
-            console.log(`${actionMessage}ed warranty claim:`, data);
+            // console.log(`${actionMessage}ed warranty claim:`, data);
             alert(`${actionMessage}ed successfully!`);
             fetchListStockAdjustment();
           })
@@ -706,8 +734,9 @@ const ListVendorWarrantyClaim = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredVendorClaims.slice(startIndex, endIndex).map(
-                        (listStockAdjustment) => (
+                      {filteredVendorClaims
+                        .slice(startIndex, endIndex)
+                        .map((listStockAdjustment) => (
                           <tr key={listStockAdjustment.id}>
                             {columnsVisibility.action && (
                               <td>
@@ -801,8 +830,7 @@ const ListVendorWarrantyClaim = () => {
                               <td>{listStockAdjustment.totalUnits}</td>
                             )}
                           </tr>
-                        )
-                      )}
+                        ))}
                     </tbody>
                   </table>
                 </div>

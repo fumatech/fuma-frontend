@@ -45,7 +45,7 @@ const LoginPage = () => {
         sessionStorage.setItem("userEmail", email);
         window.location.href = "/fumamain/Dashboard";
       } else {
-        console.log(response.data);
+        // console.log(response.data);
       }
     } catch (error) {
       alert("Login failed. Please check your credentials and try again.");

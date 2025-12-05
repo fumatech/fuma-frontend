@@ -67,7 +67,7 @@ const OpeningStockPage = () => {
       note: product.note || "Stock updated after opening stock", // Use row-specific note
     }));
 
-    console.log(payload); // Log the payload to see the structure before sending
+    // console.log(payload); // Log the payload to see the structure before sending
 
     try {
       const response = await fetch(

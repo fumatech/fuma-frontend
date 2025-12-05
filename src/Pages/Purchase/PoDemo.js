@@ -179,7 +179,7 @@ function AddPoPurchase() {
               });
           });
 
-          console.log(fetchProductDetails);
+          // console.log(fetchProductDetails);
 
           Promise.all(fetchProductDetails)
             .then((productsWithPrices) => {
@@ -673,7 +673,7 @@ function AddPoPurchase() {
       transaction: transactions,
     };
 
-    console.log("Payload:", payload);
+    // console.log("Payload:", payload);
 
     try {
       const response = await fetch(

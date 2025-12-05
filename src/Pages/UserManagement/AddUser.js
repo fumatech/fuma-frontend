@@ -34,15 +34,15 @@ const AddUser = () => {
 
   // Personal Information
   const [language, setLanguage] = useState("");
-// Change the dateOfBirth state initialization
-const [dateOfBirth, setDateOfBirth] = useState(() => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-});
-  
+  // Change the dateOfBirth state initialization
+  const [dateOfBirth, setDateOfBirth] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  });
+
   const [gender, setGender] = useState("");
   const [maritalStatus, setMaritalStatus] = useState("");
   const [bloodGroup, setBloodGroup] = useState("");
@@ -433,7 +433,7 @@ const [dateOfBirth, setDateOfBirth] = useState(() => {
       selectedContacts,
     };
 
-    console.log(userData);
+    // console.log(userData);
 
     fetch(`${process.env.REACT_APP_BASE_URL}/user/save`, {
       method: "POST",
@@ -454,8 +454,6 @@ const [dateOfBirth, setDateOfBirth] = useState(() => {
       })
       .catch((error) => console.error("Error saving user:", error));
   };
-
-  
 
   return (
     <div>
@@ -926,18 +924,18 @@ const [dateOfBirth, setDateOfBirth] = useState(() => {
                         </div>
                       </div>
                       <div className="col-md-3">
-  <div className="form-group">
-    <label htmlFor="dateOfBirth">Date of Birth:</label>
-    <input
-      type="date"
-      className="form-control"
-      id="dateOfBirth"
-      name="dateOfBirth"
-      value={dateOfBirth} 
-      onChange={handleChange}
-    />
-  </div>
-</div>
+                        <div className="form-group">
+                          <label htmlFor="dateOfBirth">Date of Birth:</label>
+                          <input
+                            type="date"
+                            className="form-control"
+                            id="dateOfBirth"
+                            name="dateOfBirth"
+                            value={dateOfBirth}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
                       <div className="col-md-3">
                         <div className="form-group">
                           <label htmlFor="gender">Gender:</label>

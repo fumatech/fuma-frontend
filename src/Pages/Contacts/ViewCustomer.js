@@ -321,7 +321,7 @@ const ViewCustomer = () => {
       paymentAccountId: accountId,
     };
 
-    console.log("Submitting payload:", payload);
+    // console.log("Submitting payload:", payload);
 
     try {
       const response = await fetch(
@@ -340,7 +340,7 @@ const ViewCustomer = () => {
       }
 
       const result = await response.json();
-      console.log("Payment submitted:", result);
+      // console.log("Payment submitted:", result);
       fetchSalesData();
       alert("Payment submitted successfully!");
       handleModalToggle();
@@ -397,7 +397,7 @@ const ViewCustomer = () => {
         `${process.env.REACT_APP_BASE_URL}/customer/${id}`
       );
       if (!response.data) throw new Error("Customer not found");
-      console.log(response.data);
+      // console.log(response.data);
 
       setCustomer(response.data);
     } catch (error) {
@@ -620,14 +620,14 @@ const ViewCustomer = () => {
 
   const handlePaymentDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this transaction?")) {
-      console.log("Deleting payment ID:", id);
+      // console.log("Deleting payment ID:", id);
       // Add delete logic here (e.g., API call)
     }
   };
 
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this transaction?")) {
-      console.log("Deleting payment ID:", id);
+      // console.log("Deleting payment ID:", id);
       // Add delete logic here (e.g., API call)
     }
   };

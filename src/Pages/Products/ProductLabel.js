@@ -35,7 +35,7 @@ function ProductLabel() {
         const response = await axios.get(
           `${process.env.REACT_APP_BASE_URL}/product/get/${productId}`
         );
-        console.log(response.data);
+        // console.log(response.data);
         setProduct(response.data);
 
         // Access the defaultSellingPrice from the first product variation

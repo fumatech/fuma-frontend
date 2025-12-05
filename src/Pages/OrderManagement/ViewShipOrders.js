@@ -44,7 +44,7 @@ function ViewShipOrders() {
         setLocation(purchase.location);
         setAdditionalNotes(purchase.additionalNotes);
 
-        console.log(purchase.updatedItemQuantity);
+        // console.log(purchase.updatedItemQuantity);
         setUpdatedTotalUnits(purchase.totalShippedItems);
 
         const selectedProducts = purchase.orderItems.map((item) => ({
@@ -252,7 +252,7 @@ function ViewShipOrders() {
         console.error("Error updating purchase:", errorText);
         alert("Failed to update order. Please check your inputs.");
       } else {
-        console.log("Purchase updated successfully");
+        // console.log("Purchase updated successfully");
 
         // Update the purchaseStatus
         const statusResponse = await fetch(
@@ -267,7 +267,7 @@ function ViewShipOrders() {
         );
 
         if (statusResponse.ok) {
-          console.log("Purchase status updated successfully");
+          // console.log("Purchase status updated successfully");
           window.location.href = "/ShipOrders"; // Redirect
         } else {
           const errorText = await statusResponse.text();

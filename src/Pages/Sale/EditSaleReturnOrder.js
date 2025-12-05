@@ -234,7 +234,7 @@ function EditSaleReturnOrder() {
       franchisePurchaseReturnItems,
     };
 
-    console.log(payload);
+    // console.log(payload);
 
     try {
       const response = await fetch(

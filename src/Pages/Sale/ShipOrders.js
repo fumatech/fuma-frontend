@@ -52,14 +52,14 @@ const ShipOrders = () => {
     franchiseNames: [],
     locations: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
     franchiseName: "",
     location: "",
   });
-  
+
   const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -72,7 +72,7 @@ const ShipOrders = () => {
         const response = await fetch(
           `https://fusionmastertech.com:8443/franchisepurchaseorder/getShipOrders`
         );
-        console.log(response.data);
+        // console.log(response.data);
         if (!response.ok) throw new Error("Network response was not ok");
 
         const data = await response.json();
@@ -109,9 +109,13 @@ const ShipOrders = () => {
   // Extract filter values when shipOrders data changes
   useEffect(() => {
     if (shipOrders.length > 0) {
-      const franchiseNames = [...new Set(shipOrders.map(item => item.franchiseName))].filter(Boolean);
-      const locations = [...new Set(shipOrders.map(item => item.location))].filter(Boolean);
-      
+      const franchiseNames = [
+        ...new Set(shipOrders.map((item) => item.franchiseName)),
+      ].filter(Boolean);
+      const locations = [
+        ...new Set(shipOrders.map((item) => item.location)),
+      ].filter(Boolean);
+
       setFilterValues({
         franchiseNames,
         locations,
@@ -123,14 +127,14 @@ const ShipOrders = () => {
   useEffect(() => {
     const filteredData = shipOrders.filter((order) => {
       const orderDate = new Date(order.orderDate);
-      
+
       // Date range filter
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = orderDate >= startDate && orderDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -140,18 +144,20 @@ const ShipOrders = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = orderDate <= endDate;
       }
-      
+
       // Franchise Name filter
-      const franchiseNameMatch = activeFilters.franchiseName === "" || 
+      const franchiseNameMatch =
+        activeFilters.franchiseName === "" ||
         order.franchiseName === activeFilters.franchiseName;
-      
+
       // Location filter
-      const locationMatch = activeFilters.location === "" || 
+      const locationMatch =
+        activeFilters.location === "" ||
         order.location === activeFilters.location;
-      
+
       return dateMatch && franchiseNameMatch && locationMatch;
     });
-    
+
     setFilteredShipOrders(filteredData);
   }, [activeFilters, shipOrders]);
 
@@ -434,11 +440,16 @@ const ShipOrders = () => {
                             onChange={handleFilterChange}
                           >
                             <option value="">All Franchises</option>
-                            {filterValues.franchiseNames.map((franchiseName, index) => (
-                              <option key={`franchise-${index}`} value={franchiseName}>
-                                {franchiseName}
-                              </option>
-                            ))}
+                            {filterValues.franchiseNames.map(
+                              (franchiseName, index) => (
+                                <option
+                                  key={`franchise-${index}`}
+                                  value={franchiseName}
+                                >
+                                  {franchiseName}
+                                </option>
+                              )
+                            )}
                           </select>
                         </div>
                       </div>

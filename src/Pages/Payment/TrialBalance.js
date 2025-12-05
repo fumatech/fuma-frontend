@@ -208,7 +208,7 @@ function TrialBalance() {
                       </tbody>
                       <tfoot>
                         <tr>
-                          <th>Total</th>
+                          <th>Total:</th>
                           <td>
                             <b>{totalDebit.toFixed(2)}</b>
                           </td>

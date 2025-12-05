@@ -318,7 +318,7 @@ function EditPurchaseOrder() {
       additionalNotes,
       orderItems,
     };
-    console.log("Payload:", payload); // Debug payload before submitting
+    // console.log("Payload:", payload); // Debug payload before submitting
     try {
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/purchaseorder/update/${id}`,

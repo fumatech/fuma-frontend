@@ -318,7 +318,7 @@ const ViewVendor = () => {
       paymentAccountId: accountId, // ✅ Match backend entity
     };
 
-    console.log("Submitting payload:", payload);
+    // console.log("Submitting payload:", payload);
 
     try {
       const response = await fetch(
@@ -337,7 +337,7 @@ const ViewVendor = () => {
       }
 
       const result = await response.json();
-      console.log("Payment submitted:", result);
+      // console.log("Payment submitted:", result);
       fetchPurchasesData();
       alert("Payment submitted successfully!");
       handleModalToggle(); // Close modal after submission
@@ -397,7 +397,7 @@ const ViewVendor = () => {
         `${process.env.REACT_APP_BASE_URL}/vendor/${id}`
       );
       if (!response.data) throw new Error("Vendor not found");
-      console.log(response.data);
+      // console.log(response.data);
 
       setVendor(response.data);
     } catch (error) {
@@ -635,13 +635,13 @@ const ViewVendor = () => {
 
   const handlePaymentDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this transaction?")) {
-      console.log("Deleting payment ID:", id);
+      // console.log("Deleting payment ID:", id);
       // Add delete logic here (e.g., API call)
     }
   };
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this transaction?")) {
-      console.log("Deleting payment ID:", id);
+      // console.log("Deleting payment ID:", id);
       // Add delete logic here (e.g., API call)
     }
   };

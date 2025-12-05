@@ -48,13 +48,13 @@ const ListDIPurchaseOrder = () => {
   const [filterValues, setFilterValues] = useState({
     vendors: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
     vendor: "",
   });
-  
+
   const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -67,7 +67,7 @@ const ListDIPurchaseOrder = () => {
           throw new Error("Network response was not ok");
         }
         const data = await response.json();
-        console.log(data);
+        // console.log(data);
 
         if (Array.isArray(data)) {
           const sortedData = data.sort((a, b) => b.id - a.id);
@@ -83,7 +83,7 @@ const ListDIPurchaseOrder = () => {
         setPurchases([]);
         setFilteredPurchases([]);
       }
-      
+
       const script = document.createElement("script");
       script.src = "js/JqueryContent.js";
       script.async = true;
@@ -100,8 +100,10 @@ const ListDIPurchaseOrder = () => {
   // Extract filter values when purchases data changes
   useEffect(() => {
     if (purchases.length > 0) {
-      const vendors = [...new Set(purchases.map(item => item.vendor))].filter(Boolean);
-      
+      const vendors = [...new Set(purchases.map((item) => item.vendor))].filter(
+        Boolean
+      );
+
       setFilterValues({
         vendors,
       });
@@ -112,14 +114,14 @@ const ListDIPurchaseOrder = () => {
   useEffect(() => {
     const filteredData = purchases.filter((purchase) => {
       const purchaseDate = new Date(purchase.orderDate);
-      
+
       // Date range filter
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = purchaseDate >= startDate && purchaseDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -129,13 +131,14 @@ const ListDIPurchaseOrder = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = purchaseDate <= endDate;
       }
-      
+
       // Vendor filter
-      const vendorMatch = activeFilters.vendor === "" || purchase.vendor === activeFilters.vendor;
-      
+      const vendorMatch =
+        activeFilters.vendor === "" || purchase.vendor === activeFilters.vendor;
+
       return dateMatch && vendorMatch;
     });
-    
+
     setFilteredPurchases(filteredData);
   }, [activeFilters, purchases]);
 
@@ -314,11 +317,7 @@ const ListDIPurchaseOrder = () => {
                     ? "<th>Additional Notes</th>"
                     : ""
                 }
-                ${
-                  columnsVisibility.addedBy
-                    ? "<th>Added By</th>"
-                    : ""
-                }
+                ${columnsVisibility.addedBy ? "<th>Added By</th>" : ""}
               </tr>
             </thead>
         <tbody>
@@ -327,11 +326,23 @@ const ListDIPurchaseOrder = () => {
       (purchase) => `
         <tr>
           ${columnsVisibility.date ? `<td>${purchase.orderDate}</td>` : ""}
-          ${columnsVisibility.referenceNumber ? `<td>${purchase.referenceNumber}</td>` : ""}
+          ${
+            columnsVisibility.referenceNumber
+              ? `<td>${purchase.referenceNumber}</td>`
+              : ""
+          }
           ${columnsVisibility.location ? `<td>${purchase.location}</td>` : ""}
           ${columnsVisibility.vendor ? `<td>${purchase.vendor}</td>` : ""}
-          ${columnsVisibility.totalItems ? `<td>${purchase.totalItems}</td>` : ""}
-          ${columnsVisibility.additionalNotes ? `<td>${purchase.additionalNotes}</td>` : ""}
+          ${
+            columnsVisibility.totalItems
+              ? `<td>${purchase.totalItems}</td>`
+              : ""
+          }
+          ${
+            columnsVisibility.additionalNotes
+              ? `<td>${purchase.additionalNotes}</td>`
+              : ""
+          }
           ${columnsVisibility.addedBy ? `<td>${purchase.addedBy}</td>` : ""}
         </tr>
       `

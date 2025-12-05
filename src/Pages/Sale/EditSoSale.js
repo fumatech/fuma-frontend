@@ -122,7 +122,7 @@ function EditSoSale() {
 
         const purchase = await response.json();
 
-        console.log(purchase);
+        // console.log(purchase);
 
         // Setting state based on the fetched data
         // setFranchise(purchase.franchise);
@@ -496,7 +496,7 @@ function EditSoSale() {
     });
 
     setSubTotalAmount(subtotal.toFixed(2));
-    console.log("Subtotal before discount:", subtotal);
+    // console.log("Subtotal before discount:", subtotal);
 
     // Total Discount Calculation
     let totalDiscount = 0;
@@ -508,7 +508,7 @@ function EditSoSale() {
       totalDiscount = (subtotal * discountValue) / 100;
     }
 
-    console.log("Total Discount:", totalDiscount);
+    // console.log("Total Discount:", totalDiscount);
 
     // ✅ Use taxAmount from state directly
     const globalTaxRate = parseFloat(taxAmount) || 0;
@@ -530,7 +530,7 @@ function EditSoSale() {
       taxAmountOnSubtotal +
       additionalExpensesTotal;
 
-    console.log("Final Amount:", finalAmount);
+    // console.log("Final Amount:", finalAmount);
     setFinalPurchaseAmount(finalAmount.toFixed(2));
   }, [
     selectedProducts,
@@ -944,7 +944,7 @@ function EditSoSale() {
       shippingSoDetails: shippingAllDetails,
     };
 
-    console.log("Payload:", payload); // Debug payload before submitting
+    // console.log("Payload:", payload); // Debug payload before submitting
 
     try {
       const response = await fetch(
@@ -970,7 +970,7 @@ function EditSoSale() {
           note: "Stock updated after So Sale",
         }));
 
-        console.log("Product Stocks Payload:", productStocks);
+        // console.log("Product Stocks Payload:", productStocks);
 
         // Save product stock
         const stockResponse = await fetch(

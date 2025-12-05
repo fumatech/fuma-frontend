@@ -235,7 +235,7 @@ function ViewWarrantyClaim() {
       })),
     };
 
-    console.log(stockAdjustmentData);
+    // console.log(stockAdjustmentData);
 
     try {
       // First, save the warranty claim
@@ -512,7 +512,6 @@ function ViewWarrantyClaim() {
                     </div>
                   </div>
                 </div>
-             
               </form>
             </div>
           </section>

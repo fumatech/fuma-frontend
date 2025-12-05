@@ -40,14 +40,14 @@ const AddCustomer = () => {
 
   // Personal Information
   const [language, setLanguage] = useState("");
-// Change the dateOfBirth state initialization
-const [dateOfBirth, setDateOfBirth] = useState(() => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-});
+  // Change the dateOfBirth state initialization
+  const [dateOfBirth, setDateOfBirth] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  });
   const [gender, setGender] = useState("");
   const [maritalStatus, setMaritalStatus] = useState("");
   const [bloodGroup, setBloodGroup] = useState("");
@@ -473,7 +473,7 @@ const [dateOfBirth, setDateOfBirth] = useState(() => {
       dbUsername: "fuma_dbuser",
       dbPassword: "Fuma@01234",
     };
-    console.log(userData);
+    // console.log(userData);
 
     try {
       const response = await fetch(

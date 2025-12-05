@@ -226,22 +226,14 @@ function AccountBook() {
         `${process.env.REACT_APP_BASE_URL}/payment-account/get/${id}`
       );
       if (!response.ok) throw new Error("Failed to fetch account data");
+
       const result = await response.json();
       setData(result);
-
-      const script = document.createElement("script");
-      script.src = "/js/JqueryContent.js";
-      script.async = true;
-
-      document.body.appendChild(script);
-
-      return () => {
-        document.body.removeChild(script);
-      };
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
+
   const handleEdit = (transaction) => {
     setSelectedTransaction(transaction);
     setFormData({

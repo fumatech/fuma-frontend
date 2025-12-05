@@ -54,7 +54,7 @@ const ShipOrders = () => {
         const response = await fetch(
           `${process.env.REACT_APP_BASE_URL}/purchaseorder/getShipOrders`
         );
-        console.log(response.data);
+        // console.log(response.data);
         if (!response.ok) throw new Error("Network response was not ok");
 
         const data = await response.json();

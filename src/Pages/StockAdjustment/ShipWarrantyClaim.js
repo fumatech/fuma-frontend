@@ -243,7 +243,7 @@ function ShipWarrantyClaim() {
       })),
     };
 
-    console.log("Submitting stock adjustment data:", stockAdjustmentData);
+    // console.log("Submitting stock adjustment data:", stockAdjustmentData);
 
     try {
       // Save the warranty claim
@@ -282,7 +282,7 @@ function ShipWarrantyClaim() {
       }
 
       const updatedWarrantyClaim = await updateResponse.json();
-      console.log("Updated warranty claim:", updatedWarrantyClaim);
+      // console.log("Updated warranty claim:", updatedWarrantyClaim);
 
       // Prepare stock transactions for saving
       const stockTransactions = selectedProducts.map((product) => ({

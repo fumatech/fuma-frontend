@@ -48,14 +48,14 @@ const ListStockAdjustment = () => {
     locations: [],
     adjustmentTypes: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
     location: "",
     adjustmentType: "",
   });
-  
+
   const [filteredStockAdjustments, setFilteredStockAdjustments] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -72,7 +72,7 @@ const ListStockAdjustment = () => {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-      console.log(data);
+      // console.log(data);
       if (Array.isArray(data)) {
         const sortedData = data.sort((a, b) => b.id - a.id);
         setListStockAdjustment(sortedData);
@@ -101,9 +101,13 @@ const ListStockAdjustment = () => {
   // Extract filter values when ListStockAdjustment data changes
   useEffect(() => {
     if (ListStockAdjustment.length > 0) {
-      const locations = [...new Set(ListStockAdjustment.map(item => item.businessLocation))].filter(Boolean);
-      const adjustmentTypes = [...new Set(ListStockAdjustment.map(item => item.adjustmentType))].filter(Boolean);
-      
+      const locations = [
+        ...new Set(ListStockAdjustment.map((item) => item.businessLocation)),
+      ].filter(Boolean);
+      const adjustmentTypes = [
+        ...new Set(ListStockAdjustment.map((item) => item.adjustmentType)),
+      ].filter(Boolean);
+
       setFilterValues({
         locations,
         adjustmentTypes,
@@ -115,14 +119,14 @@ const ListStockAdjustment = () => {
   useEffect(() => {
     const filteredData = ListStockAdjustment.filter((adjustment) => {
       const adjustmentDate = new Date(adjustment.date);
-      
+
       // Date range filter
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = adjustmentDate >= startDate && adjustmentDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -132,18 +136,20 @@ const ListStockAdjustment = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = adjustmentDate <= endDate;
       }
-      
+
       // Location filter
-      const locationMatch = activeFilters.location === "" || 
+      const locationMatch =
+        activeFilters.location === "" ||
         adjustment.businessLocation === activeFilters.location;
-      
+
       // Adjustment Type filter
-      const adjustmentTypeMatch = activeFilters.adjustmentType === "" || 
+      const adjustmentTypeMatch =
+        activeFilters.adjustmentType === "" ||
         adjustment.adjustmentType === activeFilters.adjustmentType;
-      
+
       return dateMatch && locationMatch && adjustmentTypeMatch;
     });
-    
+
     setFilteredStockAdjustments(filteredData);
   }, [activeFilters, ListStockAdjustment]);
 
@@ -231,8 +237,9 @@ const ListStockAdjustment = () => {
       "Total Units",
     ];
 
-    const body = filteredStockAdjustments.slice(startIndex, endIndex).map(
-      (adjustment) => [
+    const body = filteredStockAdjustments
+      .slice(startIndex, endIndex)
+      .map((adjustment) => [
         adjustment.date,
         adjustment.referenceNumber,
         adjustment.businessLocation,
@@ -241,8 +248,7 @@ const ListStockAdjustment = () => {
         adjustment.amountRecovered,
         adjustment.reason,
         adjustment.totalUnits,
-      ]
-    );
+      ]);
 
     doc.text("Stock Adjustment List", 14, 20);
     doc.setFontSize(12);
@@ -323,7 +329,8 @@ const ListStockAdjustment = () => {
               </tr>
             </thead>
             <tbody>
-              ${filteredStockAdjustments.slice(startIndex, endIndex)
+              ${filteredStockAdjustments
+                .slice(startIndex, endIndex)
                 .map(
                   (listStockAdjustment) => `
                     <tr>
@@ -680,8 +687,9 @@ const ListStockAdjustment = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredStockAdjustments.slice(startIndex, endIndex).map(
-                        (listStockAdjustment) => (
+                      {filteredStockAdjustments
+                        .slice(startIndex, endIndex)
+                        .map((listStockAdjustment) => (
                           <tr key={listStockAdjustment.id}>
                             {columnsVisibility.action && (
                               <td>
@@ -728,8 +736,7 @@ const ListStockAdjustment = () => {
                               <td>{listStockAdjustment.totalUnits}</td>
                             )}
                           </tr>
-                        )
-                      )}
+                        ))}
                     </tbody>
                   </table>
                 </div>

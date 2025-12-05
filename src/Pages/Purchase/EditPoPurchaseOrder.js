@@ -179,7 +179,7 @@ function EditPoPurchaseOrder() {
         }
 
         const purchase = await response.json();
-        console.log(purchase);
+        // console.log(purchase);
 
         setVendor(purchase.vendor || "");
         setOrderId(purchase.purchasePoOrderId || "");
@@ -826,7 +826,7 @@ function EditPoPurchaseOrder() {
       ],
     };
 
-    console.log("Payload:", payload); // Debug the payload
+    // console.log("Payload:", payload); // Debug the payload
 
     try {
       const response = await fetch(
@@ -845,8 +845,8 @@ function EditPoPurchaseOrder() {
         // navigate("/ListPoPurchaseOrder");
       } else {
         const responseText = await response.text();
-        console.log("Response Status:", response.status);
-        console.log("Response Text:", responseText);
+        // console.log("Response Status:", response.status);
+        // console.log("Response Text:", responseText);
         alert("Purchase PO Order Not Saved");
       }
     } catch (error) {

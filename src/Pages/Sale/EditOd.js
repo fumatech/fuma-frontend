@@ -251,7 +251,7 @@ function EditOd() {
       );
 
       if (response.ok) {
-        console.log("Purchase updated successfully");
+        // console.log("Purchase updated successfully");
 
         // After updating the order, now update the purchaseStatus
         const statusUpdateResponse = await fetch(
@@ -266,7 +266,7 @@ function EditOd() {
         );
 
         if (statusUpdateResponse.ok) {
-          console.log("Purchase status updated successfully");
+          // console.log("Purchase status updated successfully");
           window.location.href = "/ShipOrders"; // Redirect to ShipOrders page
         } else {
           const errorText = await statusUpdateResponse.text();

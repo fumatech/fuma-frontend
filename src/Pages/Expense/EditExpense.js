@@ -361,9 +361,9 @@ function EditExpense() {
         multipart.append("file", file);
       }
 
-      console.log("Updating Expense ID:", id);
-      console.log("Expense Object:", expenseObj);
-      console.log("Transaction Object:", transactionObj);
+      // console.log("Updating Expense ID:", id);
+      // console.log("Expense Object:", expenseObj);
+      // console.log("Transaction Object:", transactionObj);
 
       const response = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/add-expenses/update/${id}`,

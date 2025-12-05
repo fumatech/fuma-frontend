@@ -152,7 +152,7 @@ function AddPoPurchase() {
       })),
     ];
     setTaxOptions(rateOptions);
-    console.log(taxOptions);
+    // console.log(taxOptions);
   }, [taxRates]);
 
   useEffect(() => {
@@ -367,7 +367,7 @@ function AddPoPurchase() {
     });
 
     setSubTotalAmount(subtotal.toFixed(2));
-    console.log("Subtotal before discount:", subtotal);
+    // console.log("Subtotal before discount:", subtotal);
 
     // Total Discount Calculation
     let totalDiscount = 0;
@@ -379,7 +379,7 @@ function AddPoPurchase() {
       totalDiscount = (subtotal * discountValue) / 100;
     }
 
-    console.log("Total Discount:", totalDiscount);
+    // console.log("Total Discount:", totalDiscount);
 
     // ✅ Use taxAmount from state directly
     const globalTaxRate = parseFloat(taxAmount) || 0;
@@ -401,7 +401,7 @@ function AddPoPurchase() {
       taxAmountOnSubtotal +
       additionalExpensesTotal;
 
-    console.log("Final Amount:", finalAmount);
+    // console.log("Final Amount:", finalAmount);
     setFinalPurchaseAmount(finalAmount.toFixed(2));
   }, [
     selectedProducts,
@@ -946,7 +946,7 @@ function AddPoPurchase() {
       );
 
       if (response.ok) {
-        console.log(`Purchase Order ${tempId} status updated to 4`);
+        // console.log(`Purchase Order ${tempId} status updated to 4`);
       } else {
         console.error(`Failed to update status for Order ID ${tempId}`);
       }

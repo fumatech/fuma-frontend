@@ -158,7 +158,7 @@ function AddSoSale() {
       })),
     ];
     setTaxOptions(rateOptions);
-    console.log(taxOptions);
+    // console.log(taxOptions);
   }, [taxRates]);
   // Fetch payment methods
   useEffect(() => {
@@ -388,7 +388,7 @@ function AddSoSale() {
     });
 
     setSubTotalAmount(subtotal.toFixed(2));
-    console.log("Subtotal before discount:", subtotal);
+    // console.log("Subtotal before discount:", subtotal);
 
     // Total Discount Calculation
     let totalDiscount = 0;
@@ -400,7 +400,7 @@ function AddSoSale() {
       totalDiscount = (subtotal * discountValue) / 100;
     }
 
-    console.log("Total Discount:", totalDiscount);
+    // console.log("Total Discount:", totalDiscount);
 
     // ✅ Use taxAmount from state directly
     const globalTaxRate = parseFloat(taxAmount) || 0;
@@ -422,7 +422,7 @@ function AddSoSale() {
       taxAmountOnSubtotal +
       additionalExpensesTotal;
 
-    console.log("Final Amount:", finalAmount);
+    // console.log("Final Amount:", finalAmount);
     setFinalPurchaseAmount(finalAmount.toFixed(2));
   }, [
     selectedProducts,
@@ -862,7 +862,7 @@ function AddSoSale() {
       shippingSoDetails: shippingAllDetails,
       stockTransactions: productStocks,
     };
-    console.log(payload);
+    // console.log(payload);
 
     try {
       const response = await fetch(

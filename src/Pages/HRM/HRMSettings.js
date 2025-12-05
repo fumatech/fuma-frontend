@@ -26,7 +26,7 @@ const HRMSettings = () => {
   const handleSubmit = (e, tab) => {
     e.preventDefault();
     // Handle form submission for specific tab here
-    console.log(`${tab} settings submitted:`, settings);
+    // console.log(`${tab} settings submitted:`, settings);
     // You can make API calls specific to each tab here
   };
 

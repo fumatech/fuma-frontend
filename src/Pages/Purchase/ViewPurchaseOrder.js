@@ -219,7 +219,7 @@ function ViewPurchaseOrder() {
       additionalNotes,
       orderItems,
     };
-    console.log("Payload:", payload); // Debug payload before submitting
+    // console.log("Payload:", payload); // Debug payload before submitting
     try {
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/purchaseorder/update/${id}`,
@@ -233,7 +233,7 @@ function ViewPurchaseOrder() {
       );
 
       if (response.ok) {
-        console.log("Purchase updated successfully");
+        // console.log("Purchase updated successfully");
         // Optionally reset form or navigate to another page
       } else {
         const errorText = await response.text();
@@ -534,8 +534,6 @@ function ViewPurchaseOrder() {
                     </div>
                   </div>
                 </div>
-
-            
               </form>
             </div>
           </section>

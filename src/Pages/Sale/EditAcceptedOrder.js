@@ -302,7 +302,7 @@ function EditAcceptedOrder() {
       franchiseOrderItems,
     };
 
-    console.log(payload);
+    // console.log(payload);
 
     try {
       const response = await fetch(
@@ -321,7 +321,7 @@ function EditAcceptedOrder() {
         console.error("Error updating purchase:", errorText);
         alert("Failed to update order. Please check your inputs.");
       } else {
-        console.log("Purchase updated successfully");
+        // console.log("Purchase updated successfully");
 
         // Update the purchaseStatus
         const statusResponse = await fetch(

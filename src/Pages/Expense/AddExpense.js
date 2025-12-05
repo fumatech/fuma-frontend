@@ -267,8 +267,8 @@ function AddExpense() {
     multipart.append("transaction", JSON.stringify(transactionObj));
 
     if (file) multipart.append("file", file);
-    console.log("Expense Object:", expenseObj);
-    console.log("Transaction Object:", transactionObj);
+    // console.log("Expense Object:", expenseObj);
+    // console.log("Transaction Object:", transactionObj);
 
     try {
       const response = await axios.post(

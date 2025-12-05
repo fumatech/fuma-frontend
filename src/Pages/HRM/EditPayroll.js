@@ -273,7 +273,7 @@ const EditPayroll = () => {
 
       const result = await response.json();
       setSubmitSuccess(true);
-      console.log("Payroll saved successfully:", result);
+      // console.log("Payroll saved successfully:", result);
     } catch (error) {
       console.error("Error saving payroll:", error);
       setSubmitError(error.message || "Failed to save payroll");

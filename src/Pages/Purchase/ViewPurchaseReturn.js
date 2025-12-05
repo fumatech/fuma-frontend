@@ -171,7 +171,7 @@ function ViewPurchaseReturn() {
             );
             const stockData = await response.json();
 
-            console.log(stockData);
+            // console.log(stockData);
 
             // Return the new product with variation and stock data
             return {
@@ -271,7 +271,7 @@ function ViewPurchaseReturn() {
       purchaseReturnItems: purchaseReturnItems,
       stockTransactions: productStocks,
     };
-    console.log("Payload:", payload); // Debug payload before submitting
+    // console.log("Payload:", payload); // Debug payload before submitting
     try {
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/purchase-return/save`,
@@ -570,7 +570,6 @@ function ViewPurchaseReturn() {
                     </div>
                   </div>
                 </div>
-              
               </form>
             </div>
           </section>

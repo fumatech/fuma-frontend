@@ -52,14 +52,14 @@ const ReturnPurchase = () => {
     locations: [],
     statuses: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
     status: "",
     location: "",
   });
-  
+
   const [filterOpen, setFilterOpen] = useState(false);
 
   // Status mapping for display
@@ -68,7 +68,7 @@ const ReturnPurchase = () => {
     1: "Accepted",
     2: "Rejected",
     3: "Shipped",
-    null: "Pending"
+    null: "Pending",
   };
 
   // Declare the fetchPurchases function outside of useEffect
@@ -81,7 +81,7 @@ const ReturnPurchase = () => {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-      console.log(data);
+      // console.log(data);
 
       // Check if the fetched data is an array and sort by purchaseOrderId in descending order
       if (Array.isArray(data)) {
@@ -108,9 +108,11 @@ const ReturnPurchase = () => {
   // Extract filter values when purchases data changes
   useEffect(() => {
     if (purchases.length > 0) {
-      const locations = [...new Set(purchases.map(item => item.location))].filter(Boolean);
-      const statuses = [...new Set(purchases.map(item => item.status))];
-      
+      const locations = [
+        ...new Set(purchases.map((item) => item.location)),
+      ].filter(Boolean);
+      const statuses = [...new Set(purchases.map((item) => item.status))];
+
       setFilterValues({
         locations,
         statuses,
@@ -122,14 +124,14 @@ const ReturnPurchase = () => {
   useEffect(() => {
     const filteredData = purchases.filter((purchase) => {
       const purchaseDate = new Date(purchase.orderDate);
-      
+
       // Date range filter
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = purchaseDate >= startDate && purchaseDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -139,18 +141,22 @@ const ReturnPurchase = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = purchaseDate <= endDate;
       }
-      
+
       // Location filter
-      const locationMatch = activeFilters.location === "" || purchase.location === activeFilters.location;
-      
+      const locationMatch =
+        activeFilters.location === "" ||
+        purchase.location === activeFilters.location;
+
       // Status filter
-      const statusMatch = activeFilters.status === "" || 
+      const statusMatch =
+        activeFilters.status === "" ||
         (activeFilters.status === "null" && purchase.status === null) ||
-        (activeFilters.status !== "null" && purchase.status === parseInt(activeFilters.status));
-      
+        (activeFilters.status !== "null" &&
+          purchase.status === parseInt(activeFilters.status));
+
       return dateMatch && locationMatch && statusMatch;
     });
-    
+
     setFilteredPurchases(filteredData);
   }, [activeFilters, purchases]);
 
@@ -372,11 +378,7 @@ const ReturnPurchase = () => {
                     ? "<th>Additional Notes</th>"
                     : ""
                 }
-                ${
-                  columnsVisibility.addedBy
-                    ? "<th>Added By</th>"
-                    : ""
-                }
+                ${columnsVisibility.addedBy ? "<th>Added By</th>" : ""}
               </tr>
             </thead>
             <tbody>

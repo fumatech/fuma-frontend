@@ -327,7 +327,7 @@ function EditPurchaseReturn() {
       purchaseReturnItems: purchaseReturnItems,
       stockTransactions: productStocks,
     };
-    console.log("Payload:", payload); // Debug payload before submitting
+    // console.log("Payload:", payload); // Debug payload before submitting
     try {
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/purchase-return/save`,

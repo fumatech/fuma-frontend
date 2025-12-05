@@ -508,7 +508,7 @@ const ViewUser = () => {
       selectedContacts,
     };
 
-    console.log(userData);
+    // console.log(userData);
 
     fetch(`${process.env.REACT_APP_BASE_URL}/user/update/${id}`, {
       method: "PUT",
@@ -1574,8 +1574,6 @@ const ViewUser = () => {
                     </div>
                   </div>
                 </div>
-
-               
               </form>
             </div>
           </section>

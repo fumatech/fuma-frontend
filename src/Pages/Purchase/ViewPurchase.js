@@ -597,7 +597,7 @@ function ViewPurchase() {
       purchaseItems,
     };
 
-    console.log("Payload:", payload); // Debug the payload
+    // console.log("Payload:", payload); // Debug the payload
 
     try {
       const response = await fetch(
@@ -612,7 +612,7 @@ function ViewPurchase() {
       );
 
       if (response.ok) {
-        console.log("Purchase updated successfully");
+        // console.log("Purchase updated successfully");
         // Optionally reset form or navigate to another page
       } else {
         const errorText = await response.text();
@@ -1639,8 +1639,6 @@ function ViewPurchase() {
                     </div>
                   </div>
                 </div>
-
-              
               </form>
             </div>
           </section>

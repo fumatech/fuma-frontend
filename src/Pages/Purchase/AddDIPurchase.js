@@ -192,7 +192,7 @@ function AddDIPurchase() {
       })),
     ];
     setTaxOptions(rateOptions);
-    console.log(taxOptions);
+    // console.log(taxOptions);
   }, [taxRates]);
 
   // Function to calculate total additional expenses
@@ -239,7 +239,7 @@ function AddDIPurchase() {
     });
 
     setSubTotalAmount(subtotal.toFixed(2));
-    console.log("Subtotal before discount:", subtotal);
+    // console.log("Subtotal before discount:", subtotal);
 
     // Total Discount Calculation
     let totalDiscount = 0;
@@ -251,7 +251,7 @@ function AddDIPurchase() {
       totalDiscount = (subtotal * discountValue) / 100;
     }
 
-    console.log("Total Discount:", totalDiscount);
+    //console.log("Total Discount:", totalDiscount);
 
     // ✅ Use taxAmount from state directly
     const globalTaxRate = parseFloat(taxAmount) || 0;
@@ -273,7 +273,7 @@ function AddDIPurchase() {
       taxAmountOnSubtotal +
       additionalExpensesTotal;
 
-    console.log("Final Amount:", finalAmount);
+    // console.log("Final Amount:", finalAmount);
     setFinalPurchaseAmount(finalAmount.toFixed(2));
   }, [
     selectedProducts,
@@ -685,7 +685,7 @@ function AddDIPurchase() {
       date: new Date().toISOString().split("T")[0], // Current date
       note: "Stock updated after DI purchase", // Optional note
     }));
-    console.log("Purchase Items:", purchaseItems);
+    // console.log("Purchase Items:", purchaseItems);
     // Prepare payload with lists
     const payload = {
       vendor,
@@ -708,7 +708,7 @@ function AddDIPurchase() {
       stockTransactions: productStocks,
     };
 
-    console.log("Payload:", payload); // Debug payload before submitting
+    // console.log("Payload:", payload); // Debug payload before submitting
 
     try {
       const response = await fetch(
@@ -727,8 +727,8 @@ function AddDIPurchase() {
         navigate("/ListDIPurchaseOrder");
       } else {
         const responseText = await response.text();
-        console.log("Response Status:", response.status);
-        console.log("Response Text:", responseText);
+        // console.log("Response Status:", response.status);
+        // console.log("Response Text:", responseText);
 
         alert("Transaction Failed");
       }
@@ -738,20 +738,18 @@ function AddDIPurchase() {
     }
   };
 
+  // Filter the vendor list based on search
+  const filteredVendors = vendorlist.filter((v) =>
+    `${v.firmName} ${v.mobileNumber} ${v.city}`
+      .toLowerCase()
+      .includes(vendorSearchTerm.toLowerCase())
+  );
 
-    // Filter the vendor list based on search
-    const filteredVendors = vendorlist.filter((v) =>
-      `${v.firmName} ${v.mobileNumber} ${v.city}`
-        .toLowerCase()
-        .includes(vendorSearchTerm.toLowerCase())
-    );
-    
-  
-    const handleSelect = (v) => {
-      setVendor(v.firmName);
-      setVendorSearchTerm(`${v.firmName} - ${v.mobileNumber} - ${v.city}`);
-      setShowDropdown(false);
-    };
+  const handleSelect = (v) => {
+    setVendor(v.firmName);
+    setVendorSearchTerm(`${v.firmName} - ${v.mobileNumber} - ${v.city}`);
+    setShowDropdown(false);
+  };
   return (
     <>
       <div className="wrapper">
@@ -774,44 +772,48 @@ function AddDIPurchase() {
                     <div className="row">
                       {/* Vendor Dropdown */}
                       <div className="col-md-4">
-  <div className="form-group position-relative">
-    <label>
-      Vendor<span className="text-danger">*</span>
-    </label>
-    <input
-      type="text"
-      className="form-control"
-      placeholder="Select Vendor"
-      value={vendorSearchTerm}
-      onChange={(e) => {
-        setVendorSearchTerm(e.target.value);
-        setShowDropdown(true);
-      }}
-      onFocus={() => setShowDropdown(true)}
-      required
-    />
-    {showDropdown && (
-      <ul
-        className="list-group position-absolute w-100"
-        style={{ zIndex: 1000, maxHeight: "200px", overflowY: "auto" }}
-      >
-        {filteredVendors.length === 0 && (
-          <li className="list-group-item">No results</li>
-        )}
-        {filteredVendors.map((v) => (
-          <li
-            key={v.id}
-            className="list-group-item list-group-item-action"
-            onClick={() => handleSelect(v)}
-            style={{ cursor: "pointer" }}
-          >
-            {v.firmName} - {v.mobileNumber} - {v.city}
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-</div>
+                        <div className="form-group position-relative">
+                          <label>
+                            Vendor<span className="text-danger">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Select Vendor"
+                            value={vendorSearchTerm}
+                            onChange={(e) => {
+                              setVendorSearchTerm(e.target.value);
+                              setShowDropdown(true);
+                            }}
+                            onFocus={() => setShowDropdown(true)}
+                            required
+                          />
+                          {showDropdown && (
+                            <ul
+                              className="list-group position-absolute w-100"
+                              style={{
+                                zIndex: 1000,
+                                maxHeight: "200px",
+                                overflowY: "auto",
+                              }}
+                            >
+                              {filteredVendors.length === 0 && (
+                                <li className="list-group-item">No results</li>
+                              )}
+                              {filteredVendors.map((v) => (
+                                <li
+                                  key={v.id}
+                                  className="list-group-item list-group-item-action"
+                                  onClick={() => handleSelect(v)}
+                                  style={{ cursor: "pointer" }}
+                                >
+                                  {v.firmName} - {v.mobileNumber} - {v.city}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
 
                       {/* Reference No */}
                       <div className="col-md-4">

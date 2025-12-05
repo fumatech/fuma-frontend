@@ -508,7 +508,7 @@ const EditUser = () => {
       selectedContacts,
     };
 
-    console.log(userData);
+    // console.log(userData);
 
     fetch(`${process.env.REACT_APP_BASE_URL}/user/update/${id}`, {
       method: "PUT",

@@ -178,7 +178,7 @@ function SaleEntry() {
       additionalNotes,
       orderItems,
     };
-    console.log("Payload:", payload); // Debug payload before submitting
+    // console.log("Payload:", payload); // Debug payload before submitting
     try {
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/SaleEntry/save`,
@@ -192,7 +192,7 @@ function SaleEntry() {
       );
 
       if (response.ok) {
-        console.log("Purchase saved successfully");
+        // console.log("Purchase saved successfully");
         // Optionally reset the form or provide feedback
         // You can use navigate to redirect or reset form fields if needed
       } else {
