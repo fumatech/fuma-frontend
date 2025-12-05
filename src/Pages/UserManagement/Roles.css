@@ -1,0 +1,38 @@
+/* Add this to AddUser.css or a relevant CSS file */
+
+/* Custom Checkbox Styles */
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+}
+
+.custom-checkbox [type="checkbox"] {
+  /* Hide default checkbox */
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #78B833; /* Green border color */
+  border-radius: 2px; /* Square shape */
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  background-color: #fff; /* Background color when unchecked */
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.custom-checkbox input[type="checkbox"]:checked {
+  background-color: #78B833; /* Green background when checked */
+}
+
+.custom-checkbox input[type="checkbox"]:checked::after {
+  content: '';
+  display: block;
+  width: 12px;
+  height: 12px;
+  background: #fff; /* Color of the checkmark */
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  clip-path: polygon(0 50%, 40% 90%, 100% 10%, 60% 0%); /* Simple checkmark */
+}

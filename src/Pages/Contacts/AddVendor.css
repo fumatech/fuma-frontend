@@ -1,0 +1,67 @@
+/* AddVendor.css */
+
+/* General Styling */
+
+  
+  /* Active Checkbox */
+  .form-check-input:checked {
+    background-color: #78B833;
+    border-color: #78B833;
+  }
+  
+  .form-check-label {
+   
+  }
+  
+
+  /* src/RadioButtonGroup.css */
+.radio-group {
+  display: flex;
+  
+  margin: 20px;
+}
+
+.radio-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.radio-container input[type="radio"] {
+  display: none;
+}
+
+.radio-checkmark {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #000;
+  display: inline-block;
+  margin-left: 20px;
+  
+  position: relative;
+  vertical-align: middle;
+}
+
+.radio-container input[type="radio"]:checked + .radio-checkmark {
+  background-color: #0c4461;
+}
+
+.radio-checkmark::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  
+  background: white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+
+.radio-container input[type="radio"]:checked + .radio-checkmark::after {
+  opacity: 1;
+}

@@ -1,0 +1,454 @@
+/* Universal box-sizing and scroll behavior settings */
+* {
+  box-sizing: border-box;
+  /* text-transform: capitalize; */
+  padding: 0;
+  margin: 0;
+  scroll-behavior: smooth;
+
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+/* Media query to animate the logo only if motion is not reduced */
+@media (prefers-reduced-motion: no-preference) {
+  /* Infinite spinning animation for the App logo */
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+/* App header styling */
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+/* Header logout button styling */
+.headerLogout-btn {
+  /* background-color: #ffffff;
+  box-shadow: none;
+  color: rgb(0, 0, 0);
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  margin: 0px 10px; */
+  font-family: sans-serif;
+  border: none;
+}
+
+.nav-link {
+  padding: 0px;
+}
+.nav-icon {
+  width: 17px;
+  height: 17px;
+}
+
+/* App link styling */
+.App-link {
+  color: #61dafb;
+}
+
+/* Keyframe for the logo spinning animation */
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Wrapper styling for the layout structure */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: auto;
+}
+
+/* Utility class to force display block */
+.d-block {
+  display: block !important;
+}
+
+/* Utility class to force display none */
+.d-none {
+  display: none !important;
+}
+
+/* Menu theme with a gradient background */
+/* .menu_theme  {
+  background: hsla(89, 57%, 46%, 1);
+  background: linear-gradient(
+    270deg,
+    hsla(89, 57%, 46%, 1) 0%,
+    hsla(167, 42%, 27%, 1) 0%,
+    hsla(200, 78%, 21%, 1) 100%,
+    hsla(121, 30%, 40%, 1) 100%,
+    hsla(102, 40%, 42%, 1) 100%
+  );
+  
+  background: -moz-linear-gradient(
+    270deg,
+    hsla(89, 57%, 46%, 1) 0%,
+    hsla(167, 42%, 27%, 1) 0%,
+    hsla(200, 78%, 21%, 1) 100%,
+    hsla(121, 30%, 40%, 1) 100%,
+    hsla(102, 40%, 42%, 1) 100%
+  );
+  
+  background: -webkit-linear-gradient(
+    270deg,
+    hsla(89, 57%, 46%, 1) 0%,
+    hsla(167, 42%, 27%, 1) 0%,
+    hsla(200, 78%, 21%, 1) 100%,
+    hsla(121, 30%, 40%, 1) 100%,
+    hsla(102, 40%, 42%, 1) 100%
+  );
+  
+  filter: progid: DXImageTransform.Microsoft.gradient(startColorstr="#78B833", endColorstr="#286255", GradientType=1);
+} */
+
+/* Styling for tables with rounded corners */
+.table-style {
+  border-radius: 25px;
+}
+
+/* Styling for main headings */
+.all-heading {
+  font-family: "Plus Jakarta Display", sans-serif;
+  font-weight: bold;
+  color: #0c4461;
+}
+
+/* Styling for subheadings */
+.sub-heading {
+  font-family: "Plus Jakarta Display", sans-serif;
+  color: #9fa6b2;
+  margin-left: 3px;
+  font-size: 14px;
+}
+.dashboard-background {
+  /* 
+  background: rgb(36,37,63);
+  background: radial-gradient(circle, rgba(83, 89, 255, 0.79) 1%, rgb(131, 182, 232) 45%, rgb(187, 195, 232) 100%);
+   */
+  border: none;
+}
+
+.dashbord-card-logo {
+  color: white;
+}
+/* .dashboard-background {
+  background: linear-gradient(
+    135deg,
+    rgba(3, 22, 31, 0.9) ,    
+    rgba(15, 74, 103, 0.8) ,   
+
+  );
+ 
+
+  
+} */
+
+.menu_theme {
+  background: rgb(25, 24, 48);
+  background: linear-gradient(
+    179deg,
+    rgba(25, 24, 48, 1) 0%,
+    rgba(12, 68, 97, 1) 49%
+  );
+  border: none;
+
+  backdrop-filter: blur(20px); /* Adjust the blur value */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow for contrast */
+}
+
+.header-background {
+  background: rgba(240, 239, 244, 0);
+  background: linear-gradient(
+    179deg,
+    rgba(25, 24, 48, 0) 0%,
+    rgba(12, 69, 97, 0.015) 49%
+  );
+  border: none;
+
+  backdrop-filter: blur(20px); /* Adjust the blur value */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow for contrast */
+}
+
+/* Light Theme */
+body.light-theme {
+  --background-color: #f4f6f9;
+  --text-color: #343a40;
+  --card-background: #ffffff;
+  --card-border: #dee2e6;
+}
+
+body.light-theme .card {
+  background-color: var(--card-background);
+  border-color: var(--card-border);
+}
+
+/* Dark Theme */
+body.dark-theme {
+  --background-color: #212529;
+  --text-color: #e9ecef;
+  --card-background: #343a40;
+  --card-border: #495057;
+}
+
+body.dark-theme .card {
+  background-color: var(--card-background);
+  border-color: var(--card-border);
+}
+
+/* General Styles */
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.blur-card {
+  border: 2px white;
+  margin: 10px;
+  background: rgb(25, 24, 48);
+  background: linear-gradient(
+    179deg,
+    rgba(25, 24, 48, 1) 0%,
+    rgba(12, 68, 97, 1) 49%
+  );
+  backdrop-filter: blur(1px); /* Adjust the value for the blur effect */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.9); /* Optional: Adds a subtle shadow for better contrast */
+  padding: 20px; /* Optional: Adds some padding inside the card */
+  border-radius: 25px;
+}
+
+.table-rounded {
+  border-collapse: separate;
+  border-spacing: 0; /* To remove the default spacing */
+}
+
+.table-rounded th,
+.table-rounded td {
+  border: 1px solid #dee2e6; /* Table border color */
+  border-radius: 8px; /* Adjust the radius as needed */
+  overflow: hidden; /* Prevents content from overflowing */
+}
+
+.table-rounded th {
+  background-color: #f8f9fa; /* Optional: Header background color */
+}
+
+.app-background {
+  /* background-image: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%); */
+  background-color: #f4f6f9;
+}
+
+.page-item.active .page-link {
+  z-index: 3;
+  color: #fff;
+  background-color: #0c4461;
+  border-color: #0c4461;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+  color: red; /* Change the text color to red */
+}
+
+.dataTables_wrapper .dataTables_paginate a {
+  background-color: #0c4461; /* Change the link color to red */
+}
+
+.dataTables_wrapper .dataTables_paginate {
+  /* Change the hover color if desired */
+}
+
+.page-item.active .page-link {
+  color: #fff;
+  /* background-color: #007bff; */
+  border-color: #007bff;
+}
+h1 {
+  font-size: 28px;
+}
+
+/* App.css */
+
+.date-range-selector {
+  position: relative;
+}
+
+.date-range-input {
+  width: 300px;
+  padding: 8px;
+}
+
+.date-range-dropdown {
+  position: absolute;
+  top: 38px; /* Adjust based on input height */
+  left: 0;
+  width: 300px;
+  background-color: white;
+
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  z-index: 100;
+}
+
+.date-range-dropdown li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.date-range-dropdown li:hover {
+  background-color: #f0f0f0;
+}
+
+.custom-size-textsize {
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 100;
+  line-height: 1;
+
+  color: #555;
+  text-align: center;
+  background-color: #eeeeee00;
+  border: 1px solid #ccc;
+}
+
+.custom-outline-dropdown {
+}
+
+.select2-container--default
+  .select2-selection--single
+  .select2-selection__rendered {
+  line-height: 24px !important; /* Change this value as needed */
+  padding: 0px 10px; /* Adjust padding as needed */
+}
+.select2-container--default
+  .select2-selection--single
+  .select2-selection__rendered {
+  line-height: 24px !important; /* Add !important to override */
+}
+
+.select2-container--default .select2-search__field:focus {
+  outline: 0;
+  border: none !important; /* Remove the border */
+  box-shadow: none !important; /* Remove any shadow */
+}
+
+/* If you want to apply this to all states (including non-focus) */
+.select2-container--default .select2-search__field {
+  border: none !important; /* Remove the border */
+}
+
+/* Hide the spinner buttons in WebKit browsers (Chrome, Safari) */
+.number input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide the spinner buttons in Firefox */
+.number input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.page-item.active .page-link {
+  color: #fff !important;
+  background-color: #0c4461 !important;
+  border-color: #000 !important;
+}
+
+.menu-options {
+  font-size: 13px;
+}
+
+.menu-name {
+  font-size: 15px;
+}
+
+@media only screen and (max-width: 978px) {
+  .menu-options {
+    font-size: 11px;
+  }
+}
+
+.menuSidebar {
+  height: 100vh; /* Adjust according to your header or top margin */
+  overflow-y: auto;
+  overflow-x: hidden; /* Prevent horizontal scroll if necessary */
+}
+
+/* Hide scrollbars */
+.menuSidebar::-webkit-scrollbar {
+  width: 0;
+}
+
+.modal-body {
+  overflow: auto;
+}
+
+/* styles.css or your CSS file */
+.datepicker-wrapper {
+  position: relative; /* Ensure it can position itself */
+  z-index: 1050; /* Bootstrap modal default z-index is 1050 */
+}
+
+.card {
+  z-index: 1000; /* Ensure this is lower than the DatePicker */
+  position: relative; /* Make sure it's positioned to use z-index */
+}
+
+.invoice-button:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+/* Main menu item hover */
+.nav-item > .nav-link:hover {
+  background-color: rgba(0, 64, 193, 0.1) !important;
+}
+
+.nav-item > .nav-link:hover i,
+.nav-item > .nav-link:hover p {
+  color: black !important;
+}
+
+/* Submenu item hover */
+.nav-treeview .nav-item .nav-link:hover {
+  background-color: rgba(0, 64, 193, 0.1) !important;
+}
+
+.nav-treeview .nav-item .nav-link:hover,
+.nav-treeview .nav-item .nav-link:hover i {
+  color: black !important;
+}
+
+.main-sidebar {
+  background-color: #ffffff !important; /* Force transparency */
+  position: fixed; /* Make it float */
+  top: 0;
+  left: 0;
+  z-index: 1000; /* Ensure it's above other content */
+  border: none;
+  /* padding: 20px 8px 30px 11px; */
+}
+
+.user-panel {
+  height: 60px;
+  background-color: #003aaf;
+  color: #ffffff;
+}
+.nav-item {
+  font-size: 13px;
+  font-weight: 550;
+}

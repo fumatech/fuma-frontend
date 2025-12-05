@@ -1,0 +1,106 @@
+/* LoginPage.css */
+
+.login-box {
+
+  /* border-radius: 25px; */
+  font-family: sans-serif;
+ 
+}
+
+.login-background {
+  background: hsla(233, 67%, 12%, 1);
+
+background: linear-gradient(90deg, hsla(233, 67%, 12%, 1) 7%, hsla(233, 60%, 21%, 1) 38%, hsla(234, 55%, 33%, 1) 100%);
+
+background: -moz-linear-gradient(90deg, hsla(233, 67%, 12%, 1) 7%, hsla(233, 60%, 21%, 1) 38%, hsla(234, 55%, 33%, 1) 100%);
+
+background: -webkit-linear-gradient(90deg, hsla(233, 67%, 12%, 1) 7%, hsla(233, 60%, 21%, 1) 38%, hsla(234, 55%, 33%, 1) 100%);
+
+filter: progid: DXImageTransform.Microsoft.gradient( startColorstr="#0A0F33", endColorstr="#151C54", GradientType=1 ); /* Gradient color from #0c4461 to #005b8a */
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+}
+
+.card {
+  border: none;
+  border-radius: 10px;
+}
+
+.card-header {
+  border-bottom: 1px solid #dee2e6;
+  border-radius: 10px 10px 0 0;
+  padding: 15px;
+  text-align: center;
+}
+
+.custom-heading {
+  font-size: 1.5rem;
+    font-weight: 450;
+    margin-bottom: 0;
+  
+    font-size: 1.5rem;
+    color: #000;
+    margin: auto;
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+  border: 1px solid #ced4da;
+}
+
+.input-group {
+  margin-bottom: 15px;
+}
+
+.btn {
+  font-size: 16px;
+}
+
+.signin-btn {
+  font-size: 16px;
+  padding: 10px;
+}
+
+.social-auth-links a {
+  margin: 5px 0;
+}
+
+#forgot_password,
+#remember_text {
+  color: #007bff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 200;
+  font-size: 15px;
+}
+
+#forgot_password:hover,
+#remember_text:hover {
+  text-decoration: underline;
+}
+
+.logo-img{
+  height: 70px;
+  width: 130px;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+}
+
+.interactive-img {
+  
+  border-radius: 8px; /* Rounded corners */
+ /* Subtle shadow */
+  transition: transform 0.3s ease, border-color 0.3s ease; /* Smooth transition */
+}
+
+.interactive-img:hover {
+  transform: scale(1.05); /* Slightly zoom in on hover */
+  border-color: #007bff; /* Change border color on hover */
+}

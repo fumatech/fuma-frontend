@@ -1,0 +1,58 @@
+/* src/components/LoginPage.css */
+.login-box {
+    width: 360px;
+    margin: 7% auto;
+    font-family: sans-serif;
+   
+  }
+  
+  
+  
+  .card-header {
+   
+    color: #fff;
+  }
+  
+  .custom-heading {
+    font-size: 1.5rem;
+    font-weight: 450;
+    margin-bottom: 0;
+  
+    font-size: 1.5rem;
+    color: #000;
+    margin: auto;
+  }
+  
+  
+  
+  .login-box-msg{
+    font-size: 18px;
+    font-weight: 500;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  
+  
+  #remember_text{
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 200;
+  }
+  
+  #forgot_password{
+    color: black;
+   
+  }
+  
+  #forgot_password:hover{
+  
+    color: rgb(198, 52, 52);
+  }
+  
+  .signin-btn{
+    font-size: 32px;
+  }
+  
+  
+  .login-background{
+    background: rgb(25,24,48);
+    background: linear-gradient(179deg, rgba(25,24,48,1) 0%, rgba(12,68,97,1) 49%); 
+  }

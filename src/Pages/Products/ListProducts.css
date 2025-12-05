@@ -1,0 +1,61 @@
+/* Increase z-index for backdrop and modal */
+
+.modal-backdrop {
+  z-index: 1100 !important;
+}
+
+.modal {
+  z-index: 1110 !important;
+}
+
+.select_btn {
+  padding: 1px;
+  margin: 0px;
+  font-size: 12px;
+}
+
+/* CustomDropdownButton.css */
+
+.custom-outline-dropdown {
+  font-size: 0.875rem; /* Smaller font size */
+  padding: 0.375rem 0.75rem; /* Smaller padding */
+}
+
+.custom-outline-dropdown .dropdown-toggle::after {
+  font-size: 0.875rem; /* Smaller arrow */
+}
+
+.custom-outline-dropdown .dropdown-menu {
+  font-size: 0.875rem; /* Smaller dropdown menu items */
+}
+
+.custom-outline-dropdown .dropdown-item {
+  padding: 0.25rem 0.5rem; /* Smaller item padding */
+}
+
+.custom-outline-dropdown .dropdown-item i {
+  font-size: 0.875rem; /* Smaller icons */
+}
+
+.custom-outline-dropdown .dropdown-item span {
+  font-size: 0.875rem; /* Smaller text */
+}
+.productStock_btn {
+  padding: 1px 80px;
+}
+
+.btn-icon-only {
+  color: #0c4461;
+}
+#dropdown-basic-button {
+  padding: 4px 8px;
+}
+.filter_color {
+  color: #1b545a;
+  border: none;
+}
+
+.action_buuton_color {
+  color: #78b833;
+  font-family: sans-serif;
+}

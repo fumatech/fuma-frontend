@@ -1,0 +1,289 @@
+
+
+:root {
+  --primary-color: #0c4461;  /* Dark Blue */
+  --secondary-color: #78B833 ; /* Green */
+  --background-color: #f8f9fa; /* Light background for the table */
+  --text-color: #333; /* Dark text color for contrast */
+  --button-text-color: #fff; /* White text for buttons */
+}
+
+
+
+.btn-edit {
+  border: 1px solid rgb(116, 128, 255);
+  color: #7480ff;
+  
+  border-radius: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-right: 8px;
+  font-size: 0.75rem;
+  height: 1.5rem;
+  min-height: 1.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  background-color: transparent;
+}
+
+.btn-edit:hover {
+  background-color: #7480ff;
+  color: black;
+}
+
+.btn-edit:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.5);
+}
+
+/* View button */
+.btn-view {
+  border: 1px solid #00b6ff;
+  color: #00b6ff;
+  border-radius: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-right: 8px;
+  font-size: 0.75rem;
+  height: 1.5rem;
+  min-height: 1.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  background-color: transparent;
+}
+
+.btn-view:hover {
+  color: black;
+  background-color: #00b6ff;
+}
+
+.btn-view:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Delete button */
+.btn-delete {
+  border: 1px solid #ff0000;
+  color: #ff0000;
+  border-radius: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-right: 8px;
+  font-size: 0.75rem;
+  height: 1.5rem;
+  min-height: 1.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  background-color: transparent;
+}
+
+.btn-delete svg {
+  margin-right: 0.5rem;
+  /* Space between icon and text */
+  width: 1rem;
+  height: 1rem;
+}
+
+.btn-delete:hover {
+  background-color: #ff0000;
+  color: black;
+}
+
+.btn-delete:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.5);
+  /* focus:ring-2 focus:ring-red-500 */
+}
+
+/* Add button */
+.btn-add {
+  /* background-color: #3b82f6; */
+  background-color: var(--primary-color);
+  /* bg-blue-600 */
+  color: white;
+  padding: 8px 20px;
+  border-radius: 25px;
+  /* rounded-lg */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  /* shadow-md */
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-right: 20px;
+  margin-top: 10px;
+}
+.btn-add:hover {
+  background-color: var(--primary-color );
+  opacity: .9;
+  color: #f5f5f5;
+
+
+
+}
+.btn-submit{
+  background-color: var(--primary-color);
+  color: #f5f5f5;
+
+}
+
+.btn-submit:hover{
+  border: 1px solid gray;
+  background-color: var(--primary-color);
+  opacity: .9;
+  color: #f5f5f5;
+}
+.btn-save{
+  background-color: var(--primary-color);
+  color: #f5f5f5;
+
+}
+
+.btn-save:hover{
+  border: 1px solid gray;
+  background-color: var(--primary-color);
+  opacity: .9;
+  color: #f5f5f5;
+}
+
+
+/* Card header */
+.card-header {
+  display: flex;
+  justify-content: flex-end;
+  /* Align items to the right */
+  align-items: center;
+  /* Center items vertically if needed */
+  padding: 1rem;
+  
+  /* Adjust as needed */
+}
+
+/* Add this to Users.css */
+
+.dataTables_wrapper .dataTables_filter {
+  text-align: right;
+  /* Aligns the search box to the right */
+}
+
+.dataTables_wrapper .dataTables_filter input {
+  width: 50px;
+  /* Adjust the width as needed */
+}
+
+.cardHover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.cardHover:hover {
+  transform: translateY(3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.Export-Btn{
+  
+  border:  1px solid gray;
+  font-size: small;
+  border-radius: 10px;
+  padding: 10px;
+  line-height: 0%;
+  opacity: 0.8;
+}
+
+/* For all Export Btn */
+.Export-Btn:hover {
+  border: 1px solid gray;
+  background-color: var(--primary-color);
+  transition: 0.3s ease-in-out;
+  color: var(--button-text-color);
+
+}
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .table-responsive {
+      -ms-overflow-style: -ms-autohiding-scrollbar;
+    }
+    
+    .btn-export {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    
+    .dropdown-menu {
+      position: static;
+      float: none;
+      width: 100%;
+    }
+  }
+  .btn-icon-only {
+    white-space: nowrap; /* Prevents text from wrapping */
+  }
+
+  .table_style{
+    font-family: 'Plus Jakarta Display', sans-serif;
+    font-weight: lighter;
+    font-size: 14px;
+    
+    
+  }
+ 
+  @media (max-width: 576px) { /* Adjust breakpoint as needed */
+    .btn-icon-only .btn-text {
+      display: none; /* Hide the text */
+    }
+    .btn-icon-only .btn-icon {
+      margin-right: 5px; /* Adjust margin to align icons properly */
+    }
+  }
+
+  /* Define theme colors */
+
+
+/* General styles */
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  padding: 0;
+}
+
+/* Header styles */
+.content-header h1 {
+  color: var(--primary-color);
+}
+
+/* Button styles *
+
+
+
+/* Export button styles */
+
+
+/* Table styles */
+.table {
+  background-color: var(--background-color);
+  
+}
+
+.table thead th ,.btn-save , .btn-add ,.btn-submit ,.theme-color {
+
+  background-color: #0c4461;
+  /* background: hsla(89, 57%, 46%, 1);
+
+  background: linear-gradient(270deg, hsla(89, 57%, 46%, 1) 0%, hsla(167, 42%, 27%, 1) 0%, hsla(200, 78%, 21%, 1) 100%, hsla(121, 30%, 40%, 1) 100%, hsla(102, 40%, 42%, 1) 100%);
+  
+  background: -moz-linear-gradient(270deg, hsla(89, 57%, 46%, 1) 0%, hsla(167, 42%, 27%, 1) 0%, hsla(200, 78%, 21%, 1) 100%, hsla(121, 30%, 40%, 1) 100%, hsla(102, 40%, 42%, 1) 100%);
+  
+  background: -webkit-linear-gradient(270deg, hsla(89, 57%, 46%, 1) 0%, hsla(167, 42%, 27%, 1) 0%, hsla(200, 78%, 21%, 1) 100%, hsla(121, 30%, 40%, 1) 100%, hsla(102, 40%, 42%, 1) 100%);
+  
+  filter: progid: DXImageTransform.Microsoft.gradient( startColorstr="#78B833", endColorstr="#286255", GradientType=1 ); */
+  
+  color: var(--button-text-color);
+}
+
+.table tbody tr:nth-child(odd) {
+  background-color: #e9ecef;
+}
+
