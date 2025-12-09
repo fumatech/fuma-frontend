@@ -1,46 +1,44 @@
 import React, { useState, useEffect } from "react";
 
 function PurchaseAndSale() {
-  const [purchasesData, setPurchasesData] = useState({});
-  const [salesData, setSalesData] = useState({});
+  const [summary, setSummary] = useState({});
+  const purchaseDue = summary.purchaseDue || 0;
+  const saleDue = summary.saleDue || 0;
+  const finalDueAmount = purchaseDue - saleDue;
+  const saleIncludingTax = summary.saleIncludingTax || 0;
+  const purchaseIncludingTax = summary.purchaseIncludingTax || 0;
 
-  // Function to fetch purchases data
-  const fetchPurchasesData = async () => {
+  const saleMinusPurchaseIncludingTax = saleIncludingTax - purchaseIncludingTax;
+
+  // // Fetch summary data
+  // const fetchSummary = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       "http://localhost:8443/summary/purchase-sale"
+  //     );
+  //     const data = await response.json();
+  //     setSummary(data);
+  //   } catch (error) {
+  //     console.error("Error fetching purchase-sale summary:", error);
+  //   }
+  // };
+
+  // Fetch summary data
+  const fetchSummary = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/purchases");
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/summary/purchase-sale`
+      );
       const data = await response.json();
-      setPurchasesData(data);
+      setSummary(data);
     } catch (error) {
-      console.error("Error fetching purchases data:", error);
+      console.error("Error fetching purchase-sale summary:", error);
     }
   };
 
-  // Function to fetch sales data
-  const fetchSalesData = async () => {
-    try {
-      const response = await fetch("http://localhost:8080/api/sales");
-      const data = await response.json();
-      setSalesData(data);
-    } catch (error) {
-      console.error("Error fetching sales data:", error);
-    }
-  };
-
-  // Fetch data when the component mounts
   useEffect(() => {
-    fetchPurchasesData();
-    fetchSalesData();
+    fetchSummary();
   }, []);
-
-  // Calculate overall values
-  const totalPurchases = purchasesData.totalPurchase || 0;
-  const totalSales = salesData.totalSale || 0;
-  const totalPurchaseReturns = purchasesData.totalReturnIncludingTax || 0;
-  const totalSaleReturns = salesData.totalReturnIncludingTax || 0;
-
-  const overall =
-    totalSales - totalPurchases + totalPurchaseReturns - totalSaleReturns;
-  const dueAmount = totalSales - totalPurchases; // Example calculation for due amount
 
   // Print function
   const handlePrint = () => {
@@ -64,173 +62,139 @@ function PurchaseAndSale() {
           <section className="content">
             <div className="container-fluid">
               <div className="row">
+                {/* PURCHASE */}
                 <div className="col-md-6">
                   <div className="card p-2 cardHover rounded-4 border-0 w-auto">
-                    <div>
-                      <h3 className="text-muted">Purchases</h3>
-                    </div>
-                    <div>
-                      <div>
-                        <table className="table table-striped">
-                          <tbody>
-                            <tr>
-                              <th>Total Purchase:</th>
-                              <td>
-                                <span className="total_purchase">{`$ ${totalPurchases}`}</span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <th>Purchase Including Tax:</th>
-                              <td>
-                                <span className="purchase_inc_tax">{`$ ${
-                                  purchasesData.purchaseIncludingTax || 0
-                                }`}</span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <th>Total Purchase Return Including Tax:</th>
-                              <td>
-                                <span className="purchase_return_inc_tax">{`$ ${totalPurchaseReturns}`}</span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <th>
-                                Purchase Due:{" "}
-                                <i
-                                  className="fa fa-info-circle text-info hover-q no-print responsive-icon"
-                                  aria-hidden="true"
-                                  data-container="body"
-                                  data-toggle="popover"
-                                  data-placement="auto bottom"
-                                  data-content="Total unpaid amount for purchases."
-                                  data-html="true"
-                                  data-trigger="hover"
-                                  title=""
-                                />
-                              </th>
-                              <td>
-                                <span className="purchase_due">{`$ ${
-                                  purchasesData.purchaseDue || 0
-                                }`}</span>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                    <h3 className="text-muted">Purchases</h3>
+
+                    <table className="table table-striped">
+                      <tbody>
+                        <tr>
+                          <th>Total Purchase:</th>
+                          <td>
+                            <span className="total_purchase">
+                              ₹ {summary.totalPurchase || 0}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Purchase Including Tax:</th>
+                          <td>
+                            <span className="purchase_inc_tax">
+                              ₹ {summary.purchaseIncludingTax || 0}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Total Purchase Return Including Tax:</th>
+                          <td>
+                            <span className="purchase_return_inc_tax">
+                              ₹ {summary.totalPurchaseReturnIncludingTax || 0}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>
+                            Purchase Due:
+                            <i className="fa fa-info-circle text-info hover-q no-print responsive-icon" />
+                          </th>
+                          <td>
+                            <span className="purchase_due">
+                              ₹ {summary.purchaseDue || 0}
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
 
+                {/* SALES */}
                 <div className="col-md-6">
                   <div className="card p-2 cardHover rounded-4 border-0 w-auto">
-                    <div>
-                      <h3 className="text-muted">Sales</h3>
-                    </div>
-                    <div>
-                      <div>
-                        <table className="table table-striped">
-                          <tbody>
-                            <tr>
-                              <th>Total Sale:</th>
-                              <td>
-                                <span className="total_sell">{`$ ${totalSales}`}</span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <th>Sale Including Tax:</th>
-                              <td>
-                                <span className="sell_inc_tax">{`$ ${
-                                  salesData.saleIncludingTax || 0
-                                }`}</span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <th>Total Sell Return Including Tax:</th>
-                              <td>
-                                <span className="total_sell_return">{`$ ${totalSaleReturns}`}</span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <th>
-                                Sale Due:{" "}
-                                <i
-                                  className="fa fa-info-circle text-info hover-q no-print responsive-icon"
-                                  aria-hidden="true"
-                                  data-container="body"
-                                  data-toggle="popover"
-                                  data-placement="auto bottom"
-                                  data-content="Total amount to be received from sales"
-                                  data-html="true"
-                                  data-trigger="hover"
-                                  title=""
-                                />
-                              </th>
-                              <td>
-                                <span className="sell_due">{`$ ${
-                                  salesData.saleDue || 0
-                                }`}</span>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                    <h3 className="text-muted">Sales</h3>
+
+                    <table className="table table-striped">
+                      <tbody>
+                        <tr>
+                          <th>Total Sale:</th>
+                          <td>
+                            <span className="total_sell">
+                              ₹ {summary.totalSale || 0}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Sale Including Tax:</th>
+                          <td>
+                            <span className="sell_inc_tax">
+                              ₹ {summary.saleIncludingTax || 0}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Total Sell Return Including Tax:</th>
+                          <td>
+                            <span className="total_sell_return">
+                              ₹ {summary.totalSaleReturnIncludingTax || 0}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>
+                            Sale Due:
+                            <i className="fa fa-info-circle text-info hover-q no-print responsive-icon" />
+                          </th>
+                          <td>
+                            <span className="sell_due">
+                              ₹ {summary.saleDue || 0}
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
 
+              {/* OVERALL */}
               <div className="row">
-                <div className="card p-2 cardHover rounded-4 border-0 ">
+                <div className="card p-2 cardHover rounded-4 border-0">
                   <div className="col-12">
-                    <div>
-                      <div className="">
-                        <h4 className="">
-                          Overall (Sale - Sell Return) - (Purchase - Purchase
-                          Return)
-                          <span
-                            className="text-info hover-q no-print"
-                            data-toggle="popover"
-                            data-placement="auto bottom"
-                            data-content="-ve value = Amount to pay <br>+ve Value = Amount to receive"
-                            data-html="true"
-                            title=""
-                          >
-                            <i aria-hidden="true"></i>
-                          </span>
-                        </h4>
-                      </div>
-                      <div className="tw-flow-root tw-border-gray-200">
-                        <div>
-                          <div className="tw-py-2 tw-align-middle sm:tw-px-5">
-                            <h3 className="text-muted">
-                              Sale - Purchase:
-                              <span
-                                className={`sell_minus_purchase ${
-                                  overall < 0 ? "text-danger" : "text-success"
-                                }`}
-                              >
-                                ${overall.toFixed(2)}
-                              </span>
-                            </h3>
-                            <h3 className="text-muted">
-                              Due amount:
-                              <span
-                                className={`difference_due ${
-                                  dueAmount < 0 ? "text-danger" : "text-success"
-                                }`}
-                              >
-                                ${dueAmount.toFixed(2)}
-                              </span>
-                            </h3>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <h4>
+                      Overall (Sale - Purchase)
+                      <i className="fa fa-info-circle text-info hover-q no-print" />
+                    </h4>
+
+                    <h3 className="text-muted">
+                      Sale - Purchase:
+                      <span
+                        className={`sell_minus_purchase ${
+                          saleMinusPurchaseIncludingTax < 0
+                            ? "text-danger"
+                            : "text-success"
+                        }`}
+                      >
+                        ₹{saleMinusPurchaseIncludingTax.toFixed(2)}
+                      </span>
+                    </h3>
+
+                    <h3 className="text-muted">
+                      Due amount:
+                      <span
+                        className={`difference_due ${
+                          finalDueAmount < 0 ? "text-danger" : "text-success"
+                        }`}
+                      >
+                        ₹{finalDueAmount.toFixed(2)}
+                      </span>
+                    </h3>
                   </div>
                 </div>
+
                 <div className="text-center py-3">
                   <button
-                    className="btn btn-save btn-lg px-4 py-2 m-2 "
+                    className="btn btn-save btn-lg px-4 py-2 m-2"
                     onClick={handlePrint}
                   >
                     <i className="fa fa-print"></i> Print

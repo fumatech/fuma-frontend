@@ -5,7 +5,7 @@ import "../../assets/plugins/fontawesome-free/css/all.min.css";
 import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
 import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
 import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
-import { Dropdown, DropdownButton, Collapse } from "react-bootstrap";
+import { Dropdown, DropdownButton } from "react-bootstrap";
 import axios from "axios";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
@@ -16,7 +16,6 @@ import { Link, useNavigate } from "react-router-dom";
 
 const ReturnPurchase = () => {
   const [purchases, setPurchases] = useState([]);
-  const [filteredPurchases, setFilteredPurchases] = useState([]);
   const [columnsVisibility, setColumnsVisibility] = useState({
     action: true,
     status: true,
@@ -35,7 +34,7 @@ const ReturnPurchase = () => {
   const [modalType, setModalType] = useState(null);
   const [currentPurchase, setCurrentPurchase] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [entriesPerPage, setEntriesPerPage] = useState(25);
   const [formData, setFormData] = useState({
     date: "",
     referenceNumber: "",
@@ -47,31 +46,6 @@ const ReturnPurchase = () => {
     purchaseReturnId: "",
   });
 
-  // State variables for filters
-  const [filterValues, setFilterValues] = useState({
-    locations: [],
-    statuses: [],
-  });
-
-  const [activeFilters, setActiveFilters] = useState({
-    startDate: "",
-    endDate: "",
-    status: "",
-    location: "",
-  });
-
-  const [filterOpen, setFilterOpen] = useState(false);
-
-  // Status mapping for display
-  const statusMap = {
-    0: "Returned",
-    1: "Accepted",
-    2: "Rejected",
-    3: "Shipped",
-    null: "Pending",
-  };
-
-  // Declare the fetchPurchases function outside of useEffect
   const fetchPurchases = async () => {
     try {
       const response = await fetch(
@@ -81,104 +55,23 @@ const ReturnPurchase = () => {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-      // console.log(data);
 
-      // Check if the fetched data is an array and sort by purchaseOrderId in descending order
       if (Array.isArray(data)) {
         const sortedData = data.sort((a, b) => b.id - a.id);
         setPurchases(sortedData);
-        setFilteredPurchases(sortedData);
       } else {
         console.error("Fetched data is not an array");
         setPurchases([]);
-        setFilteredPurchases([]);
       }
     } catch (error) {
       console.error("Error fetching purchases:", error);
       setPurchases([]);
-      setFilteredPurchases([]);
     }
   };
 
   useEffect(() => {
-    // Call fetchPurchases inside useEffect
     fetchPurchases();
   }, []);
-
-  // Extract filter values when purchases data changes
-  useEffect(() => {
-    if (purchases.length > 0) {
-      const locations = [
-        ...new Set(purchases.map((item) => item.location)),
-      ].filter(Boolean);
-      const statuses = [...new Set(purchases.map((item) => item.status))];
-
-      setFilterValues({
-        locations,
-        statuses,
-      });
-    }
-  }, [purchases]);
-
-  // Apply filters whenever activeFilters or purchases changes
-  useEffect(() => {
-    const filteredData = purchases.filter((purchase) => {
-      const purchaseDate = new Date(purchase.orderDate);
-
-      // Date range filter
-      let dateMatch = true;
-      if (activeFilters.startDate && activeFilters.endDate) {
-        const startDate = new Date(activeFilters.startDate);
-        const endDate = new Date(activeFilters.endDate);
-        endDate.setHours(23, 59, 59, 999);
-
-        dateMatch = purchaseDate >= startDate && purchaseDate <= endDate;
-      } else if (activeFilters.startDate) {
-        const startDate = new Date(activeFilters.startDate);
-        dateMatch = purchaseDate >= startDate;
-      } else if (activeFilters.endDate) {
-        const endDate = new Date(activeFilters.endDate);
-        endDate.setHours(23, 59, 59, 999);
-        dateMatch = purchaseDate <= endDate;
-      }
-
-      // Location filter
-      const locationMatch =
-        activeFilters.location === "" ||
-        purchase.location === activeFilters.location;
-
-      // Status filter
-      const statusMatch =
-        activeFilters.status === "" ||
-        (activeFilters.status === "null" && purchase.status === null) ||
-        (activeFilters.status !== "null" &&
-          purchase.status === parseInt(activeFilters.status));
-
-      return dateMatch && locationMatch && statusMatch;
-    });
-
-    setFilteredPurchases(filteredData);
-  }, [activeFilters, purchases]);
-
-  // Filter change handler
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setActiveFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setCurrentPage(1);
-  };
-
-  // Reset filters function
-  const resetFilters = () => {
-    setActiveFilters({
-      startDate: "",
-      endDate: "",
-      status: "",
-      location: "",
-    });
-  };
 
   const handleAdd = () => {
     setModalType("add");
@@ -193,122 +86,201 @@ const ReturnPurchase = () => {
   };
 
   const handleDeleteClick = (id) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      fetch(`${process.env.REACT_APP_BASE_URL}/purchaseorder/delete/${id}`, {
+    if (
+      window.confirm("Are you sure you want to delete this purchase return?")
+    ) {
+      fetch(`${process.env.REACT_APP_BASE_URL}/purchase-return/delete/${id}`, {
         method: "DELETE",
       })
         .then((response) => {
           if (response.status === 204) {
-            // Filter out the deleted product from the state
             setPurchases((prevPurchases) =>
               prevPurchases.filter((purchase) => purchase.id !== id)
             );
-            alert("Product deleted successfully!");
+            alert("Purchase return deleted successfully!");
           } else {
-            alert("Failed to delete product.");
+            alert("Failed to delete purchase return.");
           }
         })
-        .catch((error) => console.error("Error deleting product:", error));
+        .catch((error) =>
+          console.error("Error deleting purchase return:", error)
+        );
     }
   };
 
   const handleCancelClick = async (purchaseId) => {
-    alert("Are You Want To Cancel This Purchase??");
-    try {
-      // Define the API URL with the purchase ID
-      const apiUrl = `${process.env.REACT_APP_BASE_URL}/purchase-return/updateStatus/${purchaseId}`;
+    if (
+      window.confirm("Are you sure you want to cancel this purchase return?")
+    ) {
+      try {
+        const apiUrl = `${process.env.REACT_APP_BASE_URL}/purchase-return/updateStatus/${purchaseId}`;
+        const payload = {
+          status: 2, // Cancel status
+        };
 
-      // Prepare the request payload
-      const payload = {
-        status: 2, // Cancel status
-      };
+        const response = await axios.put(apiUrl, payload, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
-      // Make the PUT request
-      const response = await axios.put(apiUrl, payload, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      // Handle successful response
-      if (response.status === 200) {
-        fetchPurchases();
-        alert("Order canceled successfully!");
-      } else {
-        console.error("Failed to cancel order", response);
+        if (response.status === 200) {
+          fetchPurchases();
+          alert("Purchase return canceled successfully!");
+        } else {
+          console.error("Failed to cancel purchase return", response);
+        }
+      } catch (error) {
+        console.error("Error while canceling purchase return:", error);
+        alert("Failed to cancel the purchase return. Please try again.");
       }
-    } catch (error) {
-      // Handle errors
-      console.error("Error while canceling order:", error);
-      alert("Failed to cancel the order. Please try again.");
     }
   };
 
+  const downloadReceipt = (purchaseReturn) => {
+    const doc = new jsPDF();
+
+    // Add company logo and header
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.text("FUMA PANEL", 105, 20, { align: "center" });
+
+    doc.setFontSize(16);
+    doc.setTextColor(100, 100, 100);
+    doc.text("PURCHASE RETURN RECEIPT", 105, 30, { align: "center" });
+
+    // Add receipt details
+    doc.setFontSize(12);
+    doc.text(`Return No: ${purchaseReturn.purchaseReturnId}`, 20, 50);
+    doc.text(`Invoice No: ${purchaseReturn.invoiceNumber || "N/A"}`, 20, 60);
+    doc.text(`Date: ${purchaseReturn.orderDate}`, 20, 70);
+    doc.text(`Vendor: ${purchaseReturn.vendor}`, 20, 80);
+
+    // Add status and amount information
+    doc.text(`Status: ${getStatusText(purchaseReturn.status)}`, 20, 90);
+    doc.text(`Total Amount: ₹${purchaseReturn.totalAmount || 0}`, 20, 100);
+    doc.text(`Amount Due: ₹${calculateAmountDue(purchaseReturn)}`, 20, 110);
+
+    // Add footer
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Thank you for your business", 105, 150, { align: "center" });
+    doc.text("Generated on: " + new Date().toLocaleDateString(), 105, 160, {
+      align: "center",
+    });
+
+    // Save the PDF
+    doc.save(`PurchaseReturnReceipt_${purchaseReturn.purchaseReturnId}.pdf`);
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 0:
+        return "Pending";
+      case 1:
+        return "Accepted";
+      case 2:
+        return "Rejected";
+      case 3:
+        return "Refunded";
+      case 4:
+        return "Credit Note Issued";
+      default:
+        return "Unknown";
+    }
+  };
+
+  const calculateAmountDue = (purchaseReturn) => {
+    const totalAmount = purchaseReturn.totalAmount || 0;
+
+    if (purchaseReturn.status === 3 || purchaseReturn.status === 4) {
+      return 0; // Refunded or Credit Note Issued
+    }
+
+    return totalAmount; // Pending, Accepted, or Rejected
+  };
+
   const exportCSV = () => {
-    const csvData = filteredPurchases.map((purchase) => ({
-      Date: purchase.date,
-      ReferenceNumreferenceNumber: purchase.referenceNumber,
-      Location: purchase.location,
-      vendor: purchase.vendor,
-      totalItems: purchase.totalItems,
-      additionalNotes: purchase.additionalNotes,
-      AddedBy: purchase.addedBy,
-      purchaseReturnId: purchase.purchaseReturnId,
+    const csvData = purchases.map((purchase) => ({
+      Date: purchase.orderDate,
+      "Return No": purchase.purchaseReturnId,
+      "Invoice No": purchase.invoiceNumber,
+      "Reference No": purchase.referenceNumber,
+      Vendor: purchase.vendor,
+      "Total Items": purchase.totalItems,
+      "Total Amount": purchase.totalAmount || 0,
+      "Payment Status": getStatusText(purchase.status),
+      "Amount Due": calculateAmountDue(purchase),
+      "Additional Notes": purchase.additionalNotes,
+      "Added By": purchase.addedBy,
     }));
 
     const csv = [
-      ["Date", "Reference No", "Location", "vendor", "Added By"],
+      Object.keys(csvData[0]),
       ...csvData.map((row) => Object.values(row)),
     ]
       .map((row) => row.join(","))
       .join("\n");
 
     const blob = new Blob([csv], { type: "text/csv" });
-    saveAs(blob, "purchases.csv");
+    saveAs(blob, "purchase_returns.csv");
   };
 
   const exportExcel = () => {
     const ws = XLSX.utils.json_to_sheet(
-      filteredPurchases.map((purchase) => ({
-        Date: purchase.date,
-        ReferenceNumreferenceNumber: purchase.referenceNumber,
-        Location: purchase.location,
-        vendor: purchase.vendor,
-        totalItems: purchase.totalItems,
-        additionalNotes: purchase.additionalNotes,
-        AddedBy: purchase.addedBy,
-        purchaseReturnId: purchase.purchaseReturnId,
+      purchases.map((purchase) => ({
+        Date: purchase.orderDate,
+        "Return No": purchase.purchaseReturnId,
+        "Invoice No": purchase.invoiceNumber,
+        "Reference No": purchase.referenceNumber,
+        Vendor: purchase.vendor,
+        "Total Items": purchase.totalItems,
+        "Total Amount": purchase.totalAmount || 0,
+        "Payment Status": getStatusText(purchase.status),
+        "Amount Due": calculateAmountDue(purchase),
+        "Additional Notes": purchase.additionalNotes,
+        "Added By": purchase.addedBy,
       }))
     );
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Purchases");
-    XLSX.writeFile(wb, "purchases.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Purchase Returns");
+    XLSX.writeFile(wb, "purchase_returns.xlsx");
   };
 
   const exportPDF = () => {
     const doc = new jsPDF();
 
-    // Define the column headers
-    const headers = ["Date", "Reference No", "Location", "Vendor", "Added By"];
+    doc.setFontSize(16);
+    doc.text("Purchase Returns Report", 14, 15);
+    doc.setFontSize(12);
+    doc.text("Generated on: " + new Date().toLocaleDateString(), 14, 22);
 
-    // Map through the purchase data and prepare the body
-    const body = filteredPurchases.map((p) => [
+    const headers = [
+      "Return No",
+      "Date",
+      "Invoice No",
+      "Vendor",
+      "Total Items",
+      "Total Amount",
+      "Status",
+      "Amount Due",
+    ];
+
+    const body = purchases.map((p) => [
+      p.purchaseReturnId,
       p.orderDate,
-      p.referenceNumber,
-      p.location,
+      p.invoiceNumber || "N/A",
       p.vendor,
-      p.addedBy,
+      p.totalItems,
+      `₹${p.totalAmount || 0}`,
+      getStatusText(p.status),
+      `₹${calculateAmountDue(p)}`,
     ]);
 
-    // Add some space before the table
-    doc.text("Purchase List", 14, 20);
-    doc.setFontSize(12);
-    doc.text("Below is the list of purchases with their details:", 14, 30);
-
-    // Generate the PDF table with custom styles
     doc.autoTable({
       head: [headers],
       body: body,
+      startY: 30,
       theme: "grid",
       styles: {
         fontSize: 10,
@@ -325,54 +297,52 @@ const ReturnPurchase = () => {
       alternateRowStyles: {
         fillColor: [240, 240, 240],
       },
-      margin: { top: 50 },
     });
 
-    // Save the PDF
-    doc.save("PurchaseList.pdf");
-  };
-
-  const toggleColumn = (column) => {
-    setColumnsVisibility((prev) => ({
-      ...prev,
-      [column]: !prev[column],
-    }));
+    doc.save("PurchaseReturnsReport.pdf");
   };
 
   const printData = () => {
-    const printWindow = window.open("", "_blank", "width=800,height=600");
+    const printWindow = window.open("", "_blank", "width=1000,height=600");
 
     const tableContent = `
       <html>
         <head>
-          <title>Print Purchases</title>
+          <title>Print Purchase Returns</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 20px; }
             table { width: 100%; border-collapse: collapse; }
             th, td { border: 1px solid #ddd; padding: 8px; }
             th { background-color: #f2f2f2; }
             th, td { text-align: left; }
+            .header { text-align: center; margin-bottom: 20px; }
           </style>
         </head>
         <body>
-          <h2>Purchase Report</h2>
+          <div class="header">
+            <h2>Purchase Return Report</h2>
+            <p>Generated on: ${new Date().toLocaleDateString()}</p>
+          </div>
           <table>
             <thead>
               <tr>
                 ${
-                  columnsVisibility.purchaseReturnId
-                    ? "<th>Purchase Return Id</th>"
-                    : ""
+                  columnsVisibility.purchaseReturnId ? "<th>Return No</th>" : ""
                 }
-                ${columnsVisibility.date ? "<th> Date</th>" : ""}
+                ${columnsVisibility.date ? "<th>Date</th>" : ""}
+                ${
+                  columnsVisibility.referenceNumber ? "<th>Invoice No</th>" : ""
+                }
                 ${
                   columnsVisibility.referenceNumber
                     ? "<th>Reference No</th>"
                     : ""
                 }
-                ${columnsVisibility.location ? "<th>Location</th>" : ""}
                 ${columnsVisibility.vendor ? "<th>Vendor</th>" : ""}
                 ${columnsVisibility.totalItems ? "<th>Total Items</th>" : ""}
+                <th>Total Amount</th>
+                <th>Payment Status</th>
+                <th>Amount Due</th>
                 ${
                   columnsVisibility.additionalNotes
                     ? "<th>Additional Notes</th>"
@@ -382,15 +352,15 @@ const ReturnPurchase = () => {
               </tr>
             </thead>
             <tbody>
-              ${filteredPurchases
+              ${purchases
                 .map(
                   (purchase) => `
                 <tr>
-                    ${
-                      columnsVisibility.purchaseReturnId
-                        ? `<td>${purchase.purchaseReturnId}</td>`
-                        : ""
-                    }
+                  ${
+                    columnsVisibility.purchaseReturnId
+                      ? `<td>${purchase.purchaseReturnId}</td>`
+                      : ""
+                  }
                   ${
                     columnsVisibility.date
                       ? `<td>${purchase.orderDate}</td>`
@@ -398,12 +368,12 @@ const ReturnPurchase = () => {
                   }
                   ${
                     columnsVisibility.referenceNumber
-                      ? `<td>${purchase.referenceNumber}</td>`
+                      ? `<td>${purchase.invoiceNumber || "N/A"}</td>`
                       : ""
                   }
                   ${
-                    columnsVisibility.location
-                      ? `<td>${purchase.location}</td>`
+                    columnsVisibility.referenceNumber
+                      ? `<td>${purchase.referenceNumber}</td>`
                       : ""
                   }
                   ${
@@ -416,9 +386,12 @@ const ReturnPurchase = () => {
                       ? `<td>${purchase.totalItems}</td>`
                       : ""
                   }
+                  <td>₹${purchase.totalAmount || 0}</td>
+                  <td>${getStatusText(purchase.status)}</td>
+                  <td>₹${calculateAmountDue(purchase)}</td>
                   ${
                     columnsVisibility.additionalNotes
-                      ? `<td>${purchase.additionalNotes}</td>`
+                      ? `<td>${purchase.additionalNotes || ""}</td>`
                       : ""
                   }
                   ${
@@ -442,6 +415,13 @@ const ReturnPurchase = () => {
     printWindow.close();
   };
 
+  const toggleColumn = (column) => {
+    setColumnsVisibility((prev) => ({
+      ...prev,
+      [column]: !prev[column],
+    }));
+  };
+
   const handleFormChange = (e) => {
     const { id, value } = e.target;
     setFormData((prev) => ({
@@ -457,7 +437,7 @@ const ReturnPurchase = () => {
 
   const startIndex = (currentPage - 1) * entriesPerPage;
   const endIndex = startIndex + entriesPerPage;
-  const purchase = filteredPurchases.slice(startIndex, endIndex);
+  const currentPurchases = purchases.slice(startIndex, endIndex);
 
   return (
     <div className="wrapper">
@@ -466,7 +446,7 @@ const ReturnPurchase = () => {
           <div className="container-fluid">
             <div className="row mb-2">
               <div className="col-12 col-md-6">
-                <h1 className=" all-heading">List Purchase Return</h1>
+                <h1 className="all-heading">List Purchase Return</h1>
                 <span className="d-inline d-md-block sub-heading">
                   Manage Purchase Returns
                 </span>
@@ -477,108 +457,6 @@ const ReturnPurchase = () => {
 
         <section className="content">
           <div className="container-fluid">
-            {/* Filter Card */}
-            <div className="card card-default rounded-4 border-0 cardHover mb-3">
-              <div
-                className="my- p-3 d-flex align-items-center"
-                style={{
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
-                onClick={() => setFilterOpen(!filterOpen)}
-              >
-                <i className={`fa fa-filter me-3`}></i>
-                <span>Filter</span>
-              </div>
-
-              <Collapse in={filterOpen}>
-                <div className="border-top">
-                  <div className="card-body">
-                    <div className="row py-2 g-2">
-                      {/* Start Date Picker */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Start Date:</label>
-                          <input
-                            type="date"
-                            className="form-control"
-                            name="startDate"
-                            value={activeFilters.startDate}
-                            onChange={handleFilterChange}
-                          />
-                        </div>
-                      </div>
-
-                      {/* End Date Picker */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">End Date:</label>
-                          <input
-                            type="date"
-                            className="form-control"
-                            name="endDate"
-                            value={activeFilters.endDate}
-                            onChange={handleFilterChange}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Location Dropdown */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Location:</label>
-                          <select
-                            className="form-select"
-                            name="location"
-                            value={activeFilters.location}
-                            onChange={handleFilterChange}
-                          >
-                            <option value="">All Locations</option>
-                            {filterValues.locations.map((location, index) => (
-                              <option key={`loc-${index}`} value={location}>
-                                {location}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Status Dropdown */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Status:</label>
-                          <select
-                            className="form-select"
-                            name="status"
-                            value={activeFilters.status}
-                            onChange={handleFilterChange}
-                          >
-                            <option value="">All Statuses</option>
-                            <option value="null">Pending</option>
-                            <option value="0">Returned</option>
-                            <option value="1">Accepted</option>
-                            <option value="2">Rejected</option>
-                            <option value="3">Shipped</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Reset Button */}
-                      <div className="col-md-12 d-flex align-items-end">
-                        <button
-                          className="btn btn-sm btn-outline-secondary"
-                          onClick={resetFilters}
-                          disabled={!Object.values(activeFilters).some(Boolean)}
-                        >
-                          <i className="fa fa-times me-1"></i> Reset All Filters
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Collapse>
-            </div>
-
             <div className="card cardHover rounded-4 border-0">
               <div className="d-flex justify-content-end mb-3">
                 <Link to="/AddPurchaseReturn" className="btn btn-add">
@@ -598,7 +476,6 @@ const ReturnPurchase = () => {
                       value={entriesPerPage}
                       onChange={handleEntriesChange}
                     >
-                      <option value={10}>10</option>
                       <option value={25}>25</option>
                       <option value={50}>50</option>
                       <option value={75}>75</option>
@@ -677,31 +554,31 @@ const ReturnPurchase = () => {
                     <thead>
                       <tr>
                         {columnsVisibility.action && <th>Action</th>}
+                        {columnsVisibility.date && <th>Date</th>}
                         {columnsVisibility.purchaseReturnId && (
-                          <th>Purchase Return Id</th>
+                          <th>Return No</th>
                         )}
                         {columnsVisibility.status && <th>Status</th>}
-
-                        {columnsVisibility.date && <th>Date</th>}
+                        {columnsVisibility.referenceNumber && (
+                          <th>Invoice No</th>
+                        )}
                         {columnsVisibility.referenceNumber && (
                           <th>Reference No</th>
                         )}
-                        {columnsVisibility.location && <th>Location</th>}
-                        {columnsVisibility.vendor && <th>vendor</th>}
-                        {columnsVisibility.totalItems && <th>Return Items</th>}
-                        {columnsVisibility.shippedItems && (
-                          <th>Accepted Return Items</th>
-                        )}
-
+                        {columnsVisibility.vendor && <th>Vendor</th>}
+                        {columnsVisibility.totalItems && <th>Total Items</th>}
+                        <th>Total Amount</th>
+                        <th>Payment Status</th>
+                        <th>Amount Due</th>
                         {columnsVisibility.additionalNotes && (
                           <th>Additional Notes</th>
                         )}
-
                         {columnsVisibility.addedBy && <th>Added By</th>}
+                        {columnsVisibility.addedBy && <th>View Invoice</th>}
                       </tr>
                     </thead>
                     <tbody>
-                      {purchase.map((purchase) => (
+                      {currentPurchases.map((purchase) => (
                         <tr key={purchase.id}>
                           {columnsVisibility.action && (
                             <td>
@@ -711,21 +588,18 @@ const ReturnPurchase = () => {
                                 variant="outline-success rounded-5 fs-6 fw-light border-1"
                                 className="custom-outline-dropdown p-2"
                               >
-                                {/* Check purchase status */}
-                                {purchase.status === 0 ? (
-                                  <>
-                                    <Dropdown.Item
-                                      as="button"
-                                      onClick={() =>
-                                        handleViewClick(purchase.id)
-                                      }
-                                    >
-                                      <div className="d-inline-block w-100 btn-view justify-content-center text-secondary">
-                                        <i className="dropdown_hover fa fa-eye me-3"></i>
-                                        <span>View</span>
-                                      </div>
-                                    </Dropdown.Item>
+                                <Dropdown.Item
+                                  as="button"
+                                  onClick={() => handleViewClick(purchase.id)}
+                                >
+                                  <div className="d-inline-block w-100 btn-view justify-content-center text-secondary">
+                                    <i className="dropdown_hover fa fa-eye me-3"></i>
+                                    <span>View</span>
+                                  </div>
+                                </Dropdown.Item>
 
+                                {purchase.status === 0 && (
+                                  <>
                                     <Dropdown.Item
                                       as="button"
                                       onClick={() =>
@@ -757,25 +631,30 @@ const ReturnPurchase = () => {
                                       }
                                     >
                                       <div className="d-inline-block w-100 btn-delete justify-content-center text-secondary">
-                                        <i className=" fa-solid fa-x me-3"></i>
+                                        <i className="fa-solid fa-x me-3"></i>
                                         <span>Cancel</span>
                                       </div>
                                     </Dropdown.Item>
                                   </>
-                                ) : (
-                                  // If status is not 0, show only the View action
+                                )}
+
+                                {(purchase.status === 3 ||
+                                  purchase.status === 4) && (
                                   <Dropdown.Item
                                     as="button"
-                                    onClick={() => handleViewClick(purchase.id)}
+                                    onClick={() => downloadReceipt(purchase)}
                                   >
-                                    <div className="d-inline-block w-100 btn-view justify-content-center text-secondary">
-                                      <i className="dropdown_hover fa fa-eye me-3"></i>
-                                      <span>View</span>
+                                    <div className="d-inline-block w-100 btn-download justify-content-center text-secondary">
+                                      <i className="fa fa-download me-3"></i>
+                                      <span>Download Receipt</span>
                                     </div>
                                   </Dropdown.Item>
                                 )}
                               </DropdownButton>
                             </td>
+                          )}
+                          {columnsVisibility.date && (
+                            <td>{purchase.orderDate}</td>
                           )}
                           {columnsVisibility.purchaseReturnId && (
                             <td>{purchase.purchaseReturnId}</td>
@@ -783,26 +662,23 @@ const ReturnPurchase = () => {
                           {columnsVisibility.status && (
                             <td>
                               {purchase.status === 0
-                                ? "Returned"
+                                ? "Pending"
                                 : purchase.status === 1
                                 ? "Accepted"
                                 : purchase.status === 2
                                 ? "Rejected"
                                 : purchase.status === 3
-                                ? "Shipped"
-                                : purchase.status === null
-                                ? "Pending"
+                                ? "Refunded"
+                                : purchase.status === 4
+                                ? "Credit Note Issued"
                                 : "Unknown"}
                             </td>
                           )}
-                          {columnsVisibility.date && (
-                            <td>{purchase.orderDate}</td>
+                          {columnsVisibility.referenceNumber && (
+                            <td>{purchase.invoiceNumber || "N/A"}</td>
                           )}
                           {columnsVisibility.referenceNumber && (
                             <td>{purchase.referenceNumber}</td>
-                          )}
-                          {columnsVisibility.location && (
-                            <td>{purchase.location}</td>
                           )}
                           {columnsVisibility.vendor && (
                             <td>{purchase.vendor}</td>
@@ -810,14 +686,34 @@ const ReturnPurchase = () => {
                           {columnsVisibility.totalItems && (
                             <td>{purchase.totalItems}</td>
                           )}
-                          {columnsVisibility.shippedItems && (
-                            <td>{purchase.totalShippedItems}</td>
-                          )}
+                          <td>₹{purchase.totalAmount || 0}</td>
+                          <td>{getStatusText(purchase.status)}</td>
+                          <td>₹{calculateAmountDue(purchase)}</td>
                           {columnsVisibility.additionalNotes && (
-                            <td>{purchase.additionalNotes}</td>
+                            <td>{purchase.additionalNotes || ""}</td>
                           )}
                           {columnsVisibility.addedBy && (
                             <td>{purchase.addedBy}</td>
+                          )}
+                          {columnsVisibility.addedBy && (
+                            <td>
+                              {purchase.receipt ? (
+                                <a
+                                  href={`${
+                                    process.env.REACT_APP_BASE_URL
+                                  }/files/download/${purchase.receipt
+                                    .split("/")
+                                    .pop()}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <i className="fas fa-download me-1"></i>{" "}
+                                  Download
+                                </a>
+                              ) : (
+                                "No Invoice"
+                              )}
+                            </td>
                           )}
                         </tr>
                       ))}
