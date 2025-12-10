@@ -208,7 +208,6 @@ const Accounts = () => {
       addedBy,
       note: depositFormData.note,
       date: new Date(depositFormData.date).toISOString(), // FIXED
-      vendor: "",
     };
 
     try {

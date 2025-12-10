@@ -49,14 +49,14 @@ const ListAcceptedReturn = () => {
     locations: [],
     addedBy: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
     location: "",
     addedBy: "",
   });
-  
+
   const [filteredViewOrders, setFilteredViewOrders] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -103,9 +103,13 @@ const ListAcceptedReturn = () => {
   // Extract filter values when viewOrders data changes
   useEffect(() => {
     if (viewOrders.length > 0) {
-      const locations = [...new Set(viewOrders.map(item => item.location))].filter(Boolean);
-      const addedBy = [...new Set(viewOrders.map(item => item.addedBy))].filter(Boolean);
-      
+      const locations = [
+        ...new Set(viewOrders.map((item) => item.location)),
+      ].filter(Boolean);
+      const addedBy = [
+        ...new Set(viewOrders.map((item) => item.addedBy)),
+      ].filter(Boolean);
+
       setFilterValues({
         locations,
         addedBy,
@@ -117,14 +121,14 @@ const ListAcceptedReturn = () => {
   useEffect(() => {
     const filteredData = viewOrders.filter((order) => {
       const orderDate = new Date(order.orderDate);
-      
+
       // Date range filter
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = orderDate >= startDate && orderDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -134,18 +138,19 @@ const ListAcceptedReturn = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = orderDate <= endDate;
       }
-      
+
       // Location filter
-      const locationMatch = activeFilters.location === "" || 
+      const locationMatch =
+        activeFilters.location === "" ||
         order.location === activeFilters.location;
-      
+
       // Added By filter
-      const addedByMatch = activeFilters.addedBy === "" || 
-        order.addedBy === activeFilters.addedBy;
-      
+      const addedByMatch =
+        activeFilters.addedBy === "" || order.addedBy === activeFilters.addedBy;
+
       return dateMatch && locationMatch && addedByMatch;
     });
-    
+
     setFilteredViewOrders(filteredData);
   }, [activeFilters, viewOrders]);
 
