@@ -29,7 +29,7 @@ const Clients = () => {
     const fetchClients = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8080/customerAndsuppliers/getall"
+          "http://localhost:8443/client-ledger/getall"
         );
         if (!response.ok) {
           throw new Error("Network response was not ok");
@@ -56,6 +56,25 @@ const Clients = () => {
 
     fetchClients();
   }, []);
+  const totals = clients.reduce(
+    (acc, cur) => {
+      acc.totalPurchase += Number(cur.totalPurchase || 0);
+      acc.totalPurchaseReturn += Number(cur.totalPurchaseReturn || 0);
+      acc.totalSale += Number(cur.totalSale || 0);
+      acc.totalSaleReturn += Number(cur.totalSaleReturn || 0);
+      acc.openingBalanceDue += Number(cur.openingBalanceDue || 0);
+      acc.due += Number(cur.due || 0);
+      return acc;
+    },
+    {
+      totalPurchase: 0,
+      totalPurchaseReturn: 0,
+      totalSale: 0,
+      totalSaleReturn: 0,
+      openingBalanceDue: 0,
+      due: 0,
+    }
+  );
 
   const exportCSV = () => {
     const csvData = clients.map((client) => ({
@@ -429,44 +448,71 @@ const Clients = () => {
                           <th>Opening Balance Due</th>
                         )}
                         {columnsVisibility.due && <th>Due</th>}
-                        {columnsVisibility.action && <th>Actions</th>}
                       </tr>
                     </thead>
+
                     <tbody>
-                      {clients.slice(startIndex, endIndex).map((client) => (
-                        <tr key={client.id}>
-                          {columnsVisibility.contact && (
-                            <td>{client.contact}</td>
-                          )}
-                          {columnsVisibility.totalPurchase && (
-                            <td>{client.totalPurchase}</td>
-                          )}
-                          {columnsVisibility.totalPurchaseReturn && (
-                            <td>{client.totalPurchaseReturn}</td>
-                          )}
-                          {columnsVisibility.totalSale && (
-                            <td>{client.totalSale}</td>
-                          )}
-                          {columnsVisibility.totalSaleReturn && (
-                            <td>{client.totalSaleReturn}</td>
-                          )}
-                          {columnsVisibility.openingBalanceDue && (
-                            <td>{client.openingBalanceDue}</td>
-                          )}
-                          {columnsVisibility.due && <td>{client.due}</td>}
-                          {columnsVisibility.action && (
-                            <td>
-                              <button
-                                className="btn btn-delete btn-sm"
-                                onClick={() => handleDelete(client.id)}
-                              >
-                                <i className="fas fa-trash"></i> Delete
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
+                      {clients
+                        .slice(startIndex, endIndex)
+                        .map((client, index) => (
+                          <tr key={index}>
+                            {columnsVisibility.contact && (
+                              <td>{client.contact}</td>
+                            )}
+                            {columnsVisibility.totalPurchase && (
+                              <td>{client.totalPurchase}</td>
+                            )}
+                            {columnsVisibility.totalPurchaseReturn && (
+                              <td>{client.totalPurchaseReturn}</td>
+                            )}
+                            {columnsVisibility.totalSale && (
+                              <td>{client.totalSale}</td>
+                            )}
+                            {columnsVisibility.totalSaleReturn && (
+                              <td>{client.totalSaleReturn}</td>
+                            )}
+                            {columnsVisibility.openingBalanceDue && (
+                              <td>{client.openingBalanceDue}</td>
+                            )}
+                            {columnsVisibility.due && <td>{client.due}</td>}
+                          </tr>
+                        ))}
                     </tbody>
+
+                    <tfoot>
+                      <tr
+                        style={{
+                          backgroundColor: "#f1f3f5",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {columnsVisibility.contact && <td>TOTAL</td>}
+
+                        {columnsVisibility.totalPurchase && (
+                          <td>{totals.totalPurchase.toFixed(2)}</td>
+                        )}
+
+                        {columnsVisibility.totalPurchaseReturn && (
+                          <td>{totals.totalPurchaseReturn.toFixed(2)}</td>
+                        )}
+
+                        {columnsVisibility.totalSale && (
+                          <td>{totals.totalSale.toFixed(2)}</td>
+                        )}
+
+                        {columnsVisibility.totalSaleReturn && (
+                          <td>{totals.totalSaleReturn.toFixed(2)}</td>
+                        )}
+
+                        {columnsVisibility.openingBalanceDue && (
+                          <td>{totals.openingBalanceDue.toFixed(2)}</td>
+                        )}
+
+                        {columnsVisibility.due && (
+                          <td>{totals.due.toFixed(2)}</td>
+                        )}
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               </div>
