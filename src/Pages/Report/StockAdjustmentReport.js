@@ -20,9 +20,10 @@ const StockAdjustmentReport = () => {
     referenceNo: true,
     location: true,
     adjustmentType: true,
+    totalAmount: true,
     totalAmountRecovered: true,
     reason: true,
-    addedBy: true,
+    addedBy: false,
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(25);
@@ -33,7 +34,7 @@ const StockAdjustmentReport = () => {
     const fetchReports = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8080/StockAdjustmentReport/getall"
+          "http://localhost:8443/stock-adjustments/getall"
         );
         if (!response.ok) throw new Error("Network response was not ok");
         const data = await response.json();
@@ -59,13 +60,19 @@ const StockAdjustmentReport = () => {
     let totalRecovered = 0;
 
     stockAdjustmentReports.forEach((report) => {
-      if (report.adjustmentType === "Normal") {
-        totalNormal += report.totalAmountRecovered;
-      } else {
-        totalAbnormal += report.totalAmountRecovered;
+      const amount = Number(report.totalAmount) || 0;
+      const recovered = Number(report.amountRecovered) || 0;
+
+      if (report.adjustmentType === "normal") {
+        totalNormal += amount;
+      } else if (report.adjustmentType === "abnormal") {
+        totalAbnormal += amount;
       }
-      totalRecovered += report.totalAmountRecovered;
+
+      // add recovered ONLY once
+      totalRecovered += recovered;
     });
+    console.log(totalRecovered);
 
     return { totalNormal, totalAbnormal, totalRecovered };
   };
@@ -73,10 +80,10 @@ const StockAdjustmentReport = () => {
   const exportCSV = () => {
     const csvData = stockAdjustmentReports.map((report) => ({
       Date: report.date,
-      ReferenceNo: report.referenceNo,
-      Location: report.location,
+      ReferenceNo: report.referenceNmber,
+      Location: report.businessLocation,
       AdjustmentType: report.adjustmentType,
-      TotalAmountRecovered: report.totalAmountRecovered,
+      TotalAmountRecovered: report.amountRecovered,
       Reason: report.reason,
       AddedBy: report.addedBy,
     }));
@@ -104,10 +111,10 @@ const StockAdjustmentReport = () => {
     const ws = XLSX.utils.json_to_sheet(
       stockAdjustmentReports.map((report) => ({
         Date: report.date,
-        ReferenceNo: report.referenceNo,
-        Location: report.location,
+        ReferenceNo: report.referenceNumber,
+        Location: report.businesslLocation,
         AdjustmentType: report.adjustmentType,
-        TotalAmountRecovered: report.totalAmountRecovered,
+        TotalAmountRecovered: report.amountRecovered,
         Reason: report.reason,
         AddedBy: report.addedBy,
       }))
@@ -133,10 +140,10 @@ const StockAdjustmentReport = () => {
       ],
       body: stockAdjustmentReports.map((report) => [
         report.date,
-        report.referenceNo,
-        report.location,
+        report.referenceNumber,
+        report.businessLocation,
+        report.amountRecovered,
         report.adjustmentType,
-        report.totalAmountRecovered,
         report.reason,
         report.addedBy,
       ]),
@@ -146,91 +153,76 @@ const StockAdjustmentReport = () => {
 
   const printData = () => {
     const tableContent = `
-      <html>
-        <head>
-          <title>Print Stock Adjustment Report</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #ddd; padding: 8px; }
-            th { background-color: #f2f2f2; }
-            th, td { text-align: left; }
-          </style>
-        </head>
-        <body>
-          <h2>Stock Adjustment Report</h2>
-          <table>
-            <thead>
+    <html>
+      <head>
+        <title>Print Stock Adjustment Report</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #ddd; padding: 8px; }
+          th { background-color: #f2f2f2; }
+        </style>
+      </head>
+      <body>
+        <h2>Stock Adjustment Report</h2>
+        <table>
+          <thead>
+            <tr>
+              ${columnsVisibility.date ? "<th>Date</th>" : ""}
+              ${columnsVisibility.referenceNo ? "<th>Reference No</th>" : ""}
+              ${columnsVisibility.location ? "<th>Location</th>" : ""}
+              ${
+                columnsVisibility.adjustmentType
+                  ? "<th>Adjustment Type</th>"
+                  : ""
+              }
+              ${
+                columnsVisibility.totalAmountRecovered
+                  ? "<th>Total Amount Recovered</th>"
+                  : ""
+              }
+              ${columnsVisibility.reason ? "<th>Reason</th>" : ""}
+              ${columnsVisibility.addedBy ? "<th>Added By</th>" : ""}
+            </tr>
+          </thead>
+          <tbody>
+            ${stockAdjustmentReports
+              .slice(startIndex, endIndex)
+              .map(
+                (report) => `
               <tr>
-                ${columnsVisibility.date ? "<th>Date</th>" : ""}
-                ${columnsVisibility.referenceNo ? "<th>Reference No</th>" : ""}
-                ${columnsVisibility.location ? "<th>Location</th>" : ""}
+                ${columnsVisibility.date ? `<td>${report.date}</td>` : ""}
+                ${
+                  columnsVisibility.referenceNo
+                    ? `<td>${report.referenceNumber}</td>`
+                    : ""
+                }
+                ${
+                  columnsVisibility.location
+                    ? `<td>${report.businessLocation}</td>`
+                    : ""
+                }
                 ${
                   columnsVisibility.adjustmentType
-                    ? "<th>Adjustment Type</th>"
+                    ? `<td>${report.adjustmentType}</td>`
                     : ""
                 }
                 ${
                   columnsVisibility.totalAmountRecovered
-                    ? "<th>Total Amount Recovered</th>"
+                    ? `<td>${report.amountRecovered}</td>`
                     : ""
                 }
-                ${columnsVisibility.reason ? "<th>Reason</th>" : ""}
-                ${columnsVisibility.addedBy ? "<th>Added By</th>" : ""}
-                ${columnsVisibility.action ? "<th>Action</th>" : ""}
+                ${columnsVisibility.reason ? `<td>${report.reason}</td>` : ""}
+                ${columnsVisibility.addedBy ? `<td>${report.addedBy}</td>` : ""}
               </tr>
-            </thead>
-            <tbody>
-              ${stockAdjustmentReports
-                .slice(startIndex, endIndex)
-                .map(
-                  (report) => `
-                  <tr>
-                    ${columnsVisibility.date ? `<td>${report.date}</td>` : ""}
-                    ${
-                      columnsVisibility.referenceNo
-                        ? `<td>${report.referenceNo}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.location
-                        ? `<td>${report.location}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.adjustmentType
-                        ? `<td>${report.adjustmentType}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.totalAmountRecovered
-                        ? `<td>${report.totalAmountRecovered}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.reason
-                        ? `<td>${report.reason}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.addedBy
-                        ? `<td>${report.addedBy}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.action
-                        ? `<td><button class="btn-view">View</button></td>`
-                        : ""
-                    }
-                  </tr>
-                `
-                )
-                .join("")}
-            </tbody>
-          </table>
-        </body>
-      </html>
-    `;
+            `
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </body>
+    </html>
+  `;
 
     const printWindow = window.open("", "_blank");
     printWindow.document.write(tableContent);
@@ -276,11 +268,65 @@ const StockAdjustmentReport = () => {
                 <h1 className=" all-heading">Stock Adjustment Report</h1>
               </div>
             </div>
+            <div className="row">
+              <div className="col-sm-6">
+                <div className="card cardHover rounded-4 border-0">
+                  <div className="card-body">
+                    <table className="table no-border">
+                      <tbody>
+                        <tr>
+                          <th>Total Normal:</th>
+                          <td>
+                            <span className="total_normal">
+                              ${totalNormal.toFixed(2)}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Total Abnormal:</th>
+                          <td>
+                            <span className="total_abnormal">
+                              ${totalAbnormal.toFixed(2)}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Total Stock Adjustment:</th>
+                          <td>
+                            <span className="total_amount">
+                              ${(totalNormal + totalAbnormal).toFixed(2)}
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div className="col-sm-6">
+                <div className="card cardHover rounded-4 border-0">
+                  <div className="card-body">
+                    <table className="table no-border">
+                      <tbody>
+                        <tr>
+                          <th>Total Amount Recovered:</th>
+                          <td>
+                            <span className="total_recovered">
+                              ${totalRecovered.toFixed(2)}
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
         {/* Overview */}
-        <section className="wrapper">
+        {/* <section className="wrapper">
           <div className="container-fluid">
             <div className="row">
               <div className="col-sm-6">
@@ -330,12 +376,6 @@ const StockAdjustmentReport = () => {
                             </span>
                           </td>
                         </tr>
-                        <tr>
-                          <td>&nbsp;</td>
-                        </tr>
-                        <tr>
-                          <td>&nbsp;</td>
-                        </tr>
                       </tbody>
                     </table>
                   </div>
@@ -343,7 +383,7 @@ const StockAdjustmentReport = () => {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
         <section className="content">
           <div className="container-fluid">
@@ -444,6 +484,10 @@ const StockAdjustmentReport = () => {
                         {columnsVisibility.adjustmentType && (
                           <th>Adjustment Type</th>
                         )}
+                        {columnsVisibility.totalAmount && (
+                          <th>Total Amount </th>
+                        )}
+
                         {columnsVisibility.totalAmountRecovered && (
                           <th>Total Amount Recovered</th>
                         )}
@@ -459,16 +503,19 @@ const StockAdjustmentReport = () => {
                           <tr key={index}>
                             {columnsVisibility.date && <td>{report.date}</td>}
                             {columnsVisibility.referenceNo && (
-                              <td>{report.referenceNo}</td>
+                              <td>{report.referenceNumber}</td>
                             )}
                             {columnsVisibility.location && (
-                              <td>{report.location}</td>
+                              <td>{report.businessLocation}</td>
                             )}
                             {columnsVisibility.adjustmentType && (
                               <td>{report.adjustmentType}</td>
                             )}
+                            {columnsVisibility.totalAmount && (
+                              <td>{report.totalAmount}</td>
+                            )}
                             {columnsVisibility.totalAmountRecovered && (
-                              <td>{report.totalAmountRecovered}</td>
+                              <td>{report.amountRecovered}</td>
                             )}
                             {columnsVisibility.reason && (
                               <td>{report.reason}</td>
@@ -498,134 +545,142 @@ const StockAdjustmentReport = () => {
       </div>
 
       {/* Modal for viewing detailed report */}
-      <Modal
-        show={showModal}
-        onHide={handleClose}
-        size="lg"
-        aria-labelledby="modal-title"
-      >
+      <Modal show={showModal} onHide={handleClose} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title id="modal-title">
-            Stock Adjustment Report Details
-          </Modal.Title>
+          <Modal.Title>Stock Adjustment Report Details</Modal.Title>
         </Modal.Header>
+
         <Modal.Body>
           {selectedReport && (
             <div>
-              <div className="modal-header">
-                <h4 className="modal-title">
-                  Stock adjustment details (<b>Reference No:</b>{" "}
-                  {selectedReport.referenceNo})
-                </h4>
+              <h4 className="mb-3">
+                Stock adjustment details (<b>Reference No:</b>{" "}
+                {selectedReport.referenceNumber})
+              </h4>
+
+              {/* Date */}
+              <div className="text-end mb-3">
+                <b>Date:</b> {selectedReport.date}
               </div>
-              <div className="modal-body">
-                <div className="row mb-3">
-                  <div className="col-12 text-end">
-                    <p>
-                      <b>Date:</b> {selectedReport.date}
-                    </p>
-                  </div>
+
+              {/* Business Info */}
+              <div className="row mb-4">
+                <div className="col-md-4">
+                  <b>Business Location:</b>
+                  <address>
+                    <strong>{selectedReport.businessLocation}</strong>
+                  </address>
                 </div>
-                <div className="row invoice-info mb-4">
-                  <div className="col-md-4">
-                    <b>Business:</b>
-                    <address>
-                      <strong>{selectedReport.business.name}</strong>
-                      <br />
-                      {selectedReport.business.address}
-                    </address>
-                  </div>
-                  <div className="col-md-4">
-                    <b>Reference No:</b> {selectedReport.referenceNo}
-                    <br />
-                    <b>Date:</b> {selectedReport.date}
-                    <br />
-                    <b>Adjustment Type:</b> {selectedReport.adjustmentType}
-                    <br />
-                    <b>Reason:</b> {selectedReport.reason}
-                    <br />
-                  </div>
+
+                <div className="col-md-4">
+                  <b>Reference Number:</b> {selectedReport.referenceNumber}{" "}
+                  <br />
+                  <b>Date:</b> {selectedReport.date} <br />
+                  <b>Adjustment Type:</b> {selectedReport.adjustmentType} <br />
+                  <b>Reason:</b> {selectedReport.reason || "—"} <br />
                 </div>
-                <div className="table-responsive mb-4">
+              </div>
+
+              {/* ITEMS TABLE */}
+              <div className="table-responsive mb-4">
+                <table className="table table-bordered">
+                  <thead className="bg-green text-white">
+                    <tr>
+                      <th>Product</th>
+                      <th>Variation</th>
+                      <th>Quantity</th>
+                      <th>Unit Price</th>
+                      <th>Subtotal</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {selectedReport.stockAdjustmentItems.map((item) => (
+                      <tr key={item.id}>
+                        <td>{item.productName}</td>
+                        <td>{item.productVariationName || "—"}</td>
+                        <td>{item.quantity}</td>
+                        <td>₹{Number(item.unitSellingPrice).toFixed(2)}</td>
+                        <td>
+                          ₹
+                          {(
+                            item.quantity * Number(item.unitSellingPrice)
+                          ).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* TOTALS */}
+              <div className="row mb-3">
+                <div className="col-md-6">
                   <table className="table table-bordered">
-                    <thead className="bg-green text-white">
+                    <tbody>
                       <tr>
-                        <th>Product</th>
+                        <th>Total Amount:</th>
+                        <td>
+                          ₹{Number(selectedReport.totalAmount).toFixed(2)}
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <th>Total Amount Recovered:</th>
+                        <td>
+                          ₹{Number(selectedReport.amountRecovered).toFixed(2)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* STOCK ACTIVITIES (stockTransaction) */}
+              <div className="row">
+                <div className="col-12">
+                  <strong>Stock Activities:</strong>
+
+                  <table className="table table-bordered mt-2">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Action</th>
                         <th>Quantity</th>
-                        <th>Unit Price</th>
-                        <th>Subtotal</th>
+                        <th>Note</th>
                       </tr>
                     </thead>
+
                     <tbody>
-                      {selectedReport.items.map((item, index) => (
-                        <tr key={index}>
-                          <td>{item.product}</td>
-                          <td>{item.quantity}</td>
-                          <td>${item.unitPrice.toFixed(2)}</td>
-                          <td>${item.subtotal.toFixed(2)}</td>
+                      {selectedReport.stockTransaction.length === 0 && (
+                        <tr>
+                          <td colSpan="4" className="text-center">
+                            No activity found
+                          </td>
+                        </tr>
+                      )}
+
+                      {selectedReport.stockTransaction.map((tr) => (
+                        <tr key={tr.id}>
+                          <td>{tr.date}</td>
+                          <td>{tr.transactionType}</td>
+                          <td>{tr.quantity}</td>
+                          <td>{tr.note}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <div className="row">
-                  <div className="col-md-6">
-                    <div className="table-responsive">
-                      <table className="table">
-                        <tbody>
-                          <tr>
-                            <th>Total Amount:</th>
-                            <td>${selectedReport.totalAmount.toFixed(2)}</td>
-                          </tr>
-                          <tr>
-                            <th>Total Amount Recovered:</th>
-                            <td>
-                              ${selectedReport.totalAmountRecovered.toFixed(2)}
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-                <div className="row">
-                  <div className="col-12">
-                    <strong>Activities:</strong>
-                    <table className="table table-bordered mt-2">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Action</th>
-                          <th>By</th>
-                          <th>Note</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {selectedReport.activities.map((activity, index) => (
-                          <tr key={index}>
-                            <td>{activity.date}</td>
-                            <td>{activity.action}</td>
-                            <td>{activity.by}</td>
-                            <td>{activity.note}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
               </div>
             </div>
           )}
         </Modal.Body>
+
         <Modal.Footer>
-          <button variant="btn btn-secondary" onClick={handleClose}>
+          <button className="btn btn-secondary" onClick={handleClose}>
             Close
           </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => window.print()}
-          >
+          <button className="btn btn-primary" onClick={() => window.print()}>
             <i className="fa fa-print"></i> Print
           </button>
         </Modal.Footer>

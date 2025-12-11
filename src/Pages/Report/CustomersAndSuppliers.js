@@ -26,36 +26,31 @@ const Clients = () => {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
 
   useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:8443/client-ledger/getall"
-        );
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
+    fetch(`${process.env.REACT_APP_BASE_URL}/client-ledger/getall`)
+      .then((res) => res.json())
+      .then((data) => {
         if (Array.isArray(data)) {
           setClients(data);
         } else {
           console.error("Fetched data is not an array");
           setClients([]);
         }
-      } catch (error) {
+      })
+      .catch((error) => {
         console.error("Error fetching clients:", error);
         setClients([]);
-      }
-      const script = document.createElement("script");
-      script.src = "js/JqueryContent.js";
-      script.async = true;
-      document.body.appendChild(script);
-      return () => {
-        document.body.removeChild(script);
-      };
-    };
+      });
 
-    fetchClients();
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
   }, []);
+
   const totals = clients.reduce(
     (acc, cur) => {
       acc.totalPurchase += Number(cur.totalPurchase || 0);

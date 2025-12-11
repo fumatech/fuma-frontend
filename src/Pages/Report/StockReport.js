@@ -7,6 +7,7 @@ import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min
 import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
+import { Link, useNavigate } from "react-router-dom";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
@@ -19,115 +20,97 @@ const StockReport = () => {
     product: true,
     variation: true,
     category: true,
-    location: true,
+    location: false,
     unitSellingPrice: true,
     currentStock: true,
     currentStockValueByPurchase: true,
     currentStockValueBySale: true,
     potentialProfit: true,
     totalUnitSold: true,
-    totalUnitTransferred: true,
     totalUnitAdjusted: true,
   });
+
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
 
+  // ============================ FETCH API ============================
   useEffect(() => {
     const fetchInventoryItems = async () => {
       try {
-        const response = await fetch("http://localhost:8080/inventory/getall");
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
+        const response = await fetch(
+          `${process.env.REACT_APP_BASE_URL}/stock-report/report`
+        );
+
         const data = await response.json();
         if (Array.isArray(data)) {
           setInventoryItems(data);
         } else {
-          console.error("Fetched data is not an array");
           setInventoryItems([]);
         }
-      } catch (error) {
-        console.error("Error fetching inventory items:", error);
+      } catch (err) {
+        console.error("Error fetching stock report:", err);
         setInventoryItems([]);
       }
-      const script = document.createElement("script");
-      script.src = "js/JqueryContent.js";
-      script.async = true;
-      document.body.appendChild(script);
-      return () => {
-        document.body.removeChild(script);
-      };
     };
 
     fetchInventoryItems();
   }, []);
 
+  useEffect(() => {
+    if (inventoryItems.length > 0) {
+      if ($.fn.dataTable.isDataTable("#example1")) {
+        $("#example1").DataTable().destroy();
+      }
+
+      $("#example1").DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        lengthChange: false,
+        pageLength: entriesPerPage,
+      });
+    }
+  }, [inventoryItems, entriesPerPage]);
+
+  // ============================ PAGINATION ============================
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const endIndex = startIndex + entriesPerPage;
+
+  const handleEntriesChange = (e) => {
+    setEntriesPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  };
+
+  // ============================ EXPORTS ============================
   const exportCSV = () => {
     const csvData = inventoryItems.map((item) => ({
-      Action: item.action,
       SKU: item.sku,
-      Product: item.product,
-      Variation: item.variation,
-      Category: item.category,
-      Location: item.location,
+      Product: item.productName,
+      Variation: item.variationValue || "-",
+      Category: item.category?.categoryName || "",
+      Location: item.businessLocation?.locationName || "",
       UnitSellingPrice: item.unitSellingPrice,
       CurrentStock: item.currentStock,
       CurrentStockValueByPurchase: item.currentStockValueByPurchase,
       CurrentStockValueBySale: item.currentStockValueBySale,
       PotentialProfit: item.potentialProfit,
-      TotalUnitSold: item.totalUnitSold,
-      TotalUnitTransferred: item.totalUnitTransferred,
-      TotalUnitAdjusted: item.totalUnitAdjusted,
+      TotalUnitSold: item.totalSold,
+      TotalUnitAdjusted: item.totalAdjusted,
     }));
 
     const csv = [
-      [
-        "Action",
-        "SKU",
-        "Product",
-        "Variation",
-        "Category",
-        "Location",
-        "Unit Selling Price",
-        "Current Stock",
-        "Current Stock Value (By Purchase Price)",
-        "Current Stock Value (By Sale Price)",
-        "Potential Profit",
-        "Total Unit Sold",
-        "Total Unit Transferred",
-        "Total Unit Adjusted",
-      ],
-      ...csvData.map((row) => Object.values(row)),
-    ]
-      .map((row) => row.join(","))
-      .join("\n");
+      Object.keys(csvData[0]).join(","),
+      ...csvData.map((row) => Object.values(row).join(",")),
+    ].join("\n");
 
-    const blob = new Blob([csv], { type: "text/csv" });
-    saveAs(blob, "inventory.csv");
+    saveAs(new Blob([csv], { type: "text/csv" }), "stock_report.csv");
   };
 
   const exportExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(
-      inventoryItems.map((item) => ({
-        Action: item.action,
-        SKU: item.sku,
-        Product: item.product,
-        Variation: item.variation,
-        Category: item.category,
-        Location: item.location,
-        UnitSellingPrice: item.unitSellingPrice,
-        CurrentStock: item.currentStock,
-        CurrentStockValueByPurchase: item.currentStockValueByPurchase,
-        CurrentStockValueBySale: item.currentStockValueBySale,
-        PotentialProfit: item.potentialProfit,
-        TotalUnitSold: item.totalUnitSold,
-        TotalUnitTransferred: item.totalUnitTransferred,
-        TotalUnitAdjusted: item.totalUnitAdjusted,
-      }))
-    );
+    const ws = XLSX.utils.json_to_sheet(inventoryItems);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Inventory");
-    XLSX.writeFile(wb, "inventory.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "StockReport");
+    XLSX.writeFile(wb, "stock_report.xlsx");
   };
 
   const exportPDF = () => {
@@ -135,62 +118,110 @@ const StockReport = () => {
     doc.autoTable({
       head: [
         [
-          "Action",
           "SKU",
           "Product",
           "Variation",
           "Category",
           "Location",
-          "Unit Selling Price",
-          "Current Stock",
-          "Current Stock Value (By Purchase Price)",
-          "Current Stock Value (By Sale Price)",
-          "Potential Profit",
-          "Total Unit Sold",
-          "Total Unit Transferred",
-          "Total Unit Adjusted",
+          "Unit SP",
+          "Stock",
+          "Stock Value (Purchase)",
+          "Stock Value (Sale)",
+          "Profit",
+          "Sold",
+          "Adjusted",
         ],
       ],
       body: inventoryItems.map((item) => [
-        item.action,
         item.sku,
-        item.product,
-        item.variation,
-        item.category,
-        item.location,
+        item.productName,
+        item.variationValue || "-",
+        item.category?.categoryName || "",
+        item.businessLocation?.locationName || "",
         item.unitSellingPrice,
         item.currentStock,
         item.currentStockValueByPurchase,
         item.currentStockValueBySale,
         item.potentialProfit,
-        item.totalUnitSold,
-        item.totalUnitTransferred,
-        item.totalUnitAdjusted,
+        item.totalSold,
+        item.totalAdjusted,
       ]),
     });
-    doc.save("inventory.pdf");
+
+    doc.save("stock_report.pdf");
   };
 
+  // ============================ PRINT ============================
   const printData = () => {
-    const tableContent = `
+    const rows = inventoryItems
+      .slice(startIndex, endIndex)
+      .map(
+        (item) => `
+      <tr>
+        ${columnsVisibility.sku ? `<td>${item.sku}</td>` : ""}
+        ${columnsVisibility.product ? `<td>${item.productName}</td>` : ""}
+        ${
+          columnsVisibility.variation
+            ? `<td>${item.variationValue || "-"}</td>`
+            : ""
+        }
+        ${
+          columnsVisibility.category
+            ? `<td>${item.category?.categoryName || ""}</td>`
+            : ""
+        }
+        ${
+          columnsVisibility.location
+            ? `<td>${item.businessLocation?.locationName || ""}</td>`
+            : ""
+        }
+        ${
+          columnsVisibility.unitSellingPrice
+            ? `<td>${item.unitSellingPrice}</td>`
+            : ""
+        }
+        ${columnsVisibility.currentStock ? `<td>${item.currentStock}</td>` : ""}
+        ${
+          columnsVisibility.currentStockValueByPurchase
+            ? `<td>${item.currentStockValueByPurchase}</td>`
+            : ""
+        }
+        ${
+          columnsVisibility.currentStockValueBySale
+            ? `<td>${item.currentStockValueBySale}</td>`
+            : ""
+        }
+        ${
+          columnsVisibility.potentialProfit
+            ? `<td>${item.potentialProfit}</td>`
+            : ""
+        }
+        ${columnsVisibility.totalUnitSold ? `<td>${item.totalSold}</td>` : ""}
+        ${
+          columnsVisibility.totalUnitAdjusted
+            ? `<td>${item.totalAdjusted}</td>`
+            : ""
+        }
+      </tr>`
+      )
+      .join("");
+
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(`
       <html>
         <head>
-          <title>Print Inventory Report</title>
+          <title>Stock Report</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #ddd; padding: 8px; }
-            th { background-color: #f2f2f2; }
-            th, td { text-align: left; }
-            .footer-total { background-color: #e9ecef; font-weight: bold; }
+            table { width:100%; border-collapse:collapse; }
+            th, td { border:1px solid #ddd; padding:8px; }
+            th { background:#f2f2f2; }
           </style>
         </head>
         <body>
-          <h2>Inventory Report</h2>
+          <h2>Stock Report</h2>
           <table>
             <thead>
               <tr>
-                ${columnsVisibility.action ? "<th>Actions</th>" : ""}
                 ${columnsVisibility.sku ? "<th>SKU</th>" : ""}
                 ${columnsVisibility.product ? "<th>Product</th>" : ""}
                 ${columnsVisibility.variation ? "<th>Variation</th>" : ""}
@@ -206,155 +237,43 @@ const StockReport = () => {
                 }
                 ${
                   columnsVisibility.currentStockValueByPurchase
-                    ? "<th>Current Stock Value (By Purchase Price)</th>"
+                    ? "<th>Stock Value (Purchase)</th>"
                     : ""
                 }
                 ${
                   columnsVisibility.currentStockValueBySale
-                    ? "<th>Current Stock Value (By Sale Price)</th>"
+                    ? "<th>Stock Value (Sale)</th>"
                     : ""
                 }
+                ${columnsVisibility.potentialProfit ? "<th>Profit</th>" : ""}
+                ${columnsVisibility.totalUnitSold ? "<th>Sold</th>" : ""}
                 ${
-                  columnsVisibility.potentialProfit
-                    ? "<th>Potential Profit</th>"
-                    : ""
-                }
-                ${
-                  columnsVisibility.totalUnitSold
-                    ? "<th>Total Unit Sold</th>"
-                    : ""
-                }
-                ${
-                  columnsVisibility.totalUnitTransferred
-                    ? "<th>Total Unit Transferred</th>"
-                    : ""
-                }
-                ${
-                  columnsVisibility.totalUnitAdjusted
-                    ? "<th>Total Unit Adjusted</th>"
-                    : ""
+                  columnsVisibility.totalUnitAdjusted ? "<th>Adjusted</th>" : ""
                 }
               </tr>
             </thead>
-            <tbody>
-              ${inventoryItems
-                .slice(startIndex, endIndex)
-                .map(
-                  (item) => `
-                  <tr>
-                    ${
-                      columnsVisibility.action
-                        ? `<td><button class="btn-delete">Delete</button></td>`
-                        : ""
-                    }
-                    ${columnsVisibility.sku ? `<td>${item.sku}</td>` : ""}
-                    ${
-                      columnsVisibility.product
-                        ? `<td>${item.product}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.variation
-                        ? `<td>${item.variation}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.category
-                        ? `<td>${item.category}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.location
-                        ? `<td>${item.location}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.unitSellingPrice
-                        ? `<td>${item.unitSellingPrice}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.currentStock
-                        ? `<td>${item.currentStock}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.currentStockValueByPurchase
-                        ? `<td>${item.currentStockValueByPurchase}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.currentStockValueBySale
-                        ? `<td>${item.currentStockValueBySale}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.potentialProfit
-                        ? `<td>${item.potentialProfit}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.totalUnitSold
-                        ? `<td>${item.totalUnitSold}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.totalUnitTransferred
-                        ? `<td>${item.totalUnitTransferred}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.totalUnitAdjusted
-                        ? `<td>${item.totalUnitAdjusted}</td>`
-                        : ""
-                    }
-                  </tr>
-                `
-                )
-                .join("")}
-            </tbody>
+            <tbody>${rows}</tbody>
           </table>
         </body>
       </html>
-    `;
+    `);
 
-    const printWindow = window.open("", "_blank");
-    printWindow.document.write(tableContent);
     printWindow.document.close();
     printWindow.print();
-    printWindow.close();
   };
 
-  const handleEntriesChange = (e) => {
-    setEntriesPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
-
-  const startIndex = (currentPage - 1) * entriesPerPage;
-  const endIndex = startIndex + entriesPerPage;
-
+  // ============================ DELETE ============================
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this item?")) {
-      try {
-        const response = await fetch(
-          `http://localhost:8080/inventory/delete/${id}`,
-          {
-            method: "DELETE",
-          }
-        );
+    if (!window.confirm("Are you sure?")) return;
 
-        if (response.status === 204) {
-          setInventoryItems((prevItems) =>
-            prevItems.filter((item) => item.id !== id)
-          );
-          alert("Item deleted successfully!");
-        } else {
-          alert("Failed to delete item.");
-        }
-      } catch (error) {
-        console.error("Error deleting item:", error);
-        alert("Error deleting item");
-      }
+    try {
+      await fetch(`${process.env.REACT_APP_BASE_URL}/inventory/delete/${id}`, {
+        method: "DELETE",
+      });
+
+      setInventoryItems((prev) => prev.filter((i) => i.id !== id));
+    } catch (err) {
+      console.error("Delete error:", err);
     }
   };
 
@@ -365,22 +284,21 @@ const StockReport = () => {
     }));
   };
 
+  // ============================ UI (UNCHANGED) ============================
   return (
     <div className="wrapper">
       <div className="content-wrapper">
         <section className="content-header">
           <div className="container-fluid">
-            <div className="row mb-2">
-              <div className="col-12 col-md-6">
-                <h1 className=" all-heading">Stock Report</h1>
-              </div>
-            </div>
+            <h1 className="all-heading">Stock Report</h1>
           </div>
         </section>
+
         <section className="content">
           <div className="container-fluid">
             <div className="card cardHover rounded-4 border-0">
               <div className="card-body">
+                {/* TOP BAR (EXPORT, ENTRIES, COLUMNS) — SAME DESIGN */}
                 <div className="row mb-3 d-flex align-items-center">
                   <div className="col-12 col-md-auto form-group mb-2 d-flex align-items-center text-bold mt-2 mb-2 mr-2">
                     <label htmlFor="entriesPerPage" className="mb-0 mr-2">
@@ -463,6 +381,8 @@ const StockReport = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* TABLE (DESIGN UNCHANGED) */}
                 <div id="table-container" style={{ overflowX: "auto" }}>
                   <table
                     id="example1"
@@ -483,10 +403,10 @@ const StockReport = () => {
                           <th>Current Stock</th>
                         )}
                         {columnsVisibility.currentStockValueByPurchase && (
-                          <th>Current Stock Value (By Purchase Price)</th>
+                          <th>Current Stock Value (By Purchase)</th>
                         )}
                         {columnsVisibility.currentStockValueBySale && (
-                          <th>Current Stock Value (By Sale Price)</th>
+                          <th>Current Stock Value (By Sale)</th>
                         )}
                         {columnsVisibility.potentialProfit && (
                           <th>Potential Profit</th>
@@ -494,14 +414,12 @@ const StockReport = () => {
                         {columnsVisibility.totalUnitSold && (
                           <th>Total Unit Sold</th>
                         )}
-                        {columnsVisibility.totalUnitTransferred && (
-                          <th>Total Unit Transferred</th>
-                        )}
                         {columnsVisibility.totalUnitAdjusted && (
                           <th>Total Unit Adjusted</th>
                         )}
                       </tr>
                     </thead>
+
                     <tbody>
                       {inventoryItems
                         .slice(startIndex, endIndex)
@@ -509,26 +427,32 @@ const StockReport = () => {
                           <tr key={item.id}>
                             {columnsVisibility.action && (
                               <td>
-                                <button
-                                  className="btn btn-delete btn-sm"
-                                  onClick={() => handleDelete(item.id)}
-                                >
-                                  <i className="fas fa-trash"></i> Delete
-                                </button>
+                                <td>
+                                  <Link
+                                    className="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline tw-dw-btn-info tw-w-max"
+                                    to={`/ProductStockHistory?productId=${item.productId}&variationId=${item.variationId}`}
+                                  >
+                                    <i className="fas fa-history"></i> Product
+                                    stock history
+                                  </Link>
+                                </td>
                               </td>
                             )}
+
                             {columnsVisibility.sku && <td>{item.sku}</td>}
                             {columnsVisibility.product && (
-                              <td>{item.product}</td>
+                              <td>{item.productName}</td>
                             )}
                             {columnsVisibility.variation && (
-                              <td>{item.variation}</td>
+                              <td>{item.variationValue || "-"}</td>
                             )}
                             {columnsVisibility.category && (
                               <td>{item.category}</td>
                             )}
                             {columnsVisibility.location && (
-                              <td>{item.location}</td>
+                              <td>
+                                {item.businessLocation?.locationName || ""}
+                              </td>
                             )}
                             {columnsVisibility.unitSellingPrice && (
                               <td>{item.unitSellingPrice}</td>
@@ -546,13 +470,10 @@ const StockReport = () => {
                               <td>{item.potentialProfit}</td>
                             )}
                             {columnsVisibility.totalUnitSold && (
-                              <td>{item.totalUnitSold}</td>
-                            )}
-                            {columnsVisibility.totalUnitTransferred && (
-                              <td>{item.totalUnitTransferred}</td>
+                              <td>{item.totalSold}</td>
                             )}
                             {columnsVisibility.totalUnitAdjusted && (
-                              <td>{item.totalUnitAdjusted}</td>
+                              <td>{item.totalAdjusted}</td>
                             )}
                           </tr>
                         ))}
