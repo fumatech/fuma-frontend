@@ -31,7 +31,7 @@ const ProductPurchaseReport = () => {
     const fetchProductPurchaseReport = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8080/ProductPurchaseReport/getall"
+          "http://localhost:8443/ProductPurchaseReport/getall"
         );
         if (!response.ok) {
           throw new Error("Network response was not ok");
@@ -432,14 +432,19 @@ const ProductPurchaseReport = () => {
                         (item, index) => (
                           <tr key={index}>
                             {columnsVisibility.product && (
-                              <td>{item.product}</td>
+                              <td>
+                                {item.productName}
+                                {item.variationValue
+                                  ? ` - ${item.variationValue}`
+                                  : ""}
+                              </td>
                             )}
                             {columnsVisibility.sku && <td>{item.sku}</td>}
                             {columnsVisibility.supplier && (
                               <td>{item.supplier}</td>
                             )}
                             {columnsVisibility.referenceNo && (
-                              <td>{item.referenceNo}</td>
+                              <td>{item.referenceNumber}</td>
                             )}
                             {columnsVisibility.date && <td>{item.date}</td>}
                             {columnsVisibility.quantity && (

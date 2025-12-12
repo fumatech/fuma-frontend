@@ -34,7 +34,7 @@ const StockAdjustmentReport = () => {
     const fetchReports = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8443/stock-adjustments/getall"
+          `${process.env.REACT_APP_BASE_URL}/stock-adjustments/getall`
         );
         if (!response.ok) throw new Error("Network response was not ok");
         const data = await response.json();
@@ -42,10 +42,12 @@ const StockAdjustmentReport = () => {
       } catch (error) {
         console.error("Failed to fetch stock adjustment reports:", error);
       }
+
       const script = document.createElement("script");
       script.src = "js/JqueryContent.js";
       script.async = true;
       document.body.appendChild(script);
+
       return () => {
         document.body.removeChild(script);
       };
