@@ -29,12 +29,15 @@ const PurchasePaymentReport = () => {
     const fetchReportItems = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8080/PurchasePaymentReport/getall"
+          `${process.env.REACT_APP_BASE_URL}/transaction/purchase`
         );
+
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
+
         const data = await response.json();
+
         if (Array.isArray(data)) {
           setPurchasePaymentItems(data);
         } else {
@@ -45,10 +48,12 @@ const PurchasePaymentReport = () => {
         console.error("Error fetching report items:", error);
         setPurchasePaymentItems([]);
       }
+
       const script = document.createElement("script");
       script.src = "js/JqueryContent.js";
       script.async = true;
       document.body.appendChild(script);
+
       return () => {
         document.body.removeChild(script);
       };
@@ -370,23 +375,36 @@ const PurchasePaymentReport = () => {
                         .map((item) => (
                           <tr key={item.id}>
                             {columnsVisibility.referenceNo && (
-                              <td>{item.referenceNo}</td>
+                              <td>{item.id}</td>
                             )}
-                            {columnsVisibility.paidOn && <td>{item.paidOn}</td>}
+
+                            {columnsVisibility.paidOn && (
+                              <td>
+                                {new Date(item.date).toLocaleDateString()}
+                              </td>
+                            )}
+
                             {columnsVisibility.amount && <td>{item.amount}</td>}
+
                             {columnsVisibility.supplier && (
-                              <td>{item.supplier}</td>
+                              <td>{item.vendor}</td>
                             )}
+
                             {columnsVisibility.paymentMethod && (
                               <td>{item.paymentMethod}</td>
                             )}
+
                             {columnsVisibility.purchase && (
-                              <td>{item.purchase}</td>
+                              <td>{item.transactionType}</td>
                             )}
-                            {columnsVisibility.action && <td>{item.action}</td>}
+
+                            {columnsVisibility.action && (
+                              <td>{item.addedBy}</td>
+                            )}
                           </tr>
                         ))}
                     </tbody>
+
                     <tfoot>
                       <tr className="bg-gray font-17 text-center footer-total">
                         <td colSpan="2" rowSpan="1">

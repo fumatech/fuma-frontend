@@ -308,6 +308,7 @@ const ViewVendor = () => {
 
     // Prepare correct payload structure
     const payload = {
+      addedBy,
       paymentMethod: paymentMethod, // ✅ Matches backend field name
       paidOn: paymentData.paidOn,
       amount: parseFloat(paymentData.amount), // ✅ Ensure amount is a number
@@ -357,7 +358,7 @@ const ViewVendor = () => {
   // Fetch payment methods
   useEffect(() => {
     axios
-      .get("${process.env.REACT_APP_BASE_URL}/payment-method/active-names")
+      .get(`${process.env.REACT_APP_BASE_URL}/payment-method/active-names`)
       .then((response) => {
         setPaymentMethods(response.data); // Store fetched methods
       })
@@ -368,7 +369,7 @@ const ViewVendor = () => {
   // Fetch payment accounts
   useEffect(() => {
     axios
-      .get("${process.env.REACT_APP_BASE_URL}/payment-account/getall")
+      .get(`${process.env.REACT_APP_BASE_URL}/payment-account/getall`)
       .then((response) => {
         // Filter active accounts (status === 1)
         const activeAccounts = response.data.filter(
@@ -380,6 +381,7 @@ const ViewVendor = () => {
         console.error("Error fetching payment accounts:", error);
       });
   }, []);
+
   // Fetch Vendor and Purchases Data
   useEffect(() => {
     fetchVendorData();

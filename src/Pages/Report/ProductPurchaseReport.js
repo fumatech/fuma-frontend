@@ -31,12 +31,15 @@ const ProductPurchaseReport = () => {
     const fetchProductPurchaseReport = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8443/ProductPurchaseReport/getall"
+          `${process.env.REACT_APP_BASE_URL}/ProductPurchaseReport/getall`
         );
+
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
+
         const data = await response.json();
+
         if (Array.isArray(data)) {
           setProductPurchaseReport(data);
         } else {
@@ -47,10 +50,12 @@ const ProductPurchaseReport = () => {
         console.error("Error fetching report items:", error);
         setProductPurchaseReport([]);
       }
+
       const script = document.createElement("script");
       script.src = "js/JqueryContent.js";
       script.async = true;
       document.body.appendChild(script);
+
       return () => {
         document.body.removeChild(script);
       };

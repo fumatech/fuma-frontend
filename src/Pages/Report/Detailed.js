@@ -10,14 +10,16 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
+import "datatables.net-bs4";
+import "datatables.net-responsive-bs4";
 
 const Detailed = () => {
   const [productSellReport, setProductSellReport] = useState([]);
   const [columnsVisibility, setColumnsVisibility] = useState({
     products: true,
     sku: true,
-    customerName: true,
-    contactID: true,
+    franchise: true,
+    customerId: true,
     invoiceNo: true,
     date: true,
     quantity: true,
@@ -26,19 +28,24 @@ const Detailed = () => {
     tax: true,
     priceIncTax: true,
     total: true,
-    paymentMethod: true,
   });
+
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
 
   useEffect(() => {
     const fetchProductSellReport = async () => {
       try {
-        const response = await fetch("http://localhost:8080/itemReport/getall");
+        const response = await fetch(
+          `${process.env.REACT_APP_BASE_URL}/sell-report/getall`
+        );
+
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
+
         const data = await response.json();
+
         if (Array.isArray(data)) {
           setProductSellReport(data);
         } else {
@@ -49,13 +56,6 @@ const Detailed = () => {
         console.error("Error fetching product sell report:", error);
         setProductSellReport([]);
       }
-      const script = document.createElement("script");
-      script.src = "js/JqueryContent.js";
-      script.async = true;
-      document.body.appendChild(script);
-      return () => {
-        document.body.removeChild(script);
-      };
     };
 
     fetchProductSellReport();
@@ -442,10 +442,8 @@ const Detailed = () => {
                       <tr>
                         {columnsVisibility.products && <th>Products</th>}
                         {columnsVisibility.sku && <th>SKU</th>}
-                        {columnsVisibility.customerName && (
-                          <th>Customer Name</th>
-                        )}
-                        {columnsVisibility.contactID && <th>Contact ID</th>}
+                        {columnsVisibility.franchise && <th>Franchise</th>}
+                        {columnsVisibility.customerId && <th>Customer ID</th>}
                         {columnsVisibility.invoiceNo && <th>Invoice No</th>}
                         {columnsVisibility.date && <th>Date</th>}
                         {columnsVisibility.quantity && <th>Quantity</th>}
@@ -456,26 +454,23 @@ const Detailed = () => {
                           <th>Price Inc. Tax</th>
                         )}
                         {columnsVisibility.total && <th>Total</th>}
-                        {columnsVisibility.paymentMethod && (
-                          <th>Payment Method</th>
-                        )}
                       </tr>
                     </thead>
 
                     <tbody>
                       {productSellReport
                         .slice(startIndex, endIndex)
-                        .map((item) => (
-                          <tr key={item.id}>
+                        .map((item, index) => (
+                          <tr key={index}>
                             {columnsVisibility.products && (
                               <td>{item.products}</td>
                             )}
                             {columnsVisibility.sku && <td>{item.sku}</td>}
-                            {columnsVisibility.customerName && (
-                              <td>{item.customerName}</td>
+                            {columnsVisibility.franchise && (
+                              <td>{item.franchise}</td>
                             )}
-                            {columnsVisibility.contactID && (
-                              <td>{item.contactID}</td>
+                            {columnsVisibility.customerId && (
+                              <td>{item.customerId}</td>
                             )}
                             {columnsVisibility.invoiceNo && (
                               <td>{item.invoiceNo}</td>
@@ -495,9 +490,6 @@ const Detailed = () => {
                               <td>{item.priceIncTax}</td>
                             )}
                             {columnsVisibility.total && <td>{item.total}</td>}
-                            {columnsVisibility.paymentMethod && (
-                              <td>{item.paymentMethod}</td>
-                            )}
                           </tr>
                         ))}
                     </tbody>
@@ -509,39 +501,25 @@ const Detailed = () => {
                         </td>
                         <td id="footer_total_sold" rowSpan="1" colSpan="1">
                           <p className="text-left">
-                            <small>
-                              <span
-                                className="display_currency"
-                                data-is_quantity="true"
-                              >
-                                {totalQuantity.toFixed(2)}
-                              </span>{" "}
-                              Pc(s)
-                              <br />
-                              <span
-                                className="display_currency"
-                                data-is_quantity="true"
-                              >
-                                {totalPackets.toFixed(2)}
-                              </span>{" "}
-                              packets
-                              <br />
-                            </small>
+                            <span
+                              className="display_currency"
+                              data-is_quantity="true"
+                            >
+                              {totalQuantity.toFixed(2)}
+                            </span>{" "}
                           </p>
                         </td>
                         <td rowSpan="1" colSpan="1"></td>
                         <td rowSpan="1" colSpan="1"></td>
                         <td id="footer_tax" rowSpan="1" colSpan="1">
                           <p className="text-left">
-                            <small>
-                              :{" "}
-                              <span
-                                className="display_currency"
-                                data-is_quantity="true"
-                              >
-                                {totalTax.toFixed(2)}
-                              </span>{" "}
-                              <br />
+                            <span
+                              className="display_currency"
+                              data-is_quantity="true"
+                            >
+                              {totalTax.toFixed(2)}
+                            </span>{" "}
+                            {/* <br />
                               VAT@10% :{" "}
                               <span
                                 className="display_currency"
@@ -549,8 +527,7 @@ const Detailed = () => {
                               >
                                 {vatAmount.toFixed(2)}
                               </span>{" "}
-                              <br />
-                            </small>
+                              <br /> */}
                           </p>
                         </td>
                         <td rowSpan="1" colSpan="1"></td>

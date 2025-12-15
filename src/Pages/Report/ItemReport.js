@@ -36,10 +36,14 @@ const ItemReport = () => {
   useEffect(() => {
     const fetchReportItems = async () => {
       try {
-        const response = await fetch("http://localhost:8080/itemReport/getall");
+        const response = await fetch(
+          `${process.env.REACT_APP_BASE_URL}/itemReport/getall`
+        );
+
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
+
         const data = await response.json();
         if (Array.isArray(data)) {
           setReportItems(data);
@@ -51,10 +55,12 @@ const ItemReport = () => {
         console.error("Error fetching report items:", error);
         setReportItems([]);
       }
+
       const script = document.createElement("script");
       script.src = "js/JqueryContent.js";
       script.async = true;
       document.body.appendChild(script);
+
       return () => {
         document.body.removeChild(script);
       };
