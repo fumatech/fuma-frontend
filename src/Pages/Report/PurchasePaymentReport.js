@@ -20,7 +20,7 @@ const PurchasePaymentReport = () => {
     supplier: true,
     paymentMethod: true,
     purchase: true,
-    action: true,
+    addedBy: true,
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -70,7 +70,7 @@ const PurchasePaymentReport = () => {
       Supplier: item.supplier,
       PaymentMethod: item.paymentMethod,
       Purchase: item.purchase,
-      Action: item.action,
+      addedBy: item.addedBy,
     }));
 
     const csv = [
@@ -81,7 +81,7 @@ const PurchasePaymentReport = () => {
         "Supplier",
         "Payment Method",
         "Purchase",
-        "Action",
+        "addedBy",
       ],
       ...csvData.map((row) => Object.values(row)),
     ]
@@ -101,7 +101,7 @@ const PurchasePaymentReport = () => {
         Supplier: item.supplier,
         PaymentMethod: item.paymentMethod,
         Purchase: item.purchase,
-        Action: item.action,
+        addedBy: item.addedBy,
       }))
     );
     const wb = XLSX.utils.book_new();
@@ -120,7 +120,7 @@ const PurchasePaymentReport = () => {
           "Supplier",
           "Payment Method",
           "Purchase",
-          "Action",
+          "addedBy",
         ],
       ],
       body: purchasePaymentItems.map((item) => [
@@ -130,7 +130,7 @@ const PurchasePaymentReport = () => {
         item.supplier,
         item.paymentMethod,
         item.purchase,
-        item.action,
+        item.addedBy,
       ]),
     });
     doc.save("purchasePaymentItems.pdf");
@@ -165,7 +165,7 @@ const PurchasePaymentReport = () => {
                     : ""
                 }
                 ${columnsVisibility.purchase ? "<th>Purchase</th>" : ""}
-                ${columnsVisibility.action ? "<th>Action</th>" : ""}
+                ${columnsVisibility.addedBy ? "<th>Added By</th>" : ""}
               </tr>
             </thead>
             <tbody>
@@ -196,7 +196,11 @@ const PurchasePaymentReport = () => {
                         ? `<td>${item.purchase}</td>`
                         : ""
                     }
-                    ${columnsVisibility.action ? `<td>${item.action}</td>` : ""}
+                    ${
+                      columnsVisibility.addedBy
+                        ? `<td>${item.addedBy}</td>`
+                        : ""
+                    }
                   </tr>
                 `
                 )
@@ -366,7 +370,7 @@ const PurchasePaymentReport = () => {
                           <th>Payment Method</th>
                         )}
                         {columnsVisibility.purchase && <th>Purchase</th>}
-                        {columnsVisibility.action && <th>Action</th>}
+                        {columnsVisibility.addedBy && <th>Added By</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -378,11 +382,7 @@ const PurchasePaymentReport = () => {
                               <td>{item.id}</td>
                             )}
 
-                            {columnsVisibility.paidOn && (
-                              <td>
-                                {new Date(item.date).toLocaleDateString()}
-                              </td>
-                            )}
+                            {columnsVisibility.paidOn && <td>{item.date}</td>}
 
                             {columnsVisibility.amount && <td>{item.amount}</td>}
 
@@ -398,7 +398,7 @@ const PurchasePaymentReport = () => {
                               <td>{item.transactionType}</td>
                             )}
 
-                            {columnsVisibility.action && (
+                            {columnsVisibility.addedBy && (
                               <td>{item.addedBy}</td>
                             )}
                           </tr>

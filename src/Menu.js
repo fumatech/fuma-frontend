@@ -46,7 +46,9 @@ const Menu = ({ userRoles }) => {
         path.startsWith("/Variation") ||
         path.startsWith("/Units")
     );
-    setExtraOpen(path.startsWith("/Permission"));
+    setExtraOpen(
+      path.startsWith("/Permission") || path.startsWith("/ImageUpload")
+    );
     setPurchaseOpen(
       path.startsWith("/PurchaseOrder") ||
         path.startsWith("/AddDIPurchase") ||
@@ -106,6 +108,7 @@ const Menu = ({ userRoles }) => {
         path.startsWith("/ProductPurchaseReport") ||
         path.startsWith("/ProductSellReport") ||
         path.startsWith("/PurchasePaymentReport") ||
+        path.startsWith("/SalePaymentReport") ||
         path.startsWith("/StockAdjustmentReport") ||
         path.startsWith("/StockReport") ||
         path.startsWith("/TaxReport")
@@ -128,7 +131,10 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/Units")
     ) {
       setActiveMenu("product");
-    } else if (path.startsWith("/Permission")) {
+    } else if (
+      path.startsWith("/Permission") ||
+      path.startsWith("/ImageUpload")
+    ) {
       setActiveMenu("extra");
     } else if (
       path.startsWith("/PurchaseOrder") ||
@@ -195,6 +201,7 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/ProductPurchaseReport") ||
       path.startsWith("/ProductSellReport") ||
       path.startsWith("/PurchasePaymentReport") ||
+      path.startsWith("/SalePaymentReport") ||
       path.startsWith("/StockAdjustmentReport") ||
       path.startsWith("/StockReport") ||
       path.startsWith("/TaxReport")
@@ -231,6 +238,8 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("Units");
     } else if (path === "/Permission") {
       setActiveSubMenu("Permission");
+    } else if (path === "/ImageUpload") {
+      setActiveSubMenu("ImageUpload");
     } else if (path === "/PurchaseOrder") {
       setActiveSubMenu("PurchaseOrder");
     } else if (path === "/ListPurchaseOrder") {
@@ -315,6 +324,8 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("ProductSellReport");
     } else if (path === "/PurchasePaymentReport") {
       setActiveSubMenu("PurchasePaymentReport");
+    } else if (path === "/SalePaymentReport") {
+      setActiveSubMenu("SalePaymentReport");
     } else if (path === "/TaxRate") {
       setActiveSubMenu("TaxRate");
     } else if (path === "/BusinessDetails") {
@@ -2162,6 +2173,25 @@ const Menu = ({ userRoles }) => {
                       <p>Purchase Payment Report</p>
                     </Link>
                   </li>
+                  <li className="nav-item">
+                    <Link
+                      to="/SalePaymentReport"
+                      className={getSubMenuItemClass("SalePaymentReport")}
+                      style={{
+                        color:
+                          activeSubMenu === "SalePaymentReport"
+                            ? "#0040C1"
+                            : "#4b5565",
+                        backgroundColor:
+                          activeSubMenu === "SalePaymentReport"
+                            ? "rgba(0, 64, 193, 0.08)"
+                            : "transparent",
+                        paddingLeft: "52px",
+                      }}
+                    >
+                      <p>Sale Payment Report</p>
+                    </Link>
+                  </li>
                 </ul>
               </li>
 
@@ -2333,6 +2363,25 @@ const Menu = ({ userRoles }) => {
                       }}
                     >
                       <p>Permission</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link
+                      to="/ImageUpload"
+                      className={getSubMenuItemClass("ImageUpload")}
+                      style={{
+                        color:
+                          activeSubMenu === "ImageUpload"
+                            ? "#0040C1"
+                            : "#4b5565",
+                        backgroundColor:
+                          activeSubMenu === "ImageUpload"
+                            ? "rgba(0, 64, 193, 0.08)"
+                            : "transparent",
+                        paddingLeft: "52px",
+                      }}
+                    >
+                      <p>Upload Image</p>
                     </Link>
                   </li>
                 </ul>

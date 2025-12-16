@@ -316,7 +316,7 @@ const ViewCustomer = () => {
       amount: parseFloat(paymentData.amount),
       customer: `${customer.firstname} ${customer.lastname}`,
       note: paymentData.note,
-      transactionType: "payment",
+      transactionType: "sale",
       date: paymentData.paidOn,
       paymentAccountId: accountId,
     };

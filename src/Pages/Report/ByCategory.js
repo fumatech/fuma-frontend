@@ -12,6 +12,7 @@ import * as XLSX from "xlsx";
 
 const ByCategory = () => {
   const [byCategory, setByCategory] = useState([]);
+  const [categoryMap, setCategoryMap] = useState({});
   const [columnsVisibility, setColumnsVisibility] = useState({
     products: true,
     currentStock: true,
@@ -20,43 +21,70 @@ const ByCategory = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.REACT_APP_BASE_URL}/categories/getall`
+        );
+        const data = await res.json();
+
+        const map = flattenCategories(data);
+        setCategoryMap(map);
+      } catch (err) {
+        console.error("Error fetching categories", err);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const fetchByCategory = async () => {
       try {
-        const response = await fetch("http://localhost:8080/ByCategory/getall");
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
+        const response = await fetch(
+          `${process.env.REACT_APP_BASE_URL}/reports/category-wise`
+        );
         const data = await response.json();
+
         if (Array.isArray(data)) {
-          setByCategory(data);
+          const updatedData = data.map((item) => ({
+            ...item,
+            categoryName: categoryMap[item.category] || "Unknown Category",
+          }));
+
+          setByCategory(updatedData);
         } else {
-          console.error("Fetched data is not an array");
           setByCategory([]);
         }
       } catch (error) {
-        console.error("Error fetching product sell report:", error);
+        console.error("Error fetching category-wise report:", error);
         setByCategory([]);
       }
-      const script = document.createElement("script");
-      script.src = "js/JqueryContent.js";
-      script.async = true;
-      document.body.appendChild(script);
-      return () => {
-        document.body.removeChild(script);
-      };
     };
 
-    fetchByCategory();
-  }, []);
+    if (Object.keys(categoryMap).length > 0) {
+      fetchByCategory();
+    }
+  }, [categoryMap]);
+
+  const flattenCategories = (categories, map = {}) => {
+    categories.forEach((cat) => {
+      map[cat.id.toString()] = cat.categoryName;
+
+      if (cat.subCategories && cat.subCategories.length > 0) {
+        flattenCategories(cat.subCategories, map);
+      }
+    });
+    return map;
+  };
 
   const exportCSV = () => {
     const csvData = byCategory.map((item) => ({
       Products: item.products,
       CurrentStock: item.currentStock,
       TotalUnitsSold: item.totalUnitsSold,
-      Total: item.total,
+      Total: item.totalAmount,
     }));
 
     const csv = [
@@ -76,7 +104,7 @@ const ByCategory = () => {
         Products: item.products,
         CurrentStock: item.currentStock,
         TotalUnitsSold: item.totalUnitsSold,
-        Total: item.total,
+        Total: item.totalAmount,
       }))
     );
     const wb = XLSX.utils.book_new();
@@ -92,7 +120,7 @@ const ByCategory = () => {
         item.products,
         item.currentStock,
         item.totalUnitsSold,
-        item.total,
+        item.totalAmount,
       ]),
     });
     doc.save("byCategoryReport.pdf");
@@ -153,7 +181,11 @@ const ByCategory = () => {
                         ? `<td>${item.totalUnitsSold}</td>`
                         : ""
                     }
-                    ${columnsVisibility.total ? `<td>${item.total}</td>` : ""}
+                    ${
+                      columnsVisibility.total
+                        ? `<td>${item.totalAmount}</td>`
+                        : ""
+                    }
                   </tr>`
                 )
                 .join("")}
@@ -184,7 +216,7 @@ const ByCategory = () => {
       0
     );
     const totalAmount = displayedItems.reduce(
-      (acc, item) => acc + (parseFloat(item.total) || 0),
+      (acc, item) => acc + (parseFloat(item.totalAmount) || 0),
       0
     );
 
@@ -298,7 +330,7 @@ const ByCategory = () => {
                   >
                     <thead>
                       <tr>
-                        {columnsVisibility.products && <th>Products</th>}
+                        {columnsVisibility.products && <th>Category</th>}
                         {columnsVisibility.currentStock && (
                           <th>Current Stock</th>
                         )}
@@ -318,7 +350,7 @@ const ByCategory = () => {
                         .map((item) => (
                           <tr key={item.id}>
                             {columnsVisibility.products && (
-                              <td>{item.products}</td>
+                              <td>{item.categoryName}</td>
                             )}
                             {columnsVisibility.currentStock && (
                               <td>{item.currentStock}</td>
@@ -326,7 +358,9 @@ const ByCategory = () => {
                             {columnsVisibility.totalUnitsSold && (
                               <td>{item.totalUnitsSold}</td>
                             )}
-                            {columnsVisibility.total && <td>{item.total}</td>}
+                            {columnsVisibility.total && (
+                              <td>{item.totalAmount}</td>
+                            )}
                           </tr>
                         ))}
                     </tbody>
@@ -341,16 +375,8 @@ const ByCategory = () => {
                           rowSpan="1"
                           colSpan="1"
                         >
-                          <p className="text-left">
-                            <small>
-                              <span
-                                className="display_currency"
-                                data-is_quantity="true"
-                              >
-                                {totalStock.toFixed(2)}
-                              </span>{" "}
-                              <br />
-                            </small>
+                          <p className="text-center">
+                            <span>{totalStock}</span> <br />
                           </p>
                         </td>
                         <td
@@ -358,16 +384,14 @@ const ByCategory = () => {
                           rowSpan="1"
                           colSpan="1"
                         >
-                          <p className="text-left">
-                            <small>
-                              <span
-                                className="display_currency"
-                                data-is_quantity="true"
-                              >
-                                {totalUnitsSold.toFixed(2)}
-                              </span>{" "}
-                              <br />
-                            </small>
+                          <p className="text-center">
+                            <span
+                              className="display_currency"
+                              data-is_quantity="true"
+                            >
+                              {totalUnitsSold}
+                            </span>{" "}
+                            <br />
                           </p>
                         </td>
                         <td rowSpan="1" colSpan="1">

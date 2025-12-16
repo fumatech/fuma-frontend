@@ -27,7 +27,7 @@ const GroupedDate = () => {
     const fetchGroupedDate = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8080/groupedDate/getall"
+          `${process.env.REACT_APP_BASE_URL}/reports/date-wise`
         );
         if (!response.ok) {
           throw new Error("Network response was not ok");
@@ -62,7 +62,7 @@ const GroupedDate = () => {
       Date: item.date,
       CurrentStock: item.currentStock,
       TotalUnitsSold: item.totalUnitsSold,
-      Total: item.total,
+      Total: item.totalAmount,
     }));
 
     const csv = [
@@ -84,7 +84,7 @@ const GroupedDate = () => {
         Date: item.date,
         CurrentStock: item.currentStock,
         TotalUnitsSold: item.totalUnitsSold,
-        Total: item.total,
+        Total: item.totalAmount,
       }))
     );
     const wb = XLSX.utils.book_new();
@@ -111,7 +111,7 @@ const GroupedDate = () => {
         item.date,
         item.currentStock,
         item.totalUnitsSold,
-        item.total,
+        item.totalAmount,
       ]),
     });
     doc.save("groupedDateReport.pdf");
@@ -176,7 +176,11 @@ const GroupedDate = () => {
                       ? `<td>${item.totalUnitsSold}</td>`
                       : ""
                   }
-                  ${columnsVisibility.total ? `<td>${item.total}</td>` : ""}
+                  ${
+                    columnsVisibility.total
+                      ? `<td>${item.totalAmount}</td>`
+                      : ""
+                  }
                 </tr>`
                 )
                 .join("")}
@@ -204,7 +208,7 @@ const GroupedDate = () => {
     );
     const totalPackets = Math.floor(totalUnits / 10);
     const totalAmount = displayedItems.reduce(
-      (acc, item) => acc + (parseFloat(item.total) || 0),
+      (acc, item) => acc + (parseFloat(item.totalAmount) || 0),
       0
     );
 
@@ -340,17 +344,19 @@ const GroupedDate = () => {
                         .map((item) => (
                           <tr key={item.id}>
                             {columnsVisibility.products && (
-                              <td>{item.products}</td>
+                              <td>{item.productName}</td>
                             )}
                             {columnsVisibility.sku && <td>{item.sku}</td>}
-                            {columnsVisibility.date && <td>{item.date}</td>}
+                            {columnsVisibility.date && <td>{item.saleDate}</td>}
                             {columnsVisibility.currentStock && (
                               <td>{item.currentStock}</td>
                             )}
                             {columnsVisibility.totalUnitsSold && (
                               <td>{item.totalUnitsSold}</td>
                             )}
-                            {columnsVisibility.total && <td>{item.total}</td>}
+                            {columnsVisibility.total && (
+                              <td>{item.totalAmount}</td>
+                            )}
                           </tr>
                         ))}
                     </tbody>
@@ -365,25 +371,13 @@ const GroupedDate = () => {
                           rowSpan="1"
                           colSpan="1"
                         >
-                          <p className="text-left">
-                            <small>
-                              <span
-                                className="display_currency"
-                                data-is_quantity="true"
-                              >
-                                {totalUnits.toFixed(2)}
-                              </span>{" "}
-                              Pc(s)
-                              <br />
-                              <span
-                                className="display_currency"
-                                data-is_quantity="true"
-                              >
-                                {totalPackets.toFixed(2)}
-                              </span>{" "}
-                              packets
-                              <br />
-                            </small>
+                          <p className="text-center">
+                            <span
+                              className="display_currency"
+                              data-is_quantity="true"
+                            >
+                              {totalUnits}
+                            </span>{" "}
                           </p>
                         </td>
                         <td rowSpan="1" colSpan="1">

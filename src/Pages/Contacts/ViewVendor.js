@@ -314,7 +314,7 @@ const ViewVendor = () => {
       amount: parseFloat(paymentData.amount), // ✅ Ensure amount is a number
       vendor: vendor.firmName,
       note: paymentData.note,
-      transactionType: "payment", // ✅ REQUIRED for backend, adjust as needed
+      transactionType: "purchase", // ✅ REQUIRED for backend, adjust as needed
       date: paymentData.paidOn, // ✅ Backend expects `date` field
       paymentAccountId: accountId, // ✅ Match backend entity
     };

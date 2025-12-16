@@ -333,7 +333,7 @@ function EditExpense() {
         expenseCategory: expenseCategoryId ? Number(expenseCategoryId) : null,
         subCategory: expenseSubCategoryId ? Number(expenseSubCategoryId) : null,
         date: new Date().toISOString(),
-        expenseFor: 1,
+        expenseFor: userName,
         expenseForContact: contactId ? Number(contactId) : 1,
         tax: taxId ? Number(taxId) : null,
         totalAmount: finalTotal ? Number(finalTotal) : 0,

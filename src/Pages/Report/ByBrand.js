@@ -12,6 +12,8 @@ import * as XLSX from "xlsx";
 
 const ByBrand = () => {
   const [byBrand, setByBrand] = useState([]);
+  const [brandsMap, setBrandsMap] = useState({});
+
   const [columnsVisibility, setColumnsVisibility] = useState({
     brand: true,
     currentStock: true,
@@ -20,43 +22,64 @@ const ByBrand = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.REACT_APP_BASE_URL}/brands/getall`
+        );
+        const data = await res.json();
+
+        // Create map: { "5": "FUMA-IGNYTE", "6": "FUMA-GENXT" }
+        const map = {};
+        data.forEach((b) => {
+          map[b.id.toString()] = b.brandName;
+        });
+
+        setBrandsMap(map);
+      } catch (err) {
+        console.error("Error fetching brands", err);
+      }
+    };
+
+    fetchBrands();
+  }, []);
 
   useEffect(() => {
     const fetchByBrand = async () => {
       try {
-        const response = await fetch("http://localhost:8080/ByCategory/getall");
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
+        const response = await fetch(
+          `${process.env.REACT_APP_BASE_URL}/reports/brand-wise`
+        );
         const data = await response.json();
+
         if (Array.isArray(data)) {
-          setByBrand(data);
+          const updatedData = data.map((item) => ({
+            ...item,
+            brandName: brandsMap[item.brand] || "Unknown Brand",
+          }));
+
+          setByBrand(updatedData);
         } else {
-          console.error("Fetched data is not an array");
           setByBrand([]);
         }
       } catch (error) {
-        console.error("Error fetching product sell report:", error);
+        console.error("Error fetching brand-wise report:", error);
         setByBrand([]);
       }
-      const script = document.createElement("script");
-      script.src = "js/JqueryContent.js";
-      script.async = true;
-      document.body.appendChild(script);
-      return () => {
-        document.body.removeChild(script);
-      };
     };
 
-    fetchByBrand();
-  }, []);
+    if (Object.keys(brandsMap).length > 0) {
+      fetchByBrand();
+    }
+  }, [brandsMap]);
 
   const exportCSV = () => {
     const csvData = byBrand.map((item) => ({
       Brand: item.brand,
       CurrentStock: item.currentStock,
       TotalUnitsSold: item.totalUnitsSold,
-      Total: item.total,
+      Total: item.totalAmount,
     }));
 
     const csv = [
@@ -76,7 +99,7 @@ const ByBrand = () => {
         Brand: item.brand,
         CurrentStock: item.currentStock,
         TotalUnitsSold: item.totalUnitsSold,
-        Total: item.total,
+        Total: item.totalAmount,
       }))
     );
     const wb = XLSX.utils.book_new();
@@ -92,7 +115,7 @@ const ByBrand = () => {
         item.brand,
         item.currentStock,
         item.totalUnitsSold,
-        item.total,
+        item.totalAmount,
       ]),
     });
     doc.save("byBrandReport.pdf");
@@ -144,7 +167,11 @@ const ByBrand = () => {
                         ? `<td>${item.totalUnitsSold}</td>`
                         : ""
                     }
-                    ${columnsVisibility.total ? `<td>${item.total}</td>` : ""}
+                    ${
+                      columnsVisibility.total
+                        ? `<td>${item.totalAmount}</td>`
+                        : ""
+                    }
                   </tr>`
                 )
                 .join("")}
@@ -174,7 +201,7 @@ const ByBrand = () => {
       0
     );
     const totalAmount = displayedItems.reduce(
-      (acc, item) => acc + (parseFloat(item.total) || 0),
+      (acc, item) => acc + (parseFloat(item.totalAmount) || 0),
       0
     );
 
@@ -307,14 +334,18 @@ const ByBrand = () => {
                         )
                         .map((item) => (
                           <tr key={item.id}>
-                            {columnsVisibility.brand && <td>{item.brand}</td>}
+                            {columnsVisibility.brand && (
+                              <td>{item.brandName}</td>
+                            )}
                             {columnsVisibility.currentStock && (
                               <td>{item.currentStock}</td>
                             )}
                             {columnsVisibility.totalUnitsSold && (
                               <td>{item.totalUnitsSold}</td>
                             )}
-                            {columnsVisibility.total && <td>{item.total}</td>}
+                            {columnsVisibility.total && (
+                              <td>{item.totalAmount}</td>
+                            )}
                           </tr>
                         ))}
                     </tbody>
@@ -329,16 +360,14 @@ const ByBrand = () => {
                           rowSpan="1"
                           colSpan="1"
                         >
-                          <p className="text-left">
-                            <small>
-                              <span
-                                className="display_currency"
-                                data-is_quantity="true"
-                              >
-                                {totalStock.toFixed(2)}
-                              </span>{" "}
-                              <br />
-                            </small>
+                          <p className="text-center">
+                            <span
+                              className="display_currency"
+                              data-is_quantity="true"
+                            >
+                              {totalStock}
+                            </span>{" "}
+                            <br />
                           </p>
                         </td>
                         <td
@@ -346,16 +375,14 @@ const ByBrand = () => {
                           rowSpan="1"
                           colSpan="1"
                         >
-                          <p className="text-left">
-                            <small>
-                              <span
-                                className="display_currency"
-                                data-is_quantity="true"
-                              >
-                                {totalUnitsSold.toFixed(2)}
-                              </span>{" "}
-                              <br />
-                            </small>
+                          <p className="text-center">
+                            <span
+                              className="display_currency"
+                              data-is_quantity="true"
+                            >
+                              {totalUnitsSold}
+                            </span>{" "}
+                            <br />
                           </p>
                         </td>
                         <td rowSpan="1" colSpan="1">

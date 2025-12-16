@@ -242,7 +242,7 @@ function AddExpense() {
       expenseCategory: expenseCategoryId ? Number(expenseCategoryId) : null,
       subCategory: expenseSubCategoryId ? Number(expenseSubCategoryId) : null,
       date: new Date().toISOString(),
-      expenseFor: 1,
+      expenseFor: userName,
       // expenseForContact: contactId ? Number(contactId) : null,
       expenseForContact: 1,
       tax: taxId ? Number(taxId) : null,

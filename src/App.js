@@ -31,6 +31,7 @@ import AddCustomer from "./Pages/Contacts/AddCustomer";
 import EditCustomer from "./Pages/Contacts/EditCustomer";
 import ViewCustomer from "./Pages/Contacts/ViewCustomer";
 import Permission from "./Pages/Extra/Permission";
+import ImageUpload from "./Pages/Extra/ImageUpload";
 import AddProducts from "./Pages/Products/AddProducts";
 import ListProducts from "./Pages/Products/ListProducts";
 import OpeningStockPage from "./Pages/Products/OpeningStockPage";
@@ -118,6 +119,7 @@ import GroupedDate from "./Pages/Report/GroupedDate";
 import ByCategory from "./Pages/Report/ByCategory";
 import ByBrand from "./Pages/Report/ByBrand";
 import PurchasePaymentReport from "./Pages/Report/PurchasePaymentReport";
+import SalePaymentReport from "./Pages/Report/SalePaymentReport";
 import Detailed from "./Pages/Report/Detailed";
 import InputTaxPurchase from "./Pages/Report/InputTaxPurchase";
 import OutputTaxSales from "./Pages/Report/OutputTaxSales";
@@ -408,6 +410,7 @@ const App = () => {
                     }
                   />
                   <Route path="/Permission" element={<Permission />} />
+                  <Route path="/ImageUpload" element={<ImageUpload />} />
                   <Route path="/ListProducts" element={<ListProducts />} />
                   <Route path="/AddProducts" element={<AddProducts />} />
                   <Route
@@ -660,6 +663,11 @@ const App = () => {
                     path="/PurchasePaymentReport"
                     element={<PurchasePaymentReport />}
                   />
+                  <Route
+                    path="/SalePaymentReport"
+                    element={<SalePaymentReport />}
+                  />
+
                   <Route
                     path="/ProductStockHistory"
                     element={<ProductStockHistory />}
