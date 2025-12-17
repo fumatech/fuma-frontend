@@ -94,6 +94,7 @@ import ListWarrantyClaim from "./Pages/StockAdjustment/ListWarrantyClaim";
 import ListVendorWarrantyClaim from "./Pages/StockAdjustment/ListVendorWarrantyClaim";
 import ListShippedWarrantyClaim from "./Pages/StockAdjustment/ListShippedWarrantyClaim";
 import AddExpense from "./Pages/Expense/AddExpense";
+import ExpenseCategories from "./Pages/Expense/ExpenseCategories";
 import EditExpense from "./Pages/Expense/EditExpense";
 import ViewExpense from "./Pages/Expense/ViewExpense";
 import ListExpense from "./Pages/Expense/ListExpense";
@@ -255,7 +256,7 @@ const App = () => {
                       hasPermission("/Users") ? (
                         <Users userRoles={userRoles} />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -265,7 +266,7 @@ const App = () => {
                       hasPermission("/AddUser") ? (
                         <AddUser />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -275,7 +276,7 @@ const App = () => {
                       hasPermission("/Roles") ? (
                         <Roles userRoles={userRoles} />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -285,7 +286,7 @@ const App = () => {
                       hasPermission("/AddRoles") ? (
                         <AddRoles />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -295,7 +296,7 @@ const App = () => {
                       hasPermission("/EditRoles") ? (
                         <EditRoles />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -305,7 +306,7 @@ const App = () => {
                       hasPermission("/ViewRole") ? (
                         <ViewRole />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -315,7 +316,7 @@ const App = () => {
                       hasPermission("/EditUser") ? (
                         <EditUser />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -325,7 +326,7 @@ const App = () => {
                       hasPermission("/ViewUser") ? (
                         <ViewUser />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -335,7 +336,7 @@ const App = () => {
                       hasPermission("/Vendor") ? (
                         <Vendor userRoles={userRoles} />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -345,7 +346,7 @@ const App = () => {
                       hasPermission("/AddVendor") ? (
                         <AddVendor />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -355,7 +356,7 @@ const App = () => {
                       hasPermission("/EditVendor") ? (
                         <EditVendor />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -365,7 +366,7 @@ const App = () => {
                       hasPermission("/ViewVendor") ? (
                         <ViewVendor />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -375,7 +376,7 @@ const App = () => {
                       hasPermission("/Customer") ? (
                         <Customer userRoles={userRoles} />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -385,7 +386,7 @@ const App = () => {
                       hasPermission("/AddCustomer") ? (
                         <AddCustomer />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -395,7 +396,7 @@ const App = () => {
                       hasPermission("/EditCustomer") ? (
                         <EditCustomer />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -405,7 +406,7 @@ const App = () => {
                       hasPermission("/ViewCustomer") ? (
                         <ViewCustomer />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -432,7 +433,7 @@ const App = () => {
                       hasPermission("/Units") ? (
                         <Units userRoles={userRoles} />
                       ) : (
-                        <Navigate to="/no-access" />
+                        <Navigate to="/" />
                       )
                     }
                   />
@@ -602,6 +603,10 @@ const App = () => {
                   <Route path="/EditExpense/:id" element={<EditExpense />} />
                   <Route path="/ViewExpense/:id" element={<ViewExpense />} />
                   <Route path="/ListExpense" element={<ListExpense />} />
+                  <Route
+                    path="/ExpenseCategories"
+                    element={<ExpenseCategories />}
+                  />
                   <Route path="/PaymentReport" element={<PaymentReport />} />
                   <Route path="/AddAccount" element={<AddAccount />} />
                   <Route path="/PaymentMethod" element={<PaymentMethod />} />
@@ -700,7 +705,7 @@ const App = () => {
                   <Route path="/ContactLogin" element={<ContactLogin />} />
                   <Route path="/Leads" element={<Leads />} />
                   <Route path="/FollowUps" element={<FollowUps />} />
-                  {/* <Route path="/no-access" element={<div>No Access</div>} /> */}
+                  {/* <Route path="/" element={<div>No Access</div>} /> */}
                 </Routes>
               </Layout>
             }
@@ -714,8 +719,7 @@ const App = () => {
 const Layout = ({ children, userRoles }) => {
   const location = useLocation();
 
-  const isAuthPage =
-    location.pathname === "/" || location.pathname === "/no-access";
+  const isAuthPage = location.pathname === "/" || location.pathname === "/";
 
   return (
     <>

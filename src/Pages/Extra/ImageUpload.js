@@ -3,7 +3,7 @@ import axios from "axios";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
-const FileUpload = () => {
+const ImageUpload = () => {
   const [file, setFile] = useState(null);
   const [files, setFiles] = useState([]);
   const [previewImage, setPreviewImage] = useState(null);
@@ -22,7 +22,6 @@ const FileUpload = () => {
     fetchFiles();
   }, []);
 
-  // 🔹 Upload file
   const uploadFile = async () => {
     if (!file) {
       alert("Please select a file");
@@ -50,7 +49,6 @@ const FileUpload = () => {
     <div className="container mt-4">
       <h3 className="mb-3">File Upload</h3>
 
-      {/* Upload Section */}
       <div className="card p-3 mb-4">
         <input
           type="file"
@@ -62,7 +60,6 @@ const FileUpload = () => {
         </button>
       </div>
 
-      {/* Uploaded Files */}
       <h4>Uploaded Files</h4>
 
       <table className="table table-bordered mt-3">
@@ -95,7 +92,6 @@ const FileUpload = () => {
                 <td>{index + 1}</td>
                 <td>{fileName}</td>
 
-                {/* Preview */}
                 <td>
                   {isImage ? (
                     <img
@@ -112,7 +108,6 @@ const FileUpload = () => {
                   )}
                 </td>
 
-                {/* Download */}
                 <td>
                   <a
                     href={`${BASE_URL}/files/download/${fileName}`}
@@ -127,7 +122,6 @@ const FileUpload = () => {
         </tbody>
       </table>
 
-      {/* Image Preview Modal */}
       {previewImage && (
         <div
           className="modal show fade"
@@ -152,4 +146,4 @@ const FileUpload = () => {
   );
 };
 
-export default FileUpload;
+export default ImageUpload;

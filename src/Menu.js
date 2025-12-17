@@ -89,7 +89,9 @@ const Menu = ({ userRoles }) => {
         path.startsWith("/ListWarrantyClaim")
     );
     setExpensesOpen(
-      path.startsWith("/AddExpense") || path.startsWith("/ListExpense")
+      path.startsWith("/AddExpense") ||
+        path.startsWith("/ListExpense") ||
+        path.startsWith("/ExpenseCategories")
     );
     setPaymentOpen(
       path.startsWith("/AccountBook") ||
@@ -180,7 +182,8 @@ const Menu = ({ userRoles }) => {
       setActiveMenu("stockAdjustment");
     } else if (
       path.startsWith("/AddExpense") ||
-      path.startsWith("/ListExpense")
+      path.startsWith("/ListExpense") ||
+      path.startsWith("/ExpenseCategories")
     ) {
       setActiveMenu("expenses");
     } else if (
@@ -296,6 +299,8 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("ListExpense");
     } else if (path === "/AddExpense") {
       setActiveSubMenu("AddExpense");
+    } else if (path === "/ExpenseCategories") {
+      setActiveSubMenu("ExpenseCategories");
     } else if (path === "/Accounts") {
       setActiveSubMenu("Accounts");
     } else if (path === "/TrialBalance") {
@@ -1794,6 +1799,25 @@ const Menu = ({ userRoles }) => {
                       }}
                     >
                       <p>Add Expense</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link
+                      to="/ExpenseCategories"
+                      className={getSubMenuItemClass("ExpenseCategories")}
+                      style={{
+                        color:
+                          activeSubMenu === "ExpenseCategories"
+                            ? "#0040C1"
+                            : "#4b5565",
+                        backgroundColor:
+                          activeSubMenu === "ExpenseCategories"
+                            ? "rgba(0, 64, 193, 0.08)"
+                            : "transparent",
+                        paddingLeft: "52px",
+                      }}
+                    >
+                      <p>Expense Categories</p>
                     </Link>
                   </li>
                 </ul>

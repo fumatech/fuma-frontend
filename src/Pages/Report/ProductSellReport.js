@@ -16,12 +16,12 @@ import Detailed from "./Detailed";
 
 const tabsData = [
   { id: "detailed", label: "Detailed", icon: faList, component: <Detailed /> },
-  {
-    id: "detailedPurchase",
-    label: "Detailed (with Purchase)",
-    icon: faShoppingCart,
-    component: <DetailedPurchase />,
-  },
+  // {
+  //   id: "detailedPurchase",
+  //   label: "Detailed (with Purchase)",
+  //   icon: faShoppingCart,
+  //   component: <DetailedPurchase />,
+  // },
   {
     id: "groupedDate",
     label: "Grouped (by date)",
