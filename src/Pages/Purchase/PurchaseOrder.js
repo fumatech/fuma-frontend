@@ -263,8 +263,10 @@ function PurchaseOrder() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const formattedOrderDate = orderDate.toISOString().split("T")[0];
     const formattedDeliveryDate = deliveryDate.toISOString().split("T")[0];
+
     const orderItems = selectedProducts.map((product) => ({
       productId: product.id,
       productName: product.productName,
@@ -288,12 +290,21 @@ function PurchaseOrder() {
     };
 
     try {
+      const formData = new FormData();
+
+      // 🔹 JSON as string (required by backend)
+      formData.append("purchaseOrder", JSON.stringify(payload));
+
+      const file = "";
+      if (file && file instanceof File) {
+        formData.append("file", file);
+      }
+
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/purchaseorder/save`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: formData, // ❗ no headers
         }
       );
 
@@ -301,19 +312,22 @@ function PurchaseOrder() {
         alert("Purchase Order created successfully");
         navigate("/ListPurchaseOrder");
       } else {
+        const err = await response.text();
+        console.error(err);
         alert("Failed to save Purchase Order");
       }
     } catch (error) {
       console.error("Error:", error);
+      alert("Something went wrong");
     }
   };
-   // Filter the vendor list based on search
-   const filteredVendors = vendorlist.filter((v) =>
+
+  // Filter the vendor list based on search
+  const filteredVendors = vendorlist.filter((v) =>
     `${v.firmName} ${v.mobileNumber} ${v.city}`
       .toLowerCase()
       .includes(vendorSearchTerm.toLowerCase())
   );
-  
 
   const handleSelect = (v) => {
     setVendor(v.firmName);
@@ -339,45 +353,49 @@ function PurchaseOrder() {
               <div className="card card-default rounded-4 border-0 cardHover">
                 <div className="card-body">
                   <div className="row">
-                  <div className="col-md-4">
-  <div className="form-group position-relative">
-    <label>
-      Vendor<span className="text-danger">*</span>
-    </label>
-    <input
-      type="text"
-      className="form-control"
-      placeholder="Select Vendor"
-      value={vendorSearchTerm}
-      onChange={(e) => {
-        setVendorSearchTerm(e.target.value);
-        setShowDropdown(true);
-      }}
-      onFocus={() => setShowDropdown(true)}
-      required
-    />
-    {showDropdown && (
-      <ul
-        className="list-group position-absolute w-100"
-        style={{ zIndex: 1000, maxHeight: "200px", overflowY: "auto" }}
-      >
-        {filteredVendors.length === 0 && (
-          <li className="list-group-item">No results</li>
-        )}
-        {filteredVendors.map((v) => (
-          <li
-            key={v.id}
-            className="list-group-item list-group-item-action"
-            onClick={() => handleSelect(v)}
-            style={{ cursor: "pointer" }}
-          >
-            {v.firmName} - {v.mobileNumber} - {v.city}
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-</div>
+                    <div className="col-md-4">
+                      <div className="form-group position-relative">
+                        <label>
+                          Vendor<span className="text-danger">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="Select Vendor"
+                          value={vendorSearchTerm}
+                          onChange={(e) => {
+                            setVendorSearchTerm(e.target.value);
+                            setShowDropdown(true);
+                          }}
+                          onFocus={() => setShowDropdown(true)}
+                          required
+                        />
+                        {showDropdown && (
+                          <ul
+                            className="list-group position-absolute w-100"
+                            style={{
+                              zIndex: 1000,
+                              maxHeight: "200px",
+                              overflowY: "auto",
+                            }}
+                          >
+                            {filteredVendors.length === 0 && (
+                              <li className="list-group-item">No results</li>
+                            )}
+                            {filteredVendors.map((v) => (
+                              <li
+                                key={v.id}
+                                className="list-group-item list-group-item-action"
+                                onClick={() => handleSelect(v)}
+                                style={{ cursor: "pointer" }}
+                              >
+                                {v.firmName} - {v.mobileNumber} - {v.city}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
                     <div className="col-md-4">
                       <div className="form-group">
                         <label>
