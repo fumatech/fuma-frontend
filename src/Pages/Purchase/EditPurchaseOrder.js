@@ -285,64 +285,71 @@ function EditPurchaseOrder() {
     setAdditionalNotes(e.target.value);
   };
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
-    // Convert the OrderDate to ISO string if valid
     const formattedOrderDate = orderDate
       ? orderDate.toISOString().split("T")[0]
       : null;
+
     const formattedDeliveryDate = deliveryDate
       ? deliveryDate.toISOString().split("T")[0]
       : null;
-    // Prepare the purchase items
+
     const orderItems = selectedProducts.map((product) => ({
       productName: product.productName,
       productSku: product.sku,
-      productVariationId: product.id, // Adjust according to your data
-      productVariationName: product.variationValue, // Assuming 'variationName' exists
+      productVariationId: product.id,
+      productVariationName: product.variationValue,
       quantity: product.quantity,
     }));
 
-    // Prepare the payload
     const payload = {
-      id: id, // Include purchase ID
+      id: id,
       status: 0,
       vendor,
       referenceNumber,
       addedBy,
-      orderDate: formattedOrderDate, // Adjusted to include date only
+      orderDate: formattedOrderDate,
       deliveryDate: formattedDeliveryDate,
       location,
-      file,
-      totalItems: totalUnits, // Total number of items
+      totalItems: totalUnits,
       additionalNotes,
       orderItems,
     };
-    // console.log("Payload:", payload); // Debug payload before submitting
+
     try {
+      const formData = new FormData();
+
+      // 🔹 REQUIRED: JSON payload
+      formData.append("purchaseOrder", JSON.stringify(payload));
+
+      const file = "";
+      if (file && file instanceof File) {
+        formData.append("file", file);
+      }
+
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/purchaseorder/update/${id}`,
         {
-          method: "PUT", // Change method to PUT
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
+          method: "PUT",
+          body: formData, // ❗ NO headers
         }
       );
 
       if (response.ok) {
         alert("Purchase updated successfully");
         navigate("/ListPurchaseOrder");
-
-        // Optionally reset form or navigate to another page
       } else {
+        const err = await response.text();
+        console.error(err);
         alert("Purchase Order Not Updated");
       }
     } catch (error) {
       console.error("Error:", error);
+      alert("Something went wrong");
     }
   };
+
   return (
     <>
       <div className="wrapper">
