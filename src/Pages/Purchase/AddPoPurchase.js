@@ -674,7 +674,7 @@ function AddPoPurchase() {
       if (product.id === productId && product.variationId === variationId) {
         return {
           ...product,
-          defaultSellingPrice: newValue,
+          defaultPurchasePriceExcTax: newValue,
         };
       }
       return product;
@@ -1234,8 +1234,9 @@ function AddPoPurchase() {
                               <tbody>
                                 {selectedProducts.map((product, index) => {
                                   const unitCostBeforeDiscount =
-                                    parseFloat(product.defaultSellingPrice) ||
-                                    0;
+                                    parseFloat(
+                                      product.defaultPurchasePriceExcTax
+                                    ) || 0;
                                   const discountPercent =
                                     parseFloat(product.discountPercent) || 0;
                                   const quantity =
