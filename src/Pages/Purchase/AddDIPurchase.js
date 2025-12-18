@@ -986,7 +986,7 @@ function AddDIPurchase() {
                                     <span className="product-sku">
                                       {product.sku}
                                     </span>
-                                    <span
+                                    {/* <span
                                       className={`stock ${
                                         product.stock > 0
                                           ? "in-stock"
@@ -996,7 +996,7 @@ function AddDIPurchase() {
                                       {product.stock > 0
                                         ? `Stock: ${product.stock}`
                                         : "Out of stock"}
-                                    </span>
+                                    </span> */}
                                     <span className="product-type">
                                       {product.productType}
                                     </span>
