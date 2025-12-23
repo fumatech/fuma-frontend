@@ -8,6 +8,7 @@ import axios from "axios";
 
 function EditDIPurchase() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [vendor, setVendor] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
   const [status, setStatus] = useState("");
@@ -17,6 +18,7 @@ function EditDIPurchase() {
   const [payTermNumber, setPayTermNumber] = useState("");
   const [payTermType, setPayTermType] = useState("");
   const [file, setFile] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
   const [discountType, setDiscountType] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [purchaseTax, setPurchaseTax] = useState("");
@@ -120,7 +122,9 @@ function EditDIPurchase() {
         setPayTermType(purchase.payTermType);
         setDiscountType(purchase.discountType);
         setDiscountAmount(purchase.discountAmount);
-
+        if (purchase.file) {
+          setFile({ name: purchase.file, isExisting: true }); // only store name
+        }
         // Compare using loose equality (==) instead of strict equality (===)
         const matchedPurchaseTaxOption = taxOptions.find(
           (opt) => opt.value == purchase.purchaseTax // Loose equality to handle type mismatch
@@ -687,9 +691,6 @@ function EditDIPurchase() {
       return updatedExpenses;
     });
   };
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
 
   const toggleVisibility = () => {
     setIsVisible((prev) => !prev);
@@ -704,175 +705,145 @@ function EditDIPurchase() {
   const handleDiscountAmountChange = (e) => {
     setDiscountAmount(e.target.value);
   };
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
 
+    if (!selectedFile) {
+      setFile(null);
+      setErrorMessage("No file selected.");
+      return;
+    }
+
+    const maxSizeMB = 5;
+    if (selectedFile.size > maxSizeMB * 1024 * 1024) {
+      setFile(null);
+      setErrorMessage("File size exceeds 5MB.");
+      return;
+    }
+
+    // new file replaces old
+    setFile(selectedFile);
+    setErrorMessage("");
+  };
   // Handle additional notes change
   const handleAdditionalNotesChange = (e) => {
     setAdditionalNotes(e.target.value);
   };
-
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
     const formattedPurchaseDate = purchaseDate
       ? purchaseDate.toISOString().split("T")[0]
       : null;
 
-    const formattedPaymentDate = paidOn
-      ? paidOn.toISOString().split("T")[0]
-      : null;
-
-    const paymentMethodEnum = {
-      card: "CARD",
-      cheque: "CHEQUE",
-      cash: "CASH",
-      bank_transfer: "BANK_TRANSFER",
-    };
-
     const shippingAllDetails = [
       {
-        // id: shippingDetails.id, // Include the existing ID for shipping
-        shippingDetails: shippingDetails,
+        shippingDetails: shippingDetails || "",
         shippingCharges: parseFloat(shippingCharges) || 0,
-        additionalExpensesName: additionalExpenses.map(
-          (expense) => expense.name
-        ),
-        amount: additionalExpenses.map(
-          (expense) => parseFloat(expense.amount) || 0
-        ),
+        additionalExpensesName: additionalExpenses.map((exp) => exp.name),
+        amount: additionalExpenses.map((exp) => parseFloat(exp.amount) || 0),
       },
     ];
-
-    const productStocks = selectedProducts.map((item) => ({
-      productId: item.productId,
-      variationId: item.productVariationId,
-      quantity: item.quantity,
-      // unitCostBeforeTax: item.unitCostBeforeDiscount,
-      // subTotalBeforeTax: item.lineTotal,
-      transactionType: "di_purchase",
-      date: new Date().toISOString().split("T")[0], // Current date
-      note: "Stock updated after DI Purchase", // Optional note
-    }));
 
     const purchaseItems = selectedProducts.map((product) => {
       const unitCostBeforeDiscount =
         parseFloat(product.defaultPurchasePriceExcTax) || 0;
       const discountPercent = parseFloat(product.discountPercent) || 0;
-
-      // Unit Cost after Discount
       const unitCostAfterDiscount =
         unitCostBeforeDiscount * (1 - discountPercent / 100);
-
-      // Line Total (After Discount)
-      const lineTotal = unitCostAfterDiscount * product.quantity;
-
-      // Tax Calculation (After Discount)
-      const taxRate = parseFloat(product.taxRate) || 0;
-      const taxAmount =
-        (unitCostAfterDiscount * product.quantity * taxRate) / 100;
-
-      // Profit Margin (Added to Line Total)
+      const lineTotal = unitCostAfterDiscount * parseInt(product.quantity || 0);
+      const taxRate = parseFloat(product.taxRateId) || 0;
+      const taxAmount = (lineTotal * taxRate) / 100;
       const profitMargin = parseFloat(product.profitMargin) || 0;
-      const profitAmount =
-        unitCostAfterDiscount * product.quantity * (profitMargin / 100);
-
-      // Line Total with Tax and Profit
-      const lineTotalWithTaxAndProfit = lineTotal + taxAmount + profitAmount;
-
-      // Unit Selling Price Including Tax and Profit Margin
-      const unitSellingPriceIncTax = (
-        unitCostAfterDiscount *
-        (1 + taxRate / 100) *
-        (1 + profitMargin / 100)
-      ).toFixed(2);
+      const profitAmount = lineTotal * (profitMargin / 100);
+      const unitSellingPrice = parseFloat(
+        (
+          unitCostAfterDiscount *
+          (1 + taxRate / 100) *
+          (1 + profitMargin / 100)
+        ).toFixed(2)
+      );
 
       return {
-        productId: product.productId,
+        productId: parseInt(product.productId),
         productName: product.productName,
         productSku: product.sku,
-        productVariationId: product.productVariationId,
+        productVariationId: parseInt(product.productVariationId),
         productVariationName: product.variationName,
-        quantity: product.quantity,
-        unitCostBeforeDiscount: unitCostBeforeDiscount,
-        discountPercent: discountPercent,
-        discountAmount: discountAmount,
-        unitCostAfterDiscount: unitCostAfterDiscount,
-        lineTotal: lineTotal,
-        taxRate: product.taxRateId,
-        taxAmount: taxAmount,
-        profitMargin: profitMargin,
-        profitAmount: profitAmount,
-        unitSellingPrice: unitSellingPriceIncTax,
+        quantity: parseInt(product.quantity),
+        unitCostBeforeDiscount,
+        discountPercent,
+        discountAmount: parseFloat(product.discountAmount) || 0,
+        unitCostAfterDiscount,
+        lineTotal,
+        taxRate: parseInt(product.taxRateId) || 0,
+        taxAmount,
+        profitMargin,
+        profitAmount,
+        unitSellingPrice,
       };
     });
-    const transactions = [
-      {
-        paymentAccountId: selectedAccount,
-        paymentMethod: paymentMethod,
-        amount: parseFloat(amount) || 0,
-        transactionType: "purchase",
-        addedBy: userName,
-        note: note || "",
-        //  date: formattedPaymentDate,
-        vendor: vendor || "",
-        chequeNumber: chequeNumber || null,
-        cardType: cardDetails.cardType || null,
-        cardNumber: cardDetails.cardNumber || null,
-        cardHolderName: cardDetails.cardHolderName || null,
-        cardTransactionNumber: cardDetails.cardTransactionNumber,
-        cardMonth: cardDetails.cardMonth,
-        cardYear: cardDetails.cardYear,
-        cardSecurity: cardDetails.cardSecurity,
-      },
-    ];
+
+    const productStocks = selectedProducts.map((item) => ({
+      productId: parseInt(item.productId),
+      variationId: parseInt(item.productVariationId),
+      quantity: parseInt(item.quantity),
+      transactionType: "di_purchase",
+      date: new Date().toISOString().split("T")[0],
+      note: "Stock updated after DI Purchase",
+    }));
+
     const payload = {
-      id: id,
+      id: parseInt(id),
       vendor,
       referenceNumber,
-      status,
-      addedBy,
+      status: parseInt(status) || 1,
+      addedBy: userName,
       orderDate: formattedPurchaseDate,
-      payTermNumber,
-      payTermType,
-      location,
-      totalItems: totalUnits,
-      netTotalAmount: finalPurchaseAmount,
+      payTermNumber: parseInt(payTermNumber) || 0,
+      payTermType: payTermType || null,
+      location: location || null,
+      totalItems: parseInt(totalUnits) || 0,
+      netTotalAmount: parseFloat(finalPurchaseAmount) || 0,
       discountType,
       discountAmount: parseFloat(discountAmount) || 0,
-      purchaseTax,
-      taxAmount: taxOnSubtotal,
+      purchaseTax: parseInt(purchaseTax) || 0,
+      taxAmount: parseFloat(taxOnSubtotal) || 0,
       additionalNotes,
-      transaction: transactions,
       shippingDIDetails: shippingAllDetails,
       purchaseDIItem: purchaseItems,
       stockTransactions: productStocks,
     };
 
-    // console.log("Payload:", payload); // Debug the payload
+    console.log("Update Payload:", payload);
 
     try {
+      const formData = new FormData();
+      formData.append("purchaseDIOrder", JSON.stringify(payload));
+      if (file && !file.isExisting) {
+        formData.append("file", file); // append only new file
+      }
+
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/purchase-di-order/update/${id}`,
         {
-          method: "PUT", // Change method to PUT
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
+          method: "PUT",
+          body: formData,
         }
       );
 
       if (response.ok) {
         alert("Purchase DI Order updated successfully");
-        // Optionally reset form or navigate to another page
+        navigate("/ListDIPurchaseOrder");
       } else {
         const responseText = await response.text();
-        // console.log("Response Status:", response.status);
-        // console.log("Response Text:", responseText);
-
+        console.error("Response Status:", response.status);
+        console.error("Response Text:", responseText);
         alert("Purchase DI Order Not Updated");
       }
     } catch (error) {
       console.error("Error:", error);
+      alert("Update Failed");
     }
   };
 
@@ -976,6 +947,59 @@ function EditDIPurchase() {
                             dateFormat="MM/dd/yyyy"
                             required
                           />
+                        </div>
+                      </div>
+                      <div className=" col-md-4">
+                        <div className="form-group">
+                          <label htmlFor="file">Upload File:</label>
+                          <div className="file-input file-input-new">
+                            {/* <div className="file-preview">
+                              {file ? (
+                                <>
+                                  <div className="file-preview-thumbnails">
+                                    <div>{file.name}</div>
+                                  </div>
+                                  <div className="file-preview-status text-center text-success">
+                                    File ready to upload
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="file-drop-disabled">
+                                  <div className="file-preview-status text-center text-danger">
+                                    {errorMessage}
+                                  </div>
+                                </div>
+                              )}
+                            </div> */}
+
+                            <div className="input-group">
+                              <div className="form-control file-caption kv-fileinput-caption">
+                                <div className="file-caption-name">
+                                  {file ? file.name : "No file selected"}
+                                </div>
+                              </div>
+                              <div className="input-group-append">
+                                <div className="btn btn-primary btn-file rounded-0 py-1 px-2 ms-2">
+                                  <i className="glyphicon glyphicon-folder-open"></i>
+                                  &nbsp; Browse..
+                                  <input
+                                    id="upload_file"
+                                    accept=".jpg,.jpeg,.png,.gif,.bmp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
+                                    className="upload-element"
+                                    name="file"
+                                    type="file"
+                                    onChange={handleFileChange}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <small className="form-text text-muted">
+                              Max File size: 5MB <br />
+                              Supported types: Images, PDF, Word, Excel, CSV,
+                              Text
+                            </small>
+                          </div>
                         </div>
                       </div>
                     </div>

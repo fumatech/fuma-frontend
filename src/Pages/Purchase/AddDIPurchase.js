@@ -605,15 +605,13 @@ function AddDIPurchase() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Format dates to ISO string if valid
     const formattedPurchaseDate = purchaseDate
       ? purchaseDate.toISOString().split("T")[0]
       : null;
 
-    // Prepare the shipping details as a list
     const shippingAllDetails = [
       {
-        shippingDetails: shippingDetails || "", // Customize if necessary
+        shippingDetails: shippingDetails || "",
         shippingCharges: parseFloat(shippingCharges) || 0,
         additionalExpensesName: additionalExpenses.map(
           (expense) => expense.name
@@ -629,27 +627,18 @@ function AddDIPurchase() {
         parseFloat(product.defaultPurchasePriceExcTax) || 0;
       const discountPercent = parseFloat(product.discountPercent) || 0;
 
-      // Unit Cost after Discount
       const unitCostAfterDiscount =
         unitCostBeforeDiscount * (1 - discountPercent / 100);
 
-      // Line Total (After Discount)
       const lineTotal = unitCostAfterDiscount * product.quantity;
 
-      // Tax Calculation (After Discount)
-      const taxRate = parseFloat(product.taxRate) || 0;
-      const taxAmount =
-        (unitCostAfterDiscount * product.quantity * taxRate) / 100;
+      const taxRate = parseFloat(product.taxRateId) || 0;
+      const taxAmount = (lineTotal * taxRate) / 100;
 
-      // Profit Margin (Added to Line Total)
       const profitMargin = parseFloat(product.profitMargin) || 0;
       const profitAmount =
         unitCostAfterDiscount * product.quantity * (profitMargin / 100);
 
-      // Line Total with Tax and Profit
-      const lineTotalWithTaxAndProfit = lineTotal + taxAmount + profitAmount;
-
-      // Unit Selling Price Including Tax and Profit Margin
       const unitSellingPriceIncTax = (
         unitCostAfterDiscount *
         (1 + taxRate / 100) *
@@ -663,78 +652,64 @@ function AddDIPurchase() {
         productVariationId: product.productVariationId,
         productVariationName: product.variationName,
         quantity: product.quantity,
-        unitCostBeforeDiscount: unitCostBeforeDiscount,
-        discountPercent: discountPercent,
-        discountAmount: discountAmount,
-        unitCostAfterDiscount: unitCostAfterDiscount,
-        lineTotal: lineTotal,
+        unitCostBeforeDiscount,
+        discountPercent,
+        unitCostAfterDiscount,
+        lineTotal,
         taxRate: product.taxRateId,
-        taxAmount: taxAmount,
-        profitMargin: profitMargin,
-        profitAmount: profitAmount,
+        taxAmount,
+        profitMargin,
         unitSellingPrice: unitSellingPriceIncTax,
       };
     });
 
-    // Prepare product stock payload
     const productStocks = selectedProducts.map((item) => ({
       productId: item.productId,
       variationId: item.productVariationId,
       quantity: item.quantity,
+      price: item.defaultPurchasePriceExcTax || 0,
       transactionType: "di_purchase",
-      date: new Date().toISOString().split("T")[0], // Current date
-      note: "Stock updated after DI purchase", // Optional note
+      date: new Date().toISOString().split("T")[0],
+      note: "Stock updated after DI purchase",
     }));
-    // console.log("Purchase Items:", purchaseItems);
-    // Prepare payload with lists
+
     const payload = {
       vendor,
       referenceNumber,
-      status,
+      status: 1,
       addedBy: userName,
       orderDate: formattedPurchaseDate,
-      payTermNumber,
-      payTermType,
-      location,
-      totalItems: totalUnits,
-      netTotalAmount: finalPurchaseAmount,
+      payTermNumber: 0,
+      payTermType: payTermType || null,
+      location: location || null,
+      totalItems: parseInt(totalUnits) || 0,
+      netTotalAmount: parseFloat(finalPurchaseAmount) || 0,
       discountType,
       discountAmount: parseFloat(discountAmount) || 0,
-      purchaseTax,
-      taxAmount: taxOnSubtotal || 0,
+      purchaseTax: parseInt(purchaseTax) || 0,
+      taxAmount: parseFloat(taxOnSubtotal) || 0,
       additionalNotes,
       purchaseDIItem: purchaseItems,
       shippingDIDetails: shippingAllDetails,
       stockTransactions: productStocks,
     };
 
-    // console.log("Payload:", payload); // Debug payload before submitting
-
     try {
-      const response = await fetch(
+      const formData = new FormData();
+      formData.append("purchaseDIOrder", JSON.stringify(payload)); // ✅ send JSON as string
+      if (file) formData.append("file", file); // ✅ optional file
+
+      await axios.post(
         `${process.env.REACT_APP_BASE_URL}/purchase-di-order/save`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
+        formData, // ✅ send as multipart/form-data
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
 
-      if (response.ok) {
-        alert("Purchase DI Order Placed Successfully");
-        navigate("/ListDIPurchaseOrder");
-      } else {
-        const responseText = await response.text();
-        // console.log("Response Status:", response.status);
-        // console.log("Response Text:", responseText);
-
-        alert("Transaction Failed");
-      }
+      alert("Purchase DI Order Placed Successfully!");
+      navigate("/ListDIPurchaseOrder");
     } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred while saving the purchase order.");
+      console.error("Error Response:", error.response);
+      alert("Order Failed");
     }
   };
 

@@ -179,7 +179,7 @@ function EditPoPurchaseOrder() {
         }
 
         const purchase = await response.json();
-        // console.log(purchase);
+        console.log(purchase);
 
         setVendor(purchase.vendor || "");
         setOrderId(purchase.purchasePoOrderId || "");
@@ -197,7 +197,9 @@ function EditPoPurchaseOrder() {
         setPayTermType(purchase.payTermType || "");
         setDiscountType(purchase.discountType || "");
         setDiscountAmount(purchase.discountAmount || 0);
-
+        if (purchase.file) {
+          setFile({ name: purchase.file, isExisting: true }); // only store name
+        }
         // Compare using loose equality (==) instead of strict equality (===)
         const matchedPurchaseTaxOption = taxOptions.find(
           (opt) => opt.value == purchase.purchaseTax // Loose equality to handle type mismatch
@@ -231,7 +233,6 @@ function EditPoPurchaseOrder() {
             productName: item.productName,
             sku: item.productSku,
             quantity: item.quantity,
-            originalQuantity: item.quantity,
             defaultPurchasePriceExcTax: item.unitCostBeforeDiscount,
             discountPercent: item.discountPercent,
             taxRate: matchedTaxOption ? matchedTaxOption.rate : 0,
@@ -573,42 +574,26 @@ function EditPoPurchaseOrder() {
     }
   };
 
-  // const handleQuantityChange = (id, variationId, value) => {
-  //   setSelectedProducts((prev) =>
-  //     prev.map((product) => {
-  //       // For regular products (no variation)
-  //       if (!product.variationId && product.id === id) {
-  //         return { ...product, quantity: parseInt(value) || 1 };
-  //       }
-  //       // For variable products (with variation)
-  //       if (
-  //         product.variationId &&
-  //         product.id === id &&
-  //         product.variationId === variationId
-  //       ) {
-  //         return { ...product, quantity: parseInt(value) || 1 };
-  //       }
-  //       return product;
-  //     })
-  //   );
-  // };
-  const handleQuantityChange = (productId, variationId, value) => {
+  const handleQuantityChange = (id, variationId, value) => {
     setSelectedProducts((prev) =>
       prev.map((product) => {
-        if (product.id === productId && product.variationId === variationId) {
-          let newQty = parseInt(value) || 1;
-
-          // Prevent increasing beyond actual quantity
-          if (newQty > product.originalQuantity) {
-            newQty = product.originalQuantity;
-          }
-
-          return { ...product, quantity: newQty };
+        // For regular products (no variation)
+        if (!product.variationId && product.id === id) {
+          return { ...product, quantity: parseInt(value) || 1 };
+        }
+        // For variable products (with variation)
+        if (
+          product.variationId &&
+          product.id === id &&
+          product.variationId === variationId
+        ) {
+          return { ...product, quantity: parseInt(value) || 1 };
         }
         return product;
       })
     );
   };
+
   const handleProfitMarginChange = (productId, newMargin) => {
     setSelectedProducts((prevProducts) =>
       prevProducts.map((product) =>
@@ -799,12 +784,13 @@ function EditPoPurchaseOrder() {
       vendor: vendor,
       addedBy: addedBy,
       referenceNumber,
-      purchaseReferenceNumber, // Make sure this is set correctly
+      purchaseReferenceNumber,
       orderDate: orderDate,
       purchaseDate: formattedPurchaseDate,
       payTermNumber: payTermNumber,
       payTermType: payTermType,
       location: location,
+      file,
       totalItems: totalUnits,
       netTotalAmount: parseFloat(finalPurchaseAmount) || 0,
       discountType: discountType,
@@ -826,7 +812,7 @@ function EditPoPurchaseOrder() {
       ],
     };
 
-    // console.log("Payload:", payload); // Debug the payload
+    console.log("Payload:", payload); // Debug the payload
 
     try {
       const response = await fetch(
@@ -845,8 +831,8 @@ function EditPoPurchaseOrder() {
         // navigate("/ListPoPurchaseOrder");
       } else {
         const responseText = await response.text();
-        // console.log("Response Status:", response.status);
-        // console.log("Response Text:", responseText);
+        console.log("Response Status:", response.status);
+        console.log("Response Text:", responseText);
         alert("Purchase PO Order Not Saved");
       }
     } catch (error) {
@@ -1000,6 +986,35 @@ function EditPoPurchaseOrder() {
                             minDate={new Date()} // Prevent past dates
                             popperPlacement="top" // Display the calendar above
                           />
+                        </div>
+                      </div>
+                      <div className="col-md-4">
+                        <div className="form-group">
+                          <label htmlFor="document">Attach Document</label>
+                          <div className="file-input file-input-new">
+                            <div className="input-group file-caption-main">
+                              <div className="form-control file-caption kv-fileinput-caption">
+                                <div className="file-caption-name">
+                                  {file ? file.name : ""}
+                                </div>
+                              </div>
+                              <div className="input-group-btn">
+                                <div className="btn">
+                                  <i className=""></i>
+                                  &nbsp;
+                                  <input
+                                    id="upload_document"
+                                    accept=".pdf,.csv,.zip,.doc,.docx,.jpeg,.jpg,.png"
+                                    name="document"
+                                    type="file"
+                                    onChange={handleFileChange}
+                                    disabled
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <p className="help-block">Max File size: 5MB</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1157,7 +1172,7 @@ function EditPoPurchaseOrder() {
                                         <input
                                           type="number"
                                           value={product.quantity}
-                                          max={product.originalQuantity}
+                                          readOnly
                                           style={{
                                             width: "80px",
                                             padding: "5px",

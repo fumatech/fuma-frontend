@@ -13,33 +13,28 @@ function AddPoPurchase() {
   const [vendor, setVendor] = useState("");
   const [orderId, setOrderId] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState(null);
-
+  const [file, setFile] = useState(null);
   const [referenceNumber, setReferenceNumber] = useState("");
   const [purchaseReferenceNumber, setPurchaseReferenceNumber] = useState("");
-
   const [status, setStatus] = useState("");
   const [addedBy, setAddedBy] = useState("");
   const [orderedBy, setOrderedBy] = useState("");
-
   const [purchaseDate, setPurchaseDate] = useState(new Date());
   const [orderDate, setOrderDate] = useState(new Date());
   const [location, setLocation] = useState("");
   const [payTermNumber, setPayTermNumber] = useState("");
   const [payTermType, setPayTermType] = useState("");
-  const [file, setFile] = useState(null);
   const [discountType, setDiscountType] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [purchaseTax, setPurchaseTax] = useState("");
   const [taxAmount, setTaxAmount] = useState("0");
   const [additionalNotes, setAdditionalNotes] = useState("");
-
   const [isVisible, setIsVisible] = useState(false);
   const [shippingDetails, setShippingDetails] = useState("");
   const [shippingCharges, setShippingCharges] = useState("");
   const [additionalExpenses, setAdditionalExpenses] = useState(
     Array(4).fill({ name: "", amount: "0" })
   );
-
   const [chequeNumber, setChequeNumber] = useState("");
   const [bankAccountNumber, setBankAccountNumber] = useState("");
   const [customTransactionNo, setCustomTransactionNo] = useState("");
@@ -60,33 +55,26 @@ function AddPoPurchase() {
     cardYear: "",
     cardSecurity: "",
   });
-
   const [productsData, setProductsData] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedVariations, setSelectedVariations] = useState({});
-
   const [vendorlist, setVendorList] = useState([]);
-
   const [unitCostBeforeDiscount, setUnitCostBeforeDiscount] = useState("");
   const [unitCostAfterDiscount, setUnitCostAfterDiscount] = useState("");
   const [lineTotal, setLineTotal] = useState("");
   const [profitMargin, setProfitMargin] = useState("");
   const [defaultUnitSellingPrice, setDefaultUitSellingPrice] = useState("");
   const [totalPurchaseAmount, setTotalPurchaseAmount] = useState("");
-
   const [totalAmount, setTotalAmount] = useState(0);
   const [totalDiscount, setTotalDiscount] = useState(0);
   const [totalUnits, setTotalUnits] = useState(0); // New state for total units
-
   const [totalAmountIncTaxAndDiscount, setTotalAmountIncTaxAndDiscount] =
     useState(0);
   const [finalPurchaseAmount, setFinalPurchaseAmount] = useState(0);
-
   const [userEmail, setUserEmail] = useState(null);
-
   const [taxRates, setTaxRates] = useState([]);
   const [taxGroups, setTaxGroups] = useState([]);
   const [taxOptions, setTaxOptions] = useState([]);
@@ -152,7 +140,7 @@ function AddPoPurchase() {
       })),
     ];
     setTaxOptions(rateOptions);
-    // console.log(taxOptions);
+    console.log(taxOptions);
   }, [taxRates]);
 
   useEffect(() => {
@@ -179,7 +167,10 @@ function AddPoPurchase() {
           setOrderDate(new Date(data.orderDate));
           setLocation(data.location);
           setAdditionalNotes(data.additionalNotes);
-
+          // setFile(purchase.receipt);
+          if (data.file) {
+            setFile({ name: data.file, isExisting: true }); // only store name
+          }
           const fetchProductDetails = data.orderItems.map((item) => {
             if (!item.productId || !item.productVariationId) {
               console.error("Missing productId or productVariationId:", item);
@@ -209,7 +200,6 @@ function AddPoPurchase() {
                 const defaultPurchasePriceExcTax =
                   matchedVariation?.defaultPurchasePriceExcTax || 0;
                 const quantity = item.updatedQuantity || 1;
-                const originalQuantity = quantity;
                 const discountPercent = item.discountPercent || 0;
                 const taxrate = item.taxRate || 0;
                 const lineTotal = (
@@ -223,7 +213,6 @@ function AddPoPurchase() {
                   ...matchedVariation,
                   defaultPurchasePriceExcTax,
                   quantity,
-                  originalQuantity,
                   discountPercent,
                   profitMargin: matchedVariation?.profitMargin || 0,
                   lineTotal,
@@ -235,7 +224,6 @@ function AddPoPurchase() {
                   ...item,
                   defaultPurchasePriceExcTax: 0,
                   quantity: item.quantity || 1,
-                  originalQuantity: item.quantity || 1,
                   discountPercent: 0,
                   profitMargin: 0,
                   lineTotal: 0,
@@ -367,7 +355,7 @@ function AddPoPurchase() {
     });
 
     setSubTotalAmount(subtotal.toFixed(2));
-    // console.log("Subtotal before discount:", subtotal);
+    console.log("Subtotal before discount:", subtotal);
 
     // Total Discount Calculation
     let totalDiscount = 0;
@@ -379,7 +367,7 @@ function AddPoPurchase() {
       totalDiscount = (subtotal * discountValue) / 100;
     }
 
-    // console.log("Total Discount:", totalDiscount);
+    console.log("Total Discount:", totalDiscount);
 
     // ✅ Use taxAmount from state directly
     const globalTaxRate = parseFloat(taxAmount) || 0;
@@ -401,7 +389,7 @@ function AddPoPurchase() {
       taxAmountOnSubtotal +
       additionalExpensesTotal;
 
-    // console.log("Final Amount:", finalAmount);
+    console.log("Final Amount:", finalAmount);
     setFinalPurchaseAmount(finalAmount.toFixed(2));
   }, [
     selectedProducts,
@@ -633,37 +621,20 @@ function AddPoPurchase() {
     );
   };
 
-  // const handleQuantityChange = (id, variationId, value) => {
-  //   setSelectedProducts((prev) =>
-  //     prev.map((product) => {
-  //       // For regular products (no variation)
-  //       if (!product.variationId && product.id === id) {
-  //         return { ...product, quantity: parseInt(value) || 1 };
-  //       }
-  //       // For variable products (with variation)
-  //       if (
-  //         product.variationId &&
-  //         product.id === id &&
-  //         product.variationId === variationId
-  //       ) {
-  //         return { ...product, quantity: parseInt(value) || 1 };
-  //       }
-  //       return product;
-  //     })
-  //   );
-  // };
-  const handleQuantityChange = (productId, variationId, value) => {
+  const handleQuantityChange = (id, variationId, value) => {
     setSelectedProducts((prev) =>
       prev.map((product) => {
-        if (product.id === productId && product.variationId === variationId) {
-          let newQty = parseInt(value) || 1;
-
-          // Prevent increasing beyond actual quantity
-          if (newQty > product.originalQuantity) {
-            newQty = product.originalQuantity;
-          }
-
-          return { ...product, quantity: newQty };
+        // For regular products (no variation)
+        if (!product.variationId && product.id === id) {
+          return { ...product, quantity: parseInt(value) || 1 };
+        }
+        // For variable products (with variation)
+        if (
+          product.variationId &&
+          product.id === id &&
+          product.variationId === variationId
+        ) {
+          return { ...product, quantity: parseInt(value) || 1 };
         }
         return product;
       })
@@ -869,6 +840,7 @@ function AddPoPurchase() {
       productId: item.productId,
       variationId: item.productVariationId,
       quantity: item.quantity,
+      price: item.unitSellingPrice,
       transactionType: "po_purchase",
       date: new Date().toISOString().split("T")[0], // Current date
       note: "Stock updated after PO purchase",
@@ -888,6 +860,7 @@ function AddPoPurchase() {
       payTermNumber,
       payTermType,
       location,
+      file,
       totalItems: totalUnits,
       netTotalAmount: finalPurchaseAmount,
       discountType,
@@ -946,7 +919,7 @@ function AddPoPurchase() {
       );
 
       if (response.ok) {
-        // console.log(`Purchase Order ${tempId} status updated to 4`);
+        console.log(`Purchase Order ${tempId} status updated to 4`);
       } else {
         console.error(`Failed to update status for Order ID ${tempId}`);
       }
@@ -980,6 +953,9 @@ function AddPoPurchase() {
                         <div className="dropdown">
                           <div className="">
                             <label className="me-2 d-md-inline">Order Id</label>
+                            <span className="text-danger">*</span>
+                            <span style={{ marginLeft: "32px" }}>{vendor}</span>
+
                             <div className="d-flex align-items-center">
                               <Select
                                 id="orderId"
@@ -1113,6 +1089,35 @@ function AddPoPurchase() {
                             minDate={new Date()} // Prevent past dates
                             popperPlacement="top" // Display the calendar above
                           />
+                        </div>
+                      </div>
+                      <div className="col-md-4">
+                        <div className="form-group">
+                          <label htmlFor="document">Attach Document</label>
+                          <div className="file-input file-input-new">
+                            <div className="input-group file-caption-main">
+                              <div className="form-control file-caption kv-fileinput-caption">
+                                <div className="file-caption-name">
+                                  {file ? file.name : ""}
+                                </div>
+                              </div>
+                              <div className="input-group-btn">
+                                <div className="btn">
+                                  <i className=""></i>
+                                  &nbsp;
+                                  <input
+                                    id="upload_document"
+                                    accept=".pdf,.csv,.zip,.doc,.docx,.jpeg,.jpg,.png"
+                                    name="document"
+                                    type="file"
+                                    onChange={handleFileChange}
+                                    disabled
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <p className="help-block">Max File size: 5MB</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1270,7 +1275,6 @@ function AddPoPurchase() {
                                         <input
                                           type="number"
                                           value={product.quantity}
-                                          max={product.originalQuantity}
                                           style={{
                                             width: "80px",
                                             padding: "5px",

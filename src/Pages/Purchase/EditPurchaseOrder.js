@@ -17,6 +17,7 @@ function EditPurchaseOrder() {
   const [deliveryDate, setDeliveryDate] = useState();
   const [location, setLocation] = useState("");
   const [file, setFile] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [productsData, setProductsData] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -53,6 +54,9 @@ function EditPurchaseOrder() {
         }
         setLocation(purchase.location);
         setAdditionalNotes(purchase.additionalNotes);
+        if (purchase.file) {
+          setFile({ name: purchase.file, isExisting: true }); // only store name
+        }
 
         // Pre-select products and variations
         const selectedProducts = purchase.orderItems.map((item) => ({
@@ -278,35 +282,55 @@ function EditPurchaseOrder() {
     );
   };
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+
+    if (!selectedFile) {
+      setFile(null);
+      setErrorMessage("No file selected.");
+      return;
+    }
+
+    const maxSizeMB = 5;
+    if (selectedFile.size > maxSizeMB * 1024 * 1024) {
+      setFile(null);
+      setErrorMessage("File size exceeds 5MB.");
+      return;
+    }
+
+    // new file replaces old
+    setFile(selectedFile);
+    setErrorMessage("");
   };
+
   const handleAdditionalNotesChange = (e) => {
     setAdditionalNotes(e.target.value);
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formattedOrderDate = orderDate
-      ? orderDate.toISOString().split("T")[0]
-      : null;
+    if (!orderDate || !deliveryDate) {
+      alert("Please select order date and delivery date");
+      return;
+    }
 
-    const formattedDeliveryDate = deliveryDate
-      ? deliveryDate.toISOString().split("T")[0]
-      : null;
+    const formattedOrderDate = orderDate.toISOString().split("T")[0];
+    const formattedDeliveryDate = deliveryDate.toISOString().split("T")[0];
 
     const orderItems = selectedProducts.map((product) => ({
+      productId: product.id,
       productName: product.productName,
       productSku: product.sku,
-      productVariationId: product.id,
+      productVariationId: product.variationId
+        ? String(product.variationId)
+        : null,
       productVariationName: product.variationValue,
-      quantity: product.quantity,
+      quantity: product.quantity || 1,
     }));
 
     const payload = {
-      id: id,
-      status: 0,
       vendor,
+      status: 0,
       referenceNumber,
       addedBy,
       orderDate: formattedOrderDate,
@@ -319,12 +343,8 @@ function EditPurchaseOrder() {
 
     try {
       const formData = new FormData();
-
-      // 🔹 REQUIRED: JSON payload
       formData.append("purchaseOrder", JSON.stringify(payload));
-
-      const file = "";
-      if (file && file instanceof File) {
+      if (file) {
         formData.append("file", file);
       }
 
@@ -332,21 +352,21 @@ function EditPurchaseOrder() {
         `${process.env.REACT_APP_BASE_URL}/purchaseorder/update/${id}`,
         {
           method: "PUT",
-          body: formData, // ❗ NO headers
+          body: formData,
         }
       );
 
       if (response.ok) {
-        alert("Purchase updated successfully");
+        alert("Purchase Order updated successfully");
         navigate("/ListPurchaseOrder");
       } else {
-        const err = await response.text();
-        console.error(err);
-        alert("Purchase Order Not Updated");
+        const errText = await response.text();
+        console.error("Update failed:", errText);
+        alert("Failed to update Purchase Order");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Something went wrong");
+      alert("An error occurred while updating the Purchase Order");
     }
   };
 
@@ -450,23 +470,6 @@ function EditPurchaseOrder() {
 
                       <div className="col-md-4">
                         <div className="form-group">
-                          <label htmlFor="location">
-                            Location<span className="text-danger">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control rounded"
-                            id="location"
-                            name="location"
-                            placeholder="Enter here.."
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-group">
                           <label>
                             Delivery Date <span className="text-danger">*</span>
                           </label>
@@ -479,6 +482,60 @@ function EditPurchaseOrder() {
                             minDate={new Date()} // ✅ Prevents selecting past dates
                             required
                           />
+                        </div>
+                      </div>
+
+                      <div className=" col-md-4">
+                        <div className="form-group">
+                          <label htmlFor="file">Upload File:</label>
+                          <div className="file-input file-input-new">
+                            <div className="file-preview">
+                              {file ? (
+                                <>
+                                  <div className="file-preview-thumbnails">
+                                    <div>{file.name}</div>
+                                  </div>
+                                  <div className="file-preview-status text-center text-success">
+                                    File ready to upload
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="file-drop-disabled">
+                                  <div className="file-preview-status text-center text-danger">
+                                    {errorMessage}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="input-group">
+                              <div className="form-control file-caption kv-fileinput-caption">
+                                <div className="file-caption-name">
+                                  {file ? file.name : "No file selected"}
+                                </div>
+                              </div>
+                              <div className="input-group-append">
+                                <div className="btn btn-primary btn-file rounded-0 py-1 px-2 ms-2">
+                                  <i className="glyphicon glyphicon-folder-open"></i>
+                                  &nbsp; Browse..
+                                  <input
+                                    id="upload_file"
+                                    accept=".jpg,.jpeg,.png,.gif,.bmp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
+                                    className="upload-element"
+                                    name="file"
+                                    type="file"
+                                    onChange={handleFileChange}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <small className="form-text text-muted">
+                              Max File size: 5MB <br />
+                              Supported types: Images, PDF, Word, Excel, CSV,
+                              Text
+                            </small>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -468,8 +468,8 @@ function EditPurchaseReturn() {
       purchaseTax,
       purchaseReturnItems: orderItems,
       stockTransactions: productStocks,
-      totalTax: taxAmount,
       totalAmount: parseFloat(totalAmount) || 0,
+      totalAmount,
     };
 
     try {

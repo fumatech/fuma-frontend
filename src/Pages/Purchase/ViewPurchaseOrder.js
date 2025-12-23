@@ -13,6 +13,7 @@ function ViewPurchaseOrder() {
   const [deliveryDate, setDeliveryDate] = useState(new Date());
   const [location, setLocation] = useState("");
   const [file, setFile] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [productsData, setProductsData] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -50,6 +51,9 @@ function ViewPurchaseOrder() {
         }
         setLocation(purchase.location);
         setAdditionalNotes(purchase.additionalNotes);
+        if (purchase.file) {
+          setFile({ name: purchase.file, isExisting: true }); // only store name
+        }
 
         // Pre-select products and variations
         const selectedProducts = purchase.orderItems.map((item) => ({
@@ -57,8 +61,8 @@ function ViewPurchaseOrder() {
           productName: item.productName,
           sku: item.productSku,
           quantity: item.quantity,
-          productVariationName: item.productVariationName,
           updatedQuantity: item.updatedQuantity,
+          variationValue: item.productVariationName,
           productVariationId: item.productVariationId,
         }));
 
@@ -71,8 +75,8 @@ function ViewPurchaseOrder() {
         setSelectedVariations(selectedVariations);
 
         setProductsData(purchase.orderItems);
-        setTotalUnits(purchase.totalItems);
         setTotalShippedItems(purchase.totalShippedItems);
+        setTotalUnits(purchase.totalItems);
       } catch (error) {
         console.error("Error fetching purchase data:", error);
       }
@@ -80,7 +84,6 @@ function ViewPurchaseOrder() {
 
     fetchPurchaseData();
   }, [id]);
-
   useEffect(() => {
     const totalUnits = selectedProducts.reduce(
       (total, product) => total + product.quantity,
@@ -219,7 +222,7 @@ function ViewPurchaseOrder() {
       additionalNotes,
       orderItems,
     };
-    // console.log("Payload:", payload); // Debug payload before submitting
+    console.log("Payload:", payload); // Debug payload before submitting
     try {
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/purchaseorder/update/${id}`,
@@ -233,7 +236,7 @@ function ViewPurchaseOrder() {
       );
 
       if (response.ok) {
-        // console.log("Purchase updated successfully");
+        console.log("Purchase updated successfully");
         // Optionally reset form or navigate to another page
       } else {
         const errorText = await response.text();
@@ -339,24 +342,7 @@ function ViewPurchaseOrder() {
                           />
                         </div>
                       </div>
-                      <div className="col-md-4">
-                        <div className="form-group">
-                          <label htmlFor="location">
-                            Location<span className="text-danger">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control rounded"
-                            id="location"
-                            name="location"
-                            placeholder="Enter here.."
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                            required
-                            readOnly
-                          />
-                        </div>
-                      </div>
+
                       <div className="col-md-4">
                         <div className="form-group">
                           <label>
@@ -372,6 +358,55 @@ function ViewPurchaseOrder() {
                             required
                             readOnly
                           />
+                        </div>
+                      </div>
+                      <div className=" col-md-4">
+                        <div className="form-group">
+                          <label htmlFor="file">Upload File:</label>
+                          <div className="file-input file-input-new">
+                            <div className="file-preview">
+                              {file ? (
+                                <>
+                                  {/* <div className="file-preview-thumbnails">
+                                     <div>{file.name}</div>
+                                  </div> */}
+                                </>
+                              ) : (
+                                <div className="file-drop-disabled">
+                                  <div className="file-preview-status text-center text-danger">
+                                    {errorMessage}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="input-group">
+                              <div className="form-control file-caption kv-fileinput-caption">
+                                <div className="file-caption-name">
+                                  {file ? file.name : "No file selected"}
+                                </div>
+                              </div>
+                              <div className="input-group-append">
+                                <div className="btn btn-primary btn-file rounded-0 py-1 px-2 ms-2">
+                                  <i
+                                    className="glyphicon glyphicon-folder-open"
+                                    disabled
+                                  ></i>
+                                  &nbsp; Browse..
+                                  <input
+                                    id="upload_file"
+                                    accept=".jpg,.jpeg,.png,.gif,.bmp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
+                                    className="upload-element"
+                                    name="file"
+                                    type="file"
+                                    onChange={handleFileChange}
+                                    readOnly
+                                    disabled
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -533,6 +568,16 @@ function ViewPurchaseOrder() {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <div className="container-fluid text-center mt-3">
+                  <button
+                    type="submit"
+                    className="btn btn-save btn-lg px-4 py-2 m-2 "
+                    disabled
+                  >
+                    Save
+                  </button>
                 </div>
               </form>
             </div>

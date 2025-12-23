@@ -54,7 +54,7 @@ const ListDISale = () => {
     cities: [],
     states: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
@@ -63,7 +63,7 @@ const ListDISale = () => {
     city: "",
     state: "",
   });
-  
+
   const [filteredPurchases, setFilteredPurchases] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -125,11 +125,19 @@ const ListDISale = () => {
   // Extract filter values when purchases data changes
   useEffect(() => {
     if (purchases.length > 0) {
-      const franchiseNames = [...new Set(purchases.map(item => item.franchiseName))].filter(Boolean);
-      const locations = [...new Set(purchases.map(item => item.location))].filter(Boolean);
-      const cities = [...new Set(purchases.map(item => item.city))].filter(Boolean);
-      const states = [...new Set(purchases.map(item => item.state))].filter(Boolean);
-      
+      const franchiseNames = [
+        ...new Set(purchases.map((item) => item.franchiseName)),
+      ].filter(Boolean);
+      const locations = [
+        ...new Set(purchases.map((item) => item.location)),
+      ].filter(Boolean);
+      const cities = [...new Set(purchases.map((item) => item.city))].filter(
+        Boolean
+      );
+      const states = [...new Set(purchases.map((item) => item.state))].filter(
+        Boolean
+      );
+
       setFilterValues({
         franchiseNames,
         locations,
@@ -143,14 +151,14 @@ const ListDISale = () => {
   useEffect(() => {
     const filteredData = purchases.filter((purchase) => {
       const purchaseDate = new Date(purchase.saleDate);
-      
+
       // Date range filter
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = purchaseDate >= startDate && purchaseDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -160,26 +168,34 @@ const ListDISale = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = purchaseDate <= endDate;
       }
-      
+
       // Franchise Name filter
-      const franchiseNameMatch = activeFilters.franchiseName === "" || 
+      const franchiseNameMatch =
+        activeFilters.franchiseName === "" ||
         purchase.franchiseName === activeFilters.franchiseName;
-      
+
       // Location filter
-      const locationMatch = activeFilters.location === "" || 
+      const locationMatch =
+        activeFilters.location === "" ||
         purchase.location === activeFilters.location;
-      
+
       // City filter
-      const cityMatch = activeFilters.city === "" || 
-        purchase.city === activeFilters.city;
-      
+      const cityMatch =
+        activeFilters.city === "" || purchase.city === activeFilters.city;
+
       // State filter
-      const stateMatch = activeFilters.state === "" || 
-        purchase.state === activeFilters.state;
-      
-      return dateMatch && franchiseNameMatch && locationMatch && cityMatch && stateMatch;
+      const stateMatch =
+        activeFilters.state === "" || purchase.state === activeFilters.state;
+
+      return (
+        dateMatch &&
+        franchiseNameMatch &&
+        locationMatch &&
+        cityMatch &&
+        stateMatch
+      );
     });
-    
+
     setFilteredPurchases(filteredData);
   }, [activeFilters, purchases]);
 
@@ -356,7 +372,11 @@ const ListDISale = () => {
             <thead>
               <tr>
                 ${columnsVisibility.date ? "<th> Date</th>" : ""}
-                ${columnsVisibility.referenceNumber ? "<th>Reference No</th>" : ""}
+                ${
+                  columnsVisibility.referenceNumber
+                    ? "<th>Reference No</th>"
+                    : ""
+                }
                 ${columnsVisibility.location ? "<th>Location</th>" : ""}
                 ${columnsVisibility.franchise ? "<th>franchise</th>" : ""}
                 ${columnsVisibility.totalItems ? "<th>Total Items</th>" : ""}
@@ -366,17 +386,48 @@ const ListDISale = () => {
             </thead>
             <tbody>
               ${filteredPurchases
-                .slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage)
+                .slice(
+                  (currentPage - 1) * entriesPerPage,
+                  currentPage * entriesPerPage
+                )
                 .map(
                   (purchase) => `
                 <tr>
-                  ${columnsVisibility.date ? `<td>${purchase.saleDate}</td>` : ""}
-                  ${columnsVisibility.referenceNumber ? `<td>${purchase.referenceNumber}</td>` : ""}
-                  ${columnsVisibility.location ? `<td>${purchase.location}</td>` : ""}
-                  ${columnsVisibility.franchise ? `<td>${purchase.franchise}</td>` : ""}
-                  ${columnsVisibility.totalItems ? `<td>${purchase.totalItems}</td>` : ""}
-                  ${columnsVisibility.additionalNotes ? `<td>${purchase.additionalNotes}</td>` : ""}
-                  ${columnsVisibility.addedBy ? `<td>${purchase.addedBy}</td>` : ""}
+                  ${
+                    columnsVisibility.date
+                      ? `<td>${purchase.saleDate}</td>`
+                      : ""
+                  }
+                  ${
+                    columnsVisibility.referenceNumber
+                      ? `<td>${purchase.referenceNumber}</td>`
+                      : ""
+                  }
+                  ${
+                    columnsVisibility.location
+                      ? `<td>${purchase.location}</td>`
+                      : ""
+                  }
+                  ${
+                    columnsVisibility.franchise
+                      ? `<td>${purchase.franchise}</td>`
+                      : ""
+                  }
+                  ${
+                    columnsVisibility.totalItems
+                      ? `<td>${purchase.totalItems}</td>`
+                      : ""
+                  }
+                  ${
+                    columnsVisibility.additionalNotes
+                      ? `<td>${purchase.additionalNotes}</td>`
+                      : ""
+                  }
+                  ${
+                    columnsVisibility.addedBy
+                      ? `<td>${purchase.addedBy}</td>`
+                      : ""
+                  }
                 </tr>
               `
                 )
@@ -738,11 +789,16 @@ const ListDISale = () => {
                             onChange={handleFilterChange}
                           >
                             <option value="">All Franchises</option>
-                            {filterValues.franchiseNames.map((franchiseName, index) => (
-                              <option key={`franchise-${index}`} value={franchiseName}>
-                                {franchiseName}
-                              </option>
-                            ))}
+                            {filterValues.franchiseNames.map(
+                              (franchiseName, index) => (
+                                <option
+                                  key={`franchise-${index}`}
+                                  value={franchiseName}
+                                >
+                                  {franchiseName}
+                                </option>
+                              )
+                            )}
                           </select>
                         </div>
                       </div>

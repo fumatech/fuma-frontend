@@ -118,7 +118,9 @@ function ViewDIPurchase() {
         setPayTermType(purchase.payTermType);
         setDiscountType(purchase.discountType);
         setDiscountAmount(purchase.discountAmount);
-
+        if (purchase.file) {
+          setFile({ name: purchase.file, isExisting: true }); // only store name
+        }
         // Compare using loose equality (==) instead of strict equality (===)
         const matchedPurchaseTaxOption = taxOptions.find(
           (opt) => opt.value == purchase.purchaseTax // Loose equality to handle type mismatch
@@ -717,7 +719,7 @@ function ViewDIPurchase() {
       stockTransactions: productStocks,
     };
 
-    // console.log("Payload:", payload); // Debug the payload
+    console.log("Payload:", payload); // Debug the payload
 
     try {
       const response = await fetch(
@@ -736,8 +738,8 @@ function ViewDIPurchase() {
         // Optionally reset form or navigate to another page
       } else {
         const responseText = await response.text();
-        // console.log("Response Status:", response.status);
-        // console.log("Response Text:", responseText);
+        console.log("Response Status:", response.status);
+        console.log("Response Text:", responseText);
 
         alert("Purchase DI Order Not Updated");
       }
@@ -852,6 +854,58 @@ function ViewDIPurchase() {
                           />
                         </div>
                       </div>
+                      <div className=" col-md-4">
+                        <div className="form-group">
+                          <label htmlFor="file">Upload File:</label>
+                          <div className="file-input file-input-new">
+                            <div className="file-preview">
+                              {file ? (
+                                <>
+                                  <div className="file-preview-thumbnails">
+                                    <div>{file.name}</div>
+                                  </div>
+                                  {/* <div className="file-preview-status text-center text-success">
+                                    File ready to upload
+                                  </div> */}
+                                </>
+                              ) : (
+                                <div className="file-drop-disabled">
+                                  <div className="file-preview-status text-center text-danger"></div>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="input-group">
+                              {/* <div className="form-control file-caption kv-fileinput-caption">
+                                <div className="file-caption-name">
+                                  {file ? file.name : "No file selected"}
+                                </div>
+                              </div> */}
+                              {/* <div className="input-group-append">
+                                <div className="btn btn-primary btn-file rounded-0 py-1 px-2 ms-2">
+                                  <i className="glyphicon glyphicon-folder-open"></i>
+                                  &nbsp; Browse..
+                                  <input
+                                    id="upload_file"
+                                    accept=".jpg,.jpeg,.png,.gif,.bmp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
+                                    className="upload-element"
+                                    name="file"
+                                    type="file"
+                                    onChange={handleFileChange}
+                                    disabled
+                                  />
+                                </div>
+                              </div> */}
+                            </div>
+
+                            {/* <small className="form-text text-muted">
+                              Max File size: 5MB <br />
+                              Supported types: Images, PDF, Word, Excel, CSV,
+                              Text
+                            </small> */}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -871,9 +925,9 @@ function ViewDIPurchase() {
                               disabled
                             />
                           </div>
-                          <Link to="/AddProducts">
+                          {/* <Link to="/AddProducts">
                             <i className="fas fa-plus"></i> Add New Product
-                          </Link>
+                          </Link> */}
                         </div>
 
                         <div className="product-list">
@@ -1373,6 +1427,16 @@ function ViewDIPurchase() {
                       <label>Purchase Total:{finalPurchaseAmount}</label>
                     </div>
                   </div>
+                </div>
+
+                <div className="container-fluid text-center mt-3">
+                  <button
+                    type="submit"
+                    className="btn btn-save btn-lg px-4 py-2 m-2 "
+                    disabled
+                  >
+                    Save
+                  </button>
                 </div>
               </form>
             </div>

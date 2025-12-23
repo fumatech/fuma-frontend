@@ -5,7 +5,7 @@ import "../../assets/plugins/fontawesome-free/css/all.min.css";
 import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
 import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
 import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
-import { Dropdown, DropdownButton } from "react-bootstrap";
+import { Dropdown, DropdownButton } from "react-bootstrap"; // Make sure you have react-bootstrap installed
 import axios from "axios";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
@@ -13,11 +13,9 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
-import { Collapse } from "react-bootstrap";
 
 const ListPurchaseOrder = () => {
   const [purchases, setPurchases] = useState([]);
-  const [filteredPurchases, setFilteredPurchases] = useState([]);
   const [columnsVisibility, setColumnsVisibility] = useState({
     action: true,
     status: true,
@@ -32,12 +30,12 @@ const ListPurchaseOrder = () => {
     addedBy: true,
     purchaseOrderId: true,
   });
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Initialize navigate
 
-  const [modalType, setModalType] = useState(null);
-  const [currentPurchase, setCurrentPurchase] = useState(null);
+  const [modalType, setModalType] = useState(null); // "add", "edit", or "view"
+  const [currentPurchase, setCurrentPurchase] = useState(null); // For viewing/editing
   const [currentPage, setCurrentPage] = useState(1);
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [entriesPerPage, setEntriesPerPage] = useState(25);
   const [formData, setFormData] = useState({
     date: "",
     deliverydate: "",
@@ -49,34 +47,6 @@ const ListPurchaseOrder = () => {
     addedBy: "",
     purchaseOrderId: "",
   });
-
-  // State variables for filters
-  const [filterValues, setFilterValues] = useState({
-    locations: [],
-    vendors: [],
-    statuses: [],
-  });
-  
-  const [activeFilters, setActiveFilters] = useState({
-    startDate: "",
-    endDate: "",
-    location: "",
-    vendor: "",
-    status: "",
-  });
-  
-  const [filterOpen, setFilterOpen] = useState(false);
-
-  // Status mapping for display
-  const statusMap = {
-    0: "Ordered",
-    1: "Accepted",
-    2: "Rejected",
-    3: "Shipped",
-    4: "Completed",
-    null: "Pending"
-  };
-
   // Declare the fetchPurchases function outside of useEffect
   const fetchPurchases = async () => {
     try {
@@ -92,16 +62,13 @@ const ListPurchaseOrder = () => {
       if (Array.isArray(data)) {
         const sortedData = data.sort((a, b) => b.id - a.id);
         setPurchases(sortedData);
-        setFilteredPurchases(sortedData);
       } else {
         console.error("Fetched data is not an array");
         setPurchases([]);
-        setFilteredPurchases([]);
       }
     } catch (error) {
       console.error("Error fetching purchases:", error);
       setPurchases([]);
-      setFilteredPurchases([]);
     }
   };
 
@@ -109,81 +76,6 @@ const ListPurchaseOrder = () => {
     // Call fetchPurchases inside useEffect
     fetchPurchases();
   }, []);
-
-  // Extract filter values when purchases data changes
-  useEffect(() => {
-    if (purchases.length > 0) {
-      const locations = [...new Set(purchases.map(item => item.location))].filter(Boolean);
-      const vendors = [...new Set(purchases.map(item => item.vendor))].filter(Boolean);
-      const statuses = [...new Set(purchases.map(item => item.status))];
-      
-      setFilterValues({
-        locations,
-        vendors,
-        statuses,
-      });
-    }
-  }, [purchases]);
-
-  // Apply filters whenever activeFilters or purchases changes
-  useEffect(() => {
-    const filteredData = purchases.filter((purchase) => {
-      const purchaseDate = new Date(purchase.orderDate);
-      
-      // Date range filter
-      let dateMatch = true;
-      if (activeFilters.startDate && activeFilters.endDate) {
-        const startDate = new Date(activeFilters.startDate);
-        const endDate = new Date(activeFilters.endDate);
-        endDate.setHours(23, 59, 59, 999);
-        
-        dateMatch = purchaseDate >= startDate && purchaseDate <= endDate;
-      } else if (activeFilters.startDate) {
-        const startDate = new Date(activeFilters.startDate);
-        dateMatch = purchaseDate >= startDate;
-      } else if (activeFilters.endDate) {
-        const endDate = new Date(activeFilters.endDate);
-        endDate.setHours(23, 59, 59, 999);
-        dateMatch = purchaseDate <= endDate;
-      }
-      
-      // Location filter
-      const locationMatch = activeFilters.location === "" || purchase.location === activeFilters.location;
-      
-      // Vendor filter
-      const vendorMatch = activeFilters.vendor === "" || purchase.vendor === activeFilters.vendor;
-      
-      // Status filter
-      const statusMatch = activeFilters.status === "" || 
-        (activeFilters.status === "null" && purchase.status === null) ||
-        (activeFilters.status !== "null" && purchase.status === parseInt(activeFilters.status));
-      
-      return dateMatch && locationMatch && vendorMatch && statusMatch;
-    });
-    
-    setFilteredPurchases(filteredData);
-  }, [activeFilters, purchases]);
-
-  // Filter change handler
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setActiveFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setCurrentPage(1);
-  };
-
-  // Reset filters function
-  const resetFilters = () => {
-    setActiveFilters({
-      startDate: "",
-      endDate: "",
-      location: "",
-      vendor: "",
-      status: "",
-    });
-  };
 
   const handleAdd = () => {
     setModalType("add");
@@ -250,7 +142,7 @@ const ListPurchaseOrder = () => {
   };
 
   const exportCSV = () => {
-    const csvData = filteredPurchases.map((purchase) => ({
+    const csvData = purchases.map((purchase) => ({
       Date: purchase.date,
       deliverydate: purchase.deliverydate,
       ReferenceNumreferenceNumber: purchase.referenceNumber,
@@ -275,7 +167,7 @@ const ListPurchaseOrder = () => {
 
   const exportExcel = () => {
     const ws = XLSX.utils.json_to_sheet(
-      filteredPurchases.map((purchase) => ({
+      purchases.map((purchase) => ({
         Date: purchase.date,
         deliverydate: purchase.deliverydate,
         ReferenceNumreferenceNumber: purchase.referenceNumber,
@@ -283,6 +175,7 @@ const ListPurchaseOrder = () => {
         vendor: purchase.vendor,
         totalItems: purchase.totalItems,
         additionalNotes: purchase.additionalNotes,
+
         AddedBy: purchase.addedBy,
         purchaseOrderId: purchase.purchaseOrderId,
       }))
@@ -291,7 +184,6 @@ const ListPurchaseOrder = () => {
     XLSX.utils.book_append_sheet(wb, ws, "Purchases");
     XLSX.writeFile(wb, "purchases.xlsx");
   };
-
   const exportPDF = () => {
     const doc = new jsPDF();
 
@@ -299,16 +191,19 @@ const ListPurchaseOrder = () => {
     const headers = ["Date", "Reference No", "Location", "Vendor", "Added By"];
 
     // Map through the purchase data and prepare the body
-    const body = filteredPurchases.map((p) => [
-      p.orderDate,
+    const body = purchase.map((p) => [
+      p.purchaseDate,
       p.referenceNumber,
       p.location,
       p.vendor,
+      p.totalItems,
+      p.additionalNotes,
       p.addedBy,
+      p.purchaseOrderId,
     ]);
 
     // Add some space before the table
-    doc.text("Purchase List", 14, 20);
+    doc.text("Purchase List", 14, 20); // Title with a slight offset
     doc.setFontSize(12);
     doc.text("Below is the list of purchases with their details:", 14, 30);
 
@@ -325,14 +220,14 @@ const ListPurchaseOrder = () => {
         overflow: "linebreak",
       },
       headStyles: {
-        fillColor: [22, 160, 133],
-        textColor: [255, 255, 255],
+        fillColor: [22, 160, 133], // Bootstrap success color
+        textColor: [255, 255, 255], // White text
         fontStyle: "bold",
       },
       alternateRowStyles: {
-        fillColor: [240, 240, 240],
+        fillColor: [240, 240, 240], // Light gray for alternate rows
       },
-      margin: { top: 50 },
+      margin: { top: 50 }, // Increase top margin for more space above the table
     });
 
     // Save the PDF
@@ -372,11 +267,12 @@ const ListPurchaseOrder = () => {
                     : ""
                 }
                 ${columnsVisibility.date ? "<th> Date</th>" : ""}
-                ${
-                  columnsVisibility.deliverydate
-                    ? "<th> Delivery Date</th>"
-                    : ""
-                }
+                                ${
+                                  columnsVisibility.deliverydate
+                                    ? "<th> Delivery Date</th>"
+                                    : ""
+                                }
+
                 ${
                   columnsVisibility.referenceNumber
                     ? "<th>Reference No</th>"
@@ -390,15 +286,17 @@ const ListPurchaseOrder = () => {
                     ? "<th>Additional Notes</th>"
                     : ""
                 }
-                ${
-                  columnsVisibility.addedBy
-                    ? "<th>Added By</th>"
-                    : ""
-                }
+                             ${
+                               columnsVisibility.addedBy
+                                 ? "<th>Added By</th>"
+                                 : ""
+                             }
+                             
+                           
               </tr>
             </thead>
             <tbody>
-              ${filteredPurchases
+              ${purchase
                 .map(
                   (purchase) => `
                 <tr>
@@ -442,11 +340,14 @@ const ListPurchaseOrder = () => {
                       ? `<td>${purchase.additionalNotes}</td>`
                       : ""
                   }
+            
+               
                   ${
                     columnsVisibility.addedBy
                       ? `<td>${purchase.addedBy}</td>`
                       : ""
                   }
+                   
                 </tr>
               `
                 )
@@ -473,12 +374,12 @@ const ListPurchaseOrder = () => {
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value));
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to the first page when entries per page changes
   };
 
   const startIndex = (currentPage - 1) * entriesPerPage;
   const endIndex = startIndex + entriesPerPage;
-  const purchase = filteredPurchases.slice(startIndex, endIndex);
+  const purchase = purchases.slice(startIndex, endIndex);
 
   return (
     <div className="wrapper">
@@ -498,132 +399,6 @@ const ListPurchaseOrder = () => {
 
         <section className="content">
           <div className="container-fluid">
-            {/* Filter Card */}
-            <div className="card card-default rounded-4 border-0 cardHover mb-3">
-              <div
-                className="my- p-3 d-flex align-items-center"
-                style={{
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
-                onClick={() => setFilterOpen(!filterOpen)}
-              >
-                <i className={`fa fa-filter me-3`}></i>
-                <span>Filter</span>
-              </div>
-
-              <Collapse in={filterOpen}>
-                <div className="border-top">
-                  <div className="card-body">
-                    <div className="row py-2 g-2">
-                      {/* Start Date Picker */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Start Date:</label>
-                          <input
-                            type="date"
-                            className="form-control"
-                            name="startDate"
-                            value={activeFilters.startDate}
-                            onChange={handleFilterChange}
-                          />
-                        </div>
-                      </div>
-
-                      {/* End Date Picker */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">End Date:</label>
-                          <input
-                            type="date"
-                            className="form-control"
-                            name="endDate"
-                            value={activeFilters.endDate}
-                            onChange={handleFilterChange}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Location Dropdown */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Location:</label>
-                          <select
-                            className="form-select"
-                            name="location"
-                            value={activeFilters.location}
-                            onChange={handleFilterChange}
-                          >
-                            <option value="">All Locations</option>
-                            {filterValues.locations.map((location, index) => (
-                              <option key={`loc-${index}`} value={location}>
-                                {location}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Vendor Dropdown */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Vendor:</label>
-                          <select
-                            className="form-select"
-                            name="vendor"
-                            value={activeFilters.vendor}
-                            onChange={handleFilterChange}
-                          >
-                            <option value="">All Vendors</option>
-                            {filterValues.vendors.map((vendor, index) => (
-                              <option key={`vendor-${index}`} value={vendor}>
-                                {vendor}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Status Dropdown */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Status:</label>
-                          <select
-                            className="form-select"
-                            name="status"
-                            value={activeFilters.status}
-                            onChange={handleFilterChange}
-                          >
-                            <option value="">All Statuses</option>
-                            <option value="null">Pending</option>
-                            <option value="0">Ordered</option>
-                            <option value="1">Accepted</option>
-                            <option value="2">Rejected</option>
-                            <option value="3">Shipped</option>
-                            <option value="4">Completed</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Reset Button */}
-                      <div className="col-md-12 d-flex align-items-end">
-                        <button
-                          className="btn btn-sm btn-outline-secondary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            resetFilters();
-                          }}
-                          disabled={!Object.values(activeFilters).some(Boolean)}
-                        >
-                          <i className="fa fa-times me-1"></i> Reset All Filters
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Collapse>
-            </div>
-
             <div className="card cardHover rounded-4 border-0">
               <div className="d-flex justify-content-end mb-3">
                 <Link to="/PurchaseOrder" className="btn btn-add">
@@ -643,7 +418,6 @@ const ListPurchaseOrder = () => {
                       value={entriesPerPage}
                       onChange={handleEntriesChange}
                     >
-                      <option value={10}>10</option>
                       <option value={25}>25</option>
                       <option value={50}>50</option>
                       <option value={75}>75</option>
@@ -725,7 +499,7 @@ const ListPurchaseOrder = () => {
                         {columnsVisibility.purchaseOrderId && <th>Order Id</th>}
                         {columnsVisibility.status && <th>Status</th>}
 
-                        {columnsVisibility.date && <th>Order Date</th>}
+                        {columnsVisibility.date && <th>Ordered Date</th>}
                         {columnsVisibility.deliverydate && (
                           <th>Exp Delivery Date</th>
                         )}
@@ -733,7 +507,6 @@ const ListPurchaseOrder = () => {
                         {columnsVisibility.referenceNumber && (
                           <th>Reference No</th>
                         )}
-                        {columnsVisibility.location && <th>Location</th>}
                         {columnsVisibility.vendor && <th>vendor</th>}
                         {columnsVisibility.totalItems && <th> Total Items</th>}
                         {columnsVisibility.shippedItems && (
@@ -745,6 +518,7 @@ const ListPurchaseOrder = () => {
                         )}
 
                         {columnsVisibility.addedBy && <th>Added By</th>}
+                        {columnsVisibility.addedBy && <th>View Invoice</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -827,8 +601,6 @@ const ListPurchaseOrder = () => {
                                 ? "Shipped"
                                 : purchase.status === 4
                                 ? "Completed"
-                                : purchase.status === null
-                                ? "Pending"
                                 : "Unknown"}
                             </td>
                           )}
@@ -841,9 +613,7 @@ const ListPurchaseOrder = () => {
                           {columnsVisibility.referenceNumber && (
                             <td>{purchase.referenceNumber}</td>
                           )}
-                          {columnsVisibility.location && (
-                            <td>{purchase.location}</td>
-                          )}
+
                           {columnsVisibility.vendor && (
                             <td>{purchase.vendor}</td>
                           )}
@@ -856,8 +626,29 @@ const ListPurchaseOrder = () => {
                           {columnsVisibility.additionalNotes && (
                             <td>{purchase.additionalNotes}</td>
                           )}
+
                           {columnsVisibility.addedBy && (
                             <td>{purchase.addedBy}</td>
+                          )}
+                          {columnsVisibility.addedBy && (
+                            <td>
+                              {purchase.file ? (
+                                <a
+                                  href={`${
+                                    process.env.REACT_APP_BASE_URL
+                                  }/files/download/${purchase.file
+                                    .split("/")
+                                    .pop()}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <i className="fas fa-download me-1"></i>{" "}
+                                  Download
+                                </a>
+                              ) : (
+                                "No Invoice"
+                              )}
+                            </td>
                           )}
                         </tr>
                       ))}

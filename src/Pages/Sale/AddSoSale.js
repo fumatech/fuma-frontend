@@ -883,23 +883,8 @@ function AddSoSale() {
       }
 
       if (response.ok) {
-        const status = 4;
-
-        const updateStatusResponse = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/franchisepurchaseorder/updateStatus/${id}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ status }),
-          }
-        );
-
-        if (updateStatusResponse.ok) {
-          alert("Sale So Order Placed Successfully");
-          navigate("/ListSoSale");
-        }
+        alert("Sale So Order Placed Successfully");
+        navigate("/ListSoSale");
       }
     } catch (error) {
       console.error("Error:", error);

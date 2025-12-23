@@ -338,7 +338,7 @@ function EditAcceptedOrder() {
         if (statusResponse.ok) {
           alert("Order shipped  successfully");
 
-          navigate(`/AcceptedOrders`);
+          navigate(`/ShipOrders`);
         } else {
           const errorText = await statusResponse.text();
           console.error("Error updating purchase status:", errorText);

@@ -179,7 +179,7 @@ function EditPoPurchaseOrder() {
         }
 
         const purchase = await response.json();
-        // console.log(purchase);
+        console.log(purchase);
 
         setVendor(purchase.vendor || "");
         setOrderId(purchase.purchasePoOrderId || "");
@@ -192,6 +192,9 @@ function EditPoPurchaseOrder() {
         setPurchaseDate(
           purchase.purchaseDate ? new Date(purchase.purchaseDate) : null
         );
+        if (purchase.file) {
+          setFile({ name: purchase.file, isExisting: true }); // only store name
+        }
         setLocation(purchase.location || "");
         setPayTermNumber(purchase.payTermNumber || 0);
         setPayTermType(purchase.payTermType || "");
@@ -841,7 +844,7 @@ function EditPoPurchaseOrder() {
       ],
     };
 
-    // console.log("Payload:", payload); // Debug the payload
+    console.log("Payload:", payload); // Debug the payload
 
     try {
       const response = await fetch(
@@ -860,8 +863,8 @@ function EditPoPurchaseOrder() {
         // navigate("/ListPoPurchaseOrder");
       } else {
         const responseText = await response.text();
-        // console.log("Response Status:", response.status);
-        // console.log("Response Text:", responseText);
+        console.log("Response Status:", response.status);
+        console.log("Response Text:", responseText);
         alert("Purchase PO Order Not Saved");
       }
     } catch (error) {
@@ -1020,6 +1023,35 @@ function EditPoPurchaseOrder() {
                             popperPlacement="top" // Display the calendar above
                             disabled
                           />
+                        </div>
+                      </div>
+                      <div className="col-md-4">
+                        <div className="form-group">
+                          <label htmlFor="document">Attach Document</label>
+                          <div className="file-input file-input-new">
+                            <div className="input-group file-caption-main">
+                              <div className="form-control file-caption kv-fileinput-caption">
+                                <div className="file-caption-name">
+                                  {file ? file.name : ""}
+                                </div>
+                              </div>
+                              <div className="input-group-btn">
+                                <div className="btn">
+                                  <i className=""></i>
+                                  &nbsp;
+                                  <input
+                                    id="upload_document"
+                                    accept=".pdf,.csv,.zip,.doc,.docx,.jpeg,.jpg,.png"
+                                    name="document"
+                                    type="file"
+                                    onChange={handleFileChange}
+                                    disabled
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <p className="help-block">Max File size: 5MB</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1535,6 +1567,16 @@ function EditPoPurchaseOrder() {
                       <label>Purchase Total:{finalPurchaseAmount}</label>
                     </div>
                   </div>
+                </div>
+
+                <div className="container-fluid text-center mt-3">
+                  <button
+                    type="submit"
+                    className="btn btn-save btn-lg px-4 py-2 m-2 "
+                    disabled
+                  >
+                    Save
+                  </button>
                 </div>
               </form>
             </div>

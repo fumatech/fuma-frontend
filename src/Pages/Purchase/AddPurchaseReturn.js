@@ -376,7 +376,6 @@ function AddPurchaseReturn() {
       purchaseReturnItems: orderItems,
       stockTransactions: productStocks,
       totalAmount: parseFloat(totalAmount) || 0,
-      totalTax: taxAmount,
     };
 
     console.log("Payload:", payload); // Debug payload before submitting
