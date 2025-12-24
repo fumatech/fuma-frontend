@@ -784,13 +784,14 @@ function EditDIPurchase() {
       };
     });
 
-    const productStocks = selectedProducts.map((item) => ({
-      productId: parseInt(item.productId),
-      variationId: parseInt(item.productVariationId),
-      quantity: parseInt(item.quantity),
+    const productStocks = purchaseItems.map((item) => ({
+      productId: item.productId,
+      variationId: item.productVariationId || null,
+      price: parseFloat(item.unitSellingPrice), // ✅ CORRECT VALUE
+      quantity: item.quantity,
       transactionType: "di_purchase",
       date: new Date().toISOString().split("T")[0],
-      note: "Stock updated after DI Purchase",
+      note: "Stock updated after DI purchase",
     }));
 
     const payload = {

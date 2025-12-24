@@ -836,13 +836,14 @@ function AddPoPurchase() {
     });
 
     // Prepare stock transactions
-    const productStocks = selectedProducts.map((item) => ({
+
+    const productStocks = purchaseItems.map((item) => ({
       productId: item.productId,
-      variationId: item.productVariationId,
+      variationId: item.productVariationId || null,
+      price: parseFloat(item.unitSellingPrice), // ✅ CORRECT VALUE
       quantity: item.quantity,
-      price: item.unitSellingPrice,
       transactionType: "po_purchase",
-      date: new Date().toISOString().split("T")[0], // Current date
+      date: new Date().toISOString().split("T")[0],
       note: "Stock updated after PO purchase",
     }));
 

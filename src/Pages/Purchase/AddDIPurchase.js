@@ -663,16 +663,15 @@ function AddDIPurchase() {
       };
     });
 
-    const productStocks = selectedProducts.map((item) => ({
+    const productStocks = purchaseItems.map((item) => ({
       productId: item.productId,
-      variationId: item.productVariationId,
+      variationId: item.productVariationId || null,
+      price: parseFloat(item.unitSellingPrice), // ✅ CORRECT VALUE
       quantity: item.quantity,
-      price: item.defaultPurchasePriceExcTax || 0,
       transactionType: "di_purchase",
       date: new Date().toISOString().split("T")[0],
       note: "Stock updated after DI purchase",
     }));
-
     const payload = {
       vendor,
       referenceNumber,

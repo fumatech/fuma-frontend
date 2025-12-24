@@ -355,12 +355,13 @@ function AddPurchaseReturn() {
       //subtotal: product.defaultSellingPrice * product.quantity,
     }));
 
-    const productStocks = selectedProducts.map((item) => ({
-      productId: item.id,
-      variationId: item.variationId,
+    const productStocks = orderItems.map((item) => ({
+      productId: item.productId,
+      variationId: item.productVariationId || null,
+      price: parseFloat(item.unitPrice), // ✅ CORRECT VALUE
       quantity: item.quantity,
       transactionType: "purchase_return",
-      date: new Date().toISOString().split("T")[0], // Current date
+      date: new Date().toISOString().split("T")[0],
       note: "Stock updated after purchase return", // Optional note
     }));
 

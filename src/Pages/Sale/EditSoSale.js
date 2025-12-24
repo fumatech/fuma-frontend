@@ -917,7 +917,15 @@ function EditSoSale() {
         unitSellingPrice: unitSellingPriceIncTax,
       };
     });
-
+    const productStocks = purchaseItems.map((item) => ({
+      productId: item.productId,
+      variationId: item.productVariationId || null,
+      price: parseFloat(item.unitSellingPrice), // ✅ CORRECT VALUE
+      quantity: item.quantity,
+      transactionType: "so_sale",
+      date: new Date().toISOString().split("T")[0],
+      note: "Stock updated after So sale", // Optional note
+    }));
     // Prepare payload with lists
     const payload = {
       orderId: orderId,
@@ -942,6 +950,7 @@ function EditSoSale() {
       additionalNotes,
       saleSoItem: purchaseItems,
       shippingSoDetails: shippingAllDetails,
+      stockTransactions: productStocks,
     };
 
     // console.log("Payload:", payload); // Debug payload before submitting

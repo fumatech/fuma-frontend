@@ -192,7 +192,7 @@ function AddSoSale() {
       if (product.id === productId && product.variationId === variationId) {
         return {
           ...product,
-          defaultSellingPrice: newValue,
+          defaultPurchasePriceExcTax: newValue,
         };
       }
       return product;
@@ -261,7 +261,7 @@ function AddSoSale() {
                 );
 
                 const defaultPurchasePriceExcTax =
-                  matchedVariation?.defaultSellingPrice || 0;
+                  matchedVariation?.defaultPurchasePriceExcTax || 0;
                 const quantity = item.updatedQuantity || 1;
                 const discountPercent = item.discountPercent || 0;
                 const lineTotal = (
@@ -774,7 +774,7 @@ function AddSoSale() {
 
     const purchaseItems = selectedProducts.map((product) => {
       const unitCostBeforeDiscount =
-        parseFloat(product.defaultSellingPrice) || 0;
+        parseFloat(product.defaultPurchasePriceExcTax) || 0;
       const discountPercent = parseFloat(product.discountPercent) || 0;
 
       // Unit Cost after Discount
@@ -824,14 +824,13 @@ function AddSoSale() {
       };
     });
 
-    const productStocks = selectedProducts.map((item) => ({
+    const productStocks = purchaseItems.map((item) => ({
       productId: item.productId,
-      variationId: item.productVariationId,
+      variationId: item.productVariationId || null,
+      price: parseFloat(item.unitSellingPrice), // ✅ CORRECT VALUE
       quantity: item.quantity,
-      // unitCostBeforeTax: item.unitCostBeforeDiscount,
-      // subTotalBeforeTax: item.lineTotal,
       transactionType: "so_sale",
-      date: new Date().toISOString().split("T")[0], // Current date
+      date: new Date().toISOString().split("T")[0],
       note: "Stock updated after So sale", // Optional note
     }));
 

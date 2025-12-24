@@ -714,16 +714,14 @@ function EditPoPurchaseOrder() {
         ),
       },
     ];
-
-    const productStocks = selectedProducts.map((item) => ({
+    const productStocks = purchaseItems.map((item) => ({
       productId: item.productId,
-      variationId: item.productVariationId,
+      variationId: item.productVariationId || null,
+      price: parseFloat(item.unitSellingPrice), // ✅ CORRECT VALUE
       quantity: item.quantity,
-      // unitCostBeforeTax: item.unitCostBeforeDiscount,
-      // subTotalBeforeTax: item.lineTotal,
       transactionType: "po_purchase",
-      date: new Date().toISOString().split("T")[0], // Current date
-      note: "Stock updated after PO Purchase", // Optional note
+      date: new Date().toISOString().split("T")[0],
+      note: "Stock updated after PO purchase",
     }));
     const purchaseItems = selectedProducts.map((product) => {
       const unitCostBeforeDiscount =
