@@ -14,8 +14,6 @@ import "react-datepicker/dist/react-datepicker.css";
 
 function AddStockTransfer() {
   const [status, setStatus] = useState("");
-  const [locationFrom, setLocationFrom] = useState("");
-  const [locationTo, setLocationTo] = useState("");
   const [saleDate, setSaleDate] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -24,10 +22,33 @@ function AddStockTransfer() {
   const [totalAmount, setTotalAmount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [products, setProducts] = useState([]); // ORIGINAL
 
   const [shippingCharges, setShippingCharges] = useState(0);
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [totalShippingAmount, setTotalShippingAmount] = useState(0);
+  const [locations, setLocations] = useState([]);
+  const [locationFrom, setLocationFrom] = useState("");
+  const [locationTo, setLocationTo] = useState("");
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
+      .then((res) => res.json())
+      .then((data) => setLocations(data))
+      .catch((err) => console.error("Error fetching locations:", err));
+  }, []);
+  const handleLocationFromChange = (e) => {
+    const selectedFrom = e.target.value;
+    setLocationFrom(selectedFrom);
+
+    // If same location is already selected in "To", reset it
+    if (locationTo === selectedFrom) {
+      setLocationTo("");
+    }
+  };
+
+  const handleLocationToChange = (e) => {
+    setLocationTo(e.target.value);
+  };
 
   useEffect(() => {
     // Assuming you would set totalAmount based on other dynamic content or API responses
@@ -55,13 +76,35 @@ function AddStockTransfer() {
     updateTotalAmount();
   }, [shippingCharges]);
 
-  // Fetch products from API
+  useEffect(() => {
+    fetchProducts(); // Fetch products on component mount
+  }, []);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleStatusChange = (event) => setStatus(event.target.value);
+
+  /* ===================== PRODUCTS ===================== */
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("https://api.example.com/products");
-      setFilteredProducts(response.data);
-    } catch (err) {
+      const res = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/product/getall`
+      );
+      const data = await res.json();
+
+      const normalized = data.map((p) => ({
+        id: p.id,
+        name: p.productName,
+        price: p.productVariations?.[0]?.defaultSellingPrice ?? 0,
+        variations: p.productVariations || [],
+      }));
+
+      setProducts(normalized);
+      setFilteredProducts(normalized);
+    } catch (e) {
       setError("Failed to fetch products");
     } finally {
       setLoading(false);
@@ -69,52 +112,51 @@ function AddStockTransfer() {
   };
 
   useEffect(() => {
-    fetchProducts(); // Fetch products on component mount
+    fetchProducts();
   }, []);
 
+  /* ===================== SEARCH (FIXED) ===================== */
   useEffect(() => {
-    if (searchTerm) {
-      const filtered = filteredProducts.filter((product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredProducts(filtered);
-    } else {
-      fetchProducts(); // Re-fetch the original list if searchTerm is cleared
+    if (!searchTerm) {
+      setFilteredProducts(products);
+      return;
     }
-  }, [searchTerm, filteredProducts]); // Added filteredProducts as a dependency
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleProductSelect = (product) => {
-    setSelectedProduct(product);
-    setProductList([...productList, { ...product, quantity: 1 }]);
-    setTotalAmount(totalAmount + product.price);
-  };
-
-  const handleQuantityChange = (index, quantity) => {
-    const newProductList = [...productList];
-    newProductList[index].quantity = quantity;
-    const newTotalAmount = newProductList.reduce(
-      (acc, item) => acc + item.price * item.quantity,
-      0
+    const filtered = products.filter((p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    setProductList(newProductList);
-    setTotalAmount(newTotalAmount);
+
+    setFilteredProducts(filtered);
+  }, [searchTerm, products]);
+
+  /* ===================== TOTAL ===================== */
+  useEffect(() => {
+    const total =
+      productList.reduce((sum, item) => sum + item.price * item.quantity, 0) +
+      Number(shippingCharges || 0);
+
+    setTotalShippingAmount(total.toFixed(2));
+    setTotalAmount(total);
+  }, [productList, shippingCharges]);
+
+  /* ===================== HANDLERS ===================== */
+  const handleProductSelect = (product) => {
+    setProductList((prev) => [...prev, { ...product, quantity: 1 }]);
   };
 
-  const handleStatusChange = (event) => setStatus(event.target.value);
-  const handleLocationFromChange = (event) =>
-    setLocationFrom(event.target.value);
-  const handleLocationToChange = (event) => setLocationTo(event.target.value);
+  const handleQuantityChange = (index, qty) => {
+    setProductList((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, quantity: Number(qty) } : item
+      )
+    );
+  };
 
   const statusTooltip = (
     <Tooltip id="status-tooltip">
       Stock transfer will not be editable if status is completed
     </Tooltip>
   );
-
   return (
     <>
       <div className="wrapper">
@@ -196,7 +238,6 @@ function AddStockTransfer() {
                         <label htmlFor="location_id">Location (From):*</label>
                         <select
                           id="location_id"
-                          name="location_id"
                           className="form-control"
                           required
                           value={locationFrom}
@@ -205,8 +246,12 @@ function AddStockTransfer() {
                           <option value="" disabled>
                             Please Select
                           </option>
-                          {/* Populate dynamically */}
-                          <option value="1">Awesome Shop</option>
+
+                          {locations.map((loc) => (
+                            <option key={loc.id} value={loc.id}>
+                              {loc.name}
+                            </option>
+                          ))}
                         </select>
                       </div>
 
@@ -217,17 +262,23 @@ function AddStockTransfer() {
                         </label>
                         <select
                           id="transfer_location_id"
-                          name="transfer_location_id"
                           className="form-control"
                           required
                           value={locationTo}
                           onChange={handleLocationToChange}
+                          disabled={!locationFrom} // optional UX improvement
                         >
                           <option value="" disabled>
                             Please Select
                           </option>
-                          {/* Populate dynamically */}
-                          <option value="1">Awesome Shop</option>
+
+                          {locations
+                            .filter((loc) => loc.id.toString() !== locationFrom)
+                            .map((loc) => (
+                              <option key={loc.id} value={loc.id}>
+                                {loc.name}
+                              </option>
+                            ))}
                         </select>
                       </div>
                     </div>

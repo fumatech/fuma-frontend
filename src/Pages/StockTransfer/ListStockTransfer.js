@@ -47,7 +47,7 @@ const ListStockTransfer = () => {
     locationsTo: [],
     statuses: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
@@ -55,9 +55,27 @@ const ListStockTransfer = () => {
     locationTo: "",
     status: "",
   });
-  
+
   const [filteredStockTransfers, setFilteredStockTransfers] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [locations, setLocations] = useState([]);
+  const [locationMap, setLocationMap] = useState({});
+
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
+      .then((res) => res.json())
+      .then((data) => {
+        setLocations(data);
+
+        // Build map: { 1: "FUMA", 2: "abc" }
+        const map = {};
+        data.forEach((loc) => {
+          map[loc.id] = loc.name;
+        });
+        setLocationMap(map);
+      })
+      .catch((err) => console.error(err));
+  }, []);
 
   useEffect(() => {
     fetchStockTransfer();
@@ -66,7 +84,7 @@ const ListStockTransfer = () => {
   const fetchStockTransfer = async () => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/ListStockTransfer/getall`
+        `${process.env.REACT_APP_BASE_URL}/stock-transfer/getall`
       );
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -85,7 +103,7 @@ const ListStockTransfer = () => {
       setListStockTransfer([]);
       setFilteredStockTransfers([]);
     }
-    
+
     const script = document.createElement("script");
     script.src = "js/JqueryContent.js";
     script.async = true;
@@ -99,10 +117,18 @@ const ListStockTransfer = () => {
   // Extract filter values when ListStockTransfer data changes
   useEffect(() => {
     if (ListStockTransfer.length > 0) {
-      const locationsFrom = [...new Set(ListStockTransfer.map(item => item.locationFrom))].filter(Boolean);
-      const locationsTo = [...new Set(ListStockTransfer.map(item => item.locationTo))].filter(Boolean);
-      const statuses = [...new Set(ListStockTransfer.map(item => item.status))].filter(Boolean);
-      
+      const locationsFrom = [
+        ...new Set(ListStockTransfer.map((item) => item.locationFrom)),
+      ].filter(Boolean);
+
+      const locationsTo = [
+        ...new Set(ListStockTransfer.map((item) => item.locationTo)),
+      ].filter(Boolean);
+
+      const statuses = [
+        ...new Set(ListStockTransfer.map((item) => item.status)),
+      ].filter(Boolean);
+
       setFilterValues({
         locationsFrom,
         locationsTo,
@@ -115,14 +141,14 @@ const ListStockTransfer = () => {
   useEffect(() => {
     const filteredData = ListStockTransfer.filter((transfer) => {
       const transferDate = new Date(transfer.data);
-      
+
       // Date range filter
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = transferDate >= startDate && transferDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -132,22 +158,22 @@ const ListStockTransfer = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = transferDate <= endDate;
       }
-      
-      // Location From filter
-      const locationFromMatch = activeFilters.locationFrom === "" || 
-        transfer.locationFrom === activeFilters.locationFrom;
-      
-      // Location To filter
-      const locationToMatch = activeFilters.locationTo === "" || 
-        transfer.locationTo === activeFilters.locationTo;
-      
+
+      const locationFromMatch =
+        activeFilters.locationFrom === "" ||
+        transfer.locationFrom === Number(activeFilters.locationFrom);
+
+      const locationToMatch =
+        activeFilters.locationTo === "" ||
+        transfer.locationTo === Number(activeFilters.locationTo);
+
       // Status filter
-      const statusMatch = activeFilters.status === "" || 
-        transfer.status === activeFilters.status;
-      
+      const statusMatch =
+        activeFilters.status === "" || transfer.status === activeFilters.status;
+
       return dateMatch && locationFromMatch && locationToMatch && statusMatch;
     });
-    
+
     setFilteredStockTransfers(filteredData);
   }, [activeFilters, ListStockTransfer]);
 
@@ -236,8 +262,9 @@ const ListStockTransfer = () => {
       "Additional Notes",
     ];
 
-    const body = filteredStockTransfers.slice(startIndex, endIndex).map(
-      (transfer) => [
+    const body = filteredStockTransfers
+      .slice(startIndex, endIndex)
+      .map((transfer) => [
         transfer.data,
         transfer.referenceNo,
         transfer.locationFrom,
@@ -246,8 +273,7 @@ const ListStockTransfer = () => {
         transfer.shippingCharges,
         transfer.totalAmount,
         transfer.additionalNotes,
-      ]
-    );
+      ]);
 
     doc.text("Stock Transfer List", 14, 20);
     doc.setFontSize(12);
@@ -332,7 +358,8 @@ const ListStockTransfer = () => {
               </tr>
             </thead>
             <tbody>
-              ${filteredStockTransfers.slice(startIndex, endIndex)
+              ${filteredStockTransfers
+                .slice(startIndex, endIndex)
                 .map(
                   (StockTransfer) => `
                 <tr>
@@ -412,7 +439,7 @@ const ListStockTransfer = () => {
     try {
       if (modalType === "edit" && currentListStock) {
         const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/ListStockTransfer/update/${currentListStock.id}`,
+          `${process.env.REACT_APP_BASE_URL}/stock-transfer/update/${currentListStock.id}`,
           {
             method: "PUT",
             headers: {
@@ -436,7 +463,7 @@ const ListStockTransfer = () => {
         alert("Unit updated successfully!");
       } else if (modalType === "add") {
         const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/ListStockTransfer/save`,
+          `${process.env.REACT_APP_BASE_URL}/stock-transfer/save`,
           {
             method: "POST",
             headers: {
@@ -483,14 +510,14 @@ const ListStockTransfer = () => {
     if (StockTransferToEdit) {
       setCurrentListStock(StockTransferToEdit);
       setFormData({
-        data: StockTransferToEdit.data,
-        referenceNo: StockTransferToEdit.referenceNo,
+        date: StockTransferToEdit.date,
+        referenceNumber: StockTransferToEdit.referenceNumber,
         locationFrom: StockTransferToEdit.locationFrom,
         locationTo: StockTransferToEdit.locationTo,
         status: StockTransferToEdit.status,
         shippingCharges: StockTransferToEdit.shippingCharges,
         totalAmount: StockTransferToEdit.totalAmount,
-        additionalNotes: StockTransferToEdit.additionalNotes,
+        note: StockTransferToEdit.note,
       });
       setModalType("edit");
     }
@@ -510,7 +537,7 @@ const ListStockTransfer = () => {
     if (window.confirm("Are you sure you want to delete this unit?")) {
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/ListStockTransfer/delete/${id}`,
+          `${process.env.REACT_APP_BASE_URL}/stock-transfer/delete/${id}`,
           {
             method: "DELETE",
           }
@@ -596,15 +623,15 @@ const ListStockTransfer = () => {
                         <div className="form-group">
                           <label className="me-2">Location From:</label>
                           <select
-                            className="form-select"
                             name="locationFrom"
                             value={activeFilters.locationFrom}
                             onChange={handleFilterChange}
+                            className="form-control"
                           >
-                            <option value="">All Locations</option>
-                            {filterValues.locationsFrom.map((location, index) => (
-                              <option key={`from-${index}`} value={location}>
-                                {location}
+                            <option value="">All</option>
+                            {filterValues.locationsFrom.map((id) => (
+                              <option key={id} value={id}>
+                                {locationMap[id] || "Unknown Location"}
                               </option>
                             ))}
                           </select>
@@ -616,15 +643,15 @@ const ListStockTransfer = () => {
                         <div className="form-group">
                           <label className="me-2">Location To:</label>
                           <select
-                            className="form-select"
                             name="locationTo"
                             value={activeFilters.locationTo}
                             onChange={handleFilterChange}
+                            className="form-control"
                           >
-                            <option value="">All Locations</option>
-                            {filterValues.locationsTo.map((location, index) => (
-                              <option key={`to-${index}`} value={location}>
-                                {location}
+                            <option value="">All</option>
+                            {filterValues.locationsTo.map((id) => (
+                              <option key={id} value={id}>
+                                {locationMap[id] || "Unknown Location"}
                               </option>
                             ))}
                           </select>
@@ -764,7 +791,7 @@ const ListStockTransfer = () => {
                   >
                     <thead>
                       <tr>
-                        {columnsVisibility.data && <th>Data</th>}
+                        {columnsVisibility.data && <th>Date</th>}
                         {columnsVisibility.referenceNo && <th>Reference No</th>}
                         {columnsVisibility.locationFrom && (
                           <th>Location (From)</th>
@@ -782,21 +809,28 @@ const ListStockTransfer = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredStockTransfers.slice(startIndex, endIndex).map(
-                        (StockTransfer) => (
+                      {filteredStockTransfers
+                        .slice(startIndex, endIndex)
+                        .map((StockTransfer) => (
                           <tr key={StockTransfer.id}>
                             {columnsVisibility.data && (
-                              <td>{StockTransfer.data}</td>
+                              <td>{StockTransfer.date}</td>
                             )}
                             {columnsVisibility.referenceNo && (
-                              <td>{StockTransfer.referenceNo}</td>
+                              <td>{StockTransfer.referenceNumber}</td>
                             )}
                             {columnsVisibility.locationFrom && (
-                              <td>{StockTransfer.locationFrom}</td>
+                              <td>
+                                {locationMap[StockTransfer.locationFrom] || "—"}
+                              </td>
                             )}
+
                             {columnsVisibility.locationTo && (
-                              <td>{StockTransfer.locationTo}</td>
+                              <td>
+                                {locationMap[StockTransfer.locationTo] || "—"}
+                              </td>
                             )}
+
                             {columnsVisibility.status && (
                               <td>{StockTransfer.status}</td>
                             )}
@@ -807,7 +841,7 @@ const ListStockTransfer = () => {
                               <td>{StockTransfer.totalAmount}</td>
                             )}
                             {columnsVisibility.additionalNotes && (
-                              <td>{StockTransfer.additionalNotes}</td>
+                              <td>{StockTransfer.note}</td>
                             )}
                             {columnsVisibility.action && (
                               <td>
@@ -832,8 +866,7 @@ const ListStockTransfer = () => {
                               </td>
                             )}
                           </tr>
-                        )
-                      )}
+                        ))}
                     </tbody>
                   </table>
                 </div>
@@ -882,24 +915,24 @@ const ListStockTransfer = () => {
                     {modalType === "edit" && (
                       <div>
                         <div className="form-group">
-                          <label htmlFor="data">Data</label>
+                          <label htmlFor="date">Date</label>
                           <input
                             type="text"
                             className="form-control"
-                            id="data"
-                            value={formData.data}
+                            id="date"
+                            value={formData.date}
                             onChange={handleFormChange}
-                            placeholder="Enter data"
+                            placeholder="Enter date"
                             required
                           />
                         </div>
                         <div className="form-group">
-                          <label htmlFor="referenceNo">Reference No</label>
+                          <label htmlFor="referenceNumber">Reference No</label>
                           <input
                             type="text"
                             className="form-control"
-                            id="referenceNo"
-                            value={formData.referenceNo}
+                            id="referenceNumber"
+                            value={formData.referenceNumber}
                             onChange={handleFormChange}
                             placeholder="Enter reference number"
                             required
@@ -968,13 +1001,11 @@ const ListStockTransfer = () => {
                           />
                         </div>
                         <div className="form-group">
-                          <label htmlFor="additionalNotes">
-                            Additional Notes
-                          </label>
+                          <label htmlFor="note">Additional Notes</label>
                           <textarea
                             className="form-control"
-                            id="additionalNotes"
-                            value={formData.additionalNotes}
+                            id="note"
+                            value={formData.note}
                             onChange={handleFormChange}
                             placeholder="Enter additional notes"
                           />
@@ -985,11 +1016,11 @@ const ListStockTransfer = () => {
                     {modalType === "view" && currentListStock && (
                       <div>
                         <p>
-                          <strong>Data:</strong> {currentListStock.data}
+                          <strong>Date:</strong> {currentListStock.date}
                         </p>
                         <p>
                           <strong>Reference No:</strong>{" "}
-                          {currentListStock.referenceNo}
+                          {currentListStock.referenceNumber}
                         </p>
                         <p>
                           <strong>Location (From):</strong>{" "}
@@ -1012,7 +1043,7 @@ const ListStockTransfer = () => {
                         </p>
                         <p>
                           <strong>Additional Notes:</strong>{" "}
-                          {currentListStock.additionalNotes}
+                          {currentListStock.note}
                         </p>
                       </div>
                     )}

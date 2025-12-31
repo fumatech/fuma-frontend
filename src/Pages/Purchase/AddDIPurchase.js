@@ -332,7 +332,9 @@ function AddDIPurchase() {
   const searchProducts = async (query) => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/product/search?query=${query}`
+        `${
+          process.env.REACT_APP_BASE_URL
+        }/product/search/active?query=${encodeURIComponent(query)}`
       );
       const data = await response.json();
       setSearchResults(data);

@@ -116,7 +116,10 @@ const Menu = ({ userRoles }) => {
         path.startsWith("/TaxReport")
     );
     setSettingOpen(
-      path.startsWith("/TaxRate") || path.startsWith("/BusinessDetails")
+      path.startsWith("/TaxRate") ||
+        path.startsWith("/BusinessDetails") ||
+        path.startsWith("/BusinessLocations") ||
+        path.startsWith("/BusinessCategory")
     );
 
     // Set active menu based on current path
@@ -335,6 +338,10 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("TaxRate");
     } else if (path === "/BusinessDetails") {
       setActiveSubMenu("BusinessDetails");
+    } else if (path === "/BusinessLocations") {
+      setActiveSubMenu("BusinessLocations");
+    } else if (path === "/BusinessCategory") {
+      setActiveSubMenu("BusinessCategory");
     } else {
       setActiveSubMenu("");
     }
@@ -2309,6 +2316,44 @@ const Menu = ({ userRoles }) => {
                       }}
                     >
                       <p>Business Details</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link
+                      to="/BusinessLocations"
+                      className={getSubMenuItemClass("BusinessLocations")}
+                      style={{
+                        color:
+                          activeSubMenu === "BusinessLocations"
+                            ? "#0040C1"
+                            : "#4b5565",
+                        backgroundColor:
+                          activeSubMenu === "BusinessLocations"
+                            ? "rgba(0, 64, 193, 0.08)"
+                            : "transparent",
+                        paddingLeft: "52px",
+                      }}
+                    >
+                      <p>Business Locations</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link
+                      to="/BusinessCategory"
+                      className={getSubMenuItemClass("BusinessCategory")}
+                      style={{
+                        color:
+                          activeSubMenu === "BusinessCategory"
+                            ? "#0040C1"
+                            : "#4b5565",
+                        backgroundColor:
+                          activeSubMenu === "BusinessCategory"
+                            ? "rgba(0, 64, 193, 0.08)"
+                            : "transparent",
+                        paddingLeft: "52px",
+                      }}
+                    >
+                      <p>Business Category</p>
                     </Link>
                   </li>
                 </ul>

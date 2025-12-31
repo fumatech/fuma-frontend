@@ -31,7 +31,7 @@ function Vendor({ userRoles }) {
   const [inactiveVendors, setInactiveVendors] = useState([]);
   const [filteredInactiveVendors, setFilteredInactiveVendors] = useState([]);
   const navigate = useNavigate();
-  
+
   // State variables for filters
   const [filterValues, setFilterValues] = useState({
     cities: [],
@@ -40,7 +40,7 @@ function Vendor({ userRoles }) {
     emails: [],
     mobileNumbers: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     city: "",
     state: "",
@@ -48,7 +48,7 @@ function Vendor({ userRoles }) {
     email: "",
     mobileNumber: "",
   });
-  
+
   const [searchText, setSearchText] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -61,13 +61,23 @@ function Vendor({ userRoles }) {
   useEffect(() => {
     if (vendors.length > 0 || inactiveVendors.length > 0) {
       const allVendors = [...vendors, ...inactiveVendors];
-      
-      const cities = [...new Set(allVendors.map(item => item.city))].filter(Boolean);
-      const states = [...new Set(allVendors.map(item => item.state))].filter(Boolean);
-      const firmNames = [...new Set(allVendors.map(item => item.firmName))].filter(Boolean);
-      const emails = [...new Set(allVendors.map(item => item.email))].filter(Boolean);
-      const mobileNumbers = [...new Set(allVendors.map(item => item.mobileNumber))].filter(Boolean);
-      
+
+      const cities = [...new Set(allVendors.map((item) => item.city))].filter(
+        Boolean
+      );
+      const states = [...new Set(allVendors.map((item) => item.state))].filter(
+        Boolean
+      );
+      const firmNames = [
+        ...new Set(allVendors.map((item) => item.firmName)),
+      ].filter(Boolean);
+      const emails = [...new Set(allVendors.map((item) => item.email))].filter(
+        Boolean
+      );
+      const mobileNumbers = [
+        ...new Set(allVendors.map((item) => item.mobileNumber)),
+      ].filter(Boolean);
+
       setFilterValues({
         cities,
         states,
@@ -78,45 +88,60 @@ function Vendor({ userRoles }) {
     }
   }, [vendors, inactiveVendors]);
 
-// Apply filters whenever activeFilters, searchText, or vendor lists change
-useEffect(() => {
-  const applyFilters = (vendorList) => {
-    return vendorList.filter((vendor) => {
-      // Convert all values to strings for searching
-      const vendorIdStr = vendor.vendorId?.toString() || '';
-      const firmNameStr = vendor.firmName?.toString() || '';
-      const firstNameStr = vendor.firstname?.toString() || '';
-      const lastNameStr = vendor.lastname?.toString() || '';
-      const emailStr = vendor.email?.toString() || '';
-      const mobileNumberStr = vendor.mobileNumber?.toString() || '';
-      const cityStr = vendor.city?.toString() || '';
-      const stateStr = vendor.state?.toString() || '';
-      
-      // Text search across multiple fields
-      const searchMatch = searchText === '' || 
-        vendorIdStr.toLowerCase().includes(searchText.toLowerCase()) ||
-        firmNameStr.toLowerCase().includes(searchText.toLowerCase()) ||
-        firstNameStr.toLowerCase().includes(searchText.toLowerCase()) ||
-        lastNameStr.toLowerCase().includes(searchText.toLowerCase()) ||
-        emailStr.toLowerCase().includes(searchText.toLowerCase()) ||
-        mobileNumberStr.includes(searchText) || // No toLowerCase() for numbers
-        cityStr.toLowerCase().includes(searchText.toLowerCase()) ||
-        stateStr.toLowerCase().includes(searchText.toLowerCase());
-      
-      // Dropdown filters
-      const cityMatch = activeFilters.city === '' || vendor.city === activeFilters.city;
-      const stateMatch = activeFilters.state === '' || vendor.state === activeFilters.state;
-      const firmNameMatch = activeFilters.firmName === '' || vendor.firmName === activeFilters.firmName;
-      const emailMatch = activeFilters.email === '' || vendor.email === activeFilters.email;
-      const mobileNumberMatch = activeFilters.mobileNumber === '' || vendor.mobileNumber?.toString() === activeFilters.mobileNumber;
-      
-      return searchMatch && cityMatch && stateMatch && firmNameMatch && emailMatch && mobileNumberMatch;
-    });
-  };
-  
-  setFilteredVendors(applyFilters(vendors));
-  setFilteredInactiveVendors(applyFilters(inactiveVendors));
-}, [activeFilters, searchText, vendors, inactiveVendors]);
+  // Apply filters whenever activeFilters, searchText, or vendor lists change
+  useEffect(() => {
+    const applyFilters = (vendorList) => {
+      return vendorList.filter((vendor) => {
+        // Convert all values to strings for searching
+        const vendorIdStr = vendor.vendorId?.toString() || "";
+        const firmNameStr = vendor.firmName?.toString() || "";
+        const firstNameStr = vendor.firstname?.toString() || "";
+        const lastNameStr = vendor.lastname?.toString() || "";
+        const emailStr = vendor.email?.toString() || "";
+        const mobileNumberStr = vendor.mobileNumber?.toString() || "";
+        const cityStr = vendor.city?.toString() || "";
+        const stateStr = vendor.state?.toString() || "";
+
+        // Text search across multiple fields
+        const searchMatch =
+          searchText === "" ||
+          vendorIdStr.toLowerCase().includes(searchText.toLowerCase()) ||
+          firmNameStr.toLowerCase().includes(searchText.toLowerCase()) ||
+          firstNameStr.toLowerCase().includes(searchText.toLowerCase()) ||
+          lastNameStr.toLowerCase().includes(searchText.toLowerCase()) ||
+          emailStr.toLowerCase().includes(searchText.toLowerCase()) ||
+          mobileNumberStr.includes(searchText) || // No toLowerCase() for numbers
+          cityStr.toLowerCase().includes(searchText.toLowerCase()) ||
+          stateStr.toLowerCase().includes(searchText.toLowerCase());
+
+        // Dropdown filters
+        const cityMatch =
+          activeFilters.city === "" || vendor.city === activeFilters.city;
+        const stateMatch =
+          activeFilters.state === "" || vendor.state === activeFilters.state;
+        const firmNameMatch =
+          activeFilters.firmName === "" ||
+          vendor.firmName === activeFilters.firmName;
+        const emailMatch =
+          activeFilters.email === "" || vendor.email === activeFilters.email;
+        const mobileNumberMatch =
+          activeFilters.mobileNumber === "" ||
+          vendor.mobileNumber?.toString() === activeFilters.mobileNumber;
+
+        return (
+          searchMatch &&
+          cityMatch &&
+          stateMatch &&
+          firmNameMatch &&
+          emailMatch &&
+          mobileNumberMatch
+        );
+      });
+    };
+
+    setFilteredVendors(applyFilters(vendors));
+    setFilteredInactiveVendors(applyFilters(inactiveVendors));
+  }, [activeFilters, searchText, vendors, inactiveVendors]);
 
   const fetchVendors = async () => {
     try {
@@ -228,8 +253,10 @@ useEffect(() => {
   };
 
   const exportCSV = () => {
-    const dataToExport = showActiveVendors ? filteredVendors : filteredInactiveVendors;
-    
+    const dataToExport = showActiveVendors
+      ? filteredVendors
+      : filteredInactiveVendors;
+
     const csvData = dataToExport.map((vendor) => ({
       FirmName: vendor.firmName,
       "Vendor Id": vendor.vendorId,
@@ -268,7 +295,9 @@ useEffect(() => {
   };
 
   const exportExcel = () => {
-    const dataToExport = showActiveVendors ? filteredVendors : filteredInactiveVendors;
+    const dataToExport = showActiveVendors
+      ? filteredVendors
+      : filteredInactiveVendors;
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Vendors");
@@ -276,22 +305,27 @@ useEffect(() => {
   };
 
   const printData = () => {
-    const dataToExport = showActiveVendors ? filteredVendors : filteredInactiveVendors;
+    const dataToExport = showActiveVendors
+      ? filteredVendors
+      : filteredInactiveVendors;
     const printWindow = window.open("", "", "height=800,width=1200");
     printWindow.document.write("<html><head><title>Print</title>");
     printWindow.document.write(
       '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">'
     );
     printWindow.document.write("</head><body >");
-    
+
     // Create a temporary container for the filtered data
     const tempContainer = document.createElement("div");
-    tempContainer.innerHTML = document.getElementById("table-container").innerHTML;
-    
+    tempContainer.innerHTML =
+      document.getElementById("table-container").innerHTML;
+
     // Replace the table body with filtered data
     const tbody = tempContainer.querySelector("tbody");
     if (tbody) {
-      tbody.innerHTML = dataToExport.map((vendor) => `
+      tbody.innerHTML = dataToExport
+        .map(
+          (vendor) => `
         <tr key="${vendor.id}">
           <td class="text-center">
             <div class="dropdown">
@@ -299,7 +333,9 @@ useEffect(() => {
                 Actions
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
-                ${hasPermission("vendor.view") ? `
+                ${
+                  hasPermission("vendor.view")
+                    ? `
                   <li>
                     <button class="dropdown-item">
                       <div class="d-inline-block w-75 btn-view justify-content-center text-secondary">
@@ -308,8 +344,12 @@ useEffect(() => {
                       </div>
                     </button>
                   </li>
-                ` : ''}
-                ${hasPermission("vendor.edit") ? `
+                `
+                    : ""
+                }
+                ${
+                  hasPermission("vendor.edit")
+                    ? `
                   <li>
                     <button class="dropdown-item">
                       <div class="d-inline-block w-75 btn-edit justify-content-center text-secondary">
@@ -318,38 +358,82 @@ useEffect(() => {
                       </div>
                     </button>
                   </li>
-                ` : ''}
-                ${hasPermission("vendor.delete") ? `
+                `
+                    : ""
+                }
+                ${
+                  hasPermission("vendor.delete")
+                    ? `
                   <li>
-                    <button class="dropdown-item ${vendor.isActive ? 'text-danger' : 'text-success'}">
-                      <div class="d-inline-block w-75 btn-delete justify-content-center ${vendor.isActive ? 'text-danger' : 'text-success'}">
-                        <i class="fa ${vendor.isActive ? 'fa-trash' : 'fa-check-circle'} me-3"></i>
-                        <span>${vendor.isActive ? 'Deactivate' : 'Activate'}</span>
+                    <button class="dropdown-item ${
+                      vendor.isActive ? "text-danger" : "text-success"
+                    }">
+                      <div class="d-inline-block w-75 btn-delete justify-content-center ${
+                        vendor.isActive ? "text-danger" : "text-success"
+                      }">
+                        <i class="fa ${
+                          vendor.isActive ? "fa-trash" : "fa-check-circle"
+                        } me-3"></i>
+                        <span>${
+                          vendor.isActive ? "Deactivate" : "Activate"
+                        }</span>
                       </div>
                     </button>
                   </li>
-                ` : ''}
+                `
+                    : ""
+                }
               </ul>
             </div>
           </td>
-          ${columnsVisibility.vendorId ? `<td>${vendor.vendorId || ''}</td>` : ''}
-          ${columnsVisibility.firmName ? `<td>${vendor.firmName || ''}</td>` : ''}
-          ${columnsVisibility.name ? `<td>${vendor.firstname || ''} ${vendor.lastname || ''}</td>` : ''}
-          ${columnsVisibility.email ? `<td>${vendor.email || ''}</td>` : ''}
-          ${columnsVisibility.mobileNumber ? `<td>${vendor.mobileNumber || ''}</td>` : ''}
-          ${columnsVisibility.taxNumber ? `<td>${vendor.taxOrGstNumber || ''}</td>` : ''}
-          ${columnsVisibility.city ? `<td>${vendor.city || ''}</td>` : ''}
-          ${columnsVisibility.state ? `<td>${vendor.state || ''}</td>` : ''}
-          ${columnsVisibility.zipCode ? `<td>${vendor.zipCode || ''}</td>` : ''}
-          ${columnsVisibility.isActive ? `
+          ${
+            columnsVisibility.vendorId
+              ? `<td>${vendor.vendorId || ""}</td>`
+              : ""
+          }
+          ${
+            columnsVisibility.firmName
+              ? `<td>${vendor.firmName || ""}</td>`
+              : ""
+          }
+          ${
+            columnsVisibility.name
+              ? `<td>${vendor.firstname || ""} ${vendor.lastname || ""}</td>`
+              : ""
+          }
+          ${columnsVisibility.email ? `<td>${vendor.email || ""}</td>` : ""}
+          ${
+            columnsVisibility.mobileNumber
+              ? `<td>${vendor.mobileNumber || ""}</td>`
+              : ""
+          }
+          ${
+            columnsVisibility.taxNumber
+              ? `<td>${vendor.taxOrGstNumber || ""}</td>`
+              : ""
+          }
+          ${columnsVisibility.city ? `<td>${vendor.city || ""}</td>` : ""}
+          ${columnsVisibility.state ? `<td>${vendor.state || ""}</td>` : ""}
+          ${columnsVisibility.zipCode ? `<td>${vendor.zipCode || ""}</td>` : ""}
+          ${
+            columnsVisibility.isActive
+              ? `
             <td class="text-center">
-              <input type="checkbox" checked="${vendor.isActive}" style="cursor: default; accent-color: ${vendor.isActive ? '#78B833' : 'red'}; width: 20px; height: 20px;" />
+              <input type="checkbox" checked="${
+                vendor.isActive
+              }" style="cursor: default; accent-color: ${
+                  vendor.isActive ? "#78B833" : "red"
+                }; width: 20px; height: 20px;" />
             </td>
-          ` : ''}
+          `
+              : ""
+          }
         </tr>
-      `).join('');
+      `
+        )
+        .join("");
     }
-    
+
     printWindow.document.write(tempContainer.innerHTML);
     printWindow.document.write("</body></html>");
     printWindow.document.close();
@@ -358,7 +442,9 @@ useEffect(() => {
   };
 
   const exportPDF = () => {
-    const dataToExport = showActiveVendors ? filteredVendors : filteredInactiveVendors;
+    const dataToExport = showActiveVendors
+      ? filteredVendors
+      : filteredInactiveVendors;
     const doc = new jsPDF();
     doc.autoTable({
       head: [
@@ -478,7 +564,7 @@ useEffect(() => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="row py-2 g-2">
                       {/* City Dropdown */}
                       <div className="col-md-3">
@@ -588,7 +674,10 @@ useEffect(() => {
                             e.stopPropagation();
                             resetFilters();
                           }}
-                          disabled={!Object.values(activeFilters).some(Boolean) && searchText === ""}
+                          disabled={
+                            !Object.values(activeFilters).some(Boolean) &&
+                            searchText === ""
+                          }
                         >
                           <i className="fa fa-times me-1"></i> Reset All Filters
                         </button>
@@ -612,7 +701,7 @@ useEffect(() => {
                   </button>
                   <button
                     className={`btn ${
-                      !showActiveVendors ? "btn-primary" : "btn-outline-primary"
+                      !showActiveVendors ? "btn-danger" : "btn-outline-danger"
                     }`}
                     onClick={() => setShowActiveVendors(false)}
                   >

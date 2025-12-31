@@ -1202,7 +1202,7 @@ function ListProducts({ userRoles }) {
                                             : "N/A"}
                                         </td>
                                         <td>
-                                          {variation.variationValue || "N/A"}
+                                          {variation.variationValue || "-"}
                                         </td>
                                       </tr>
                                     )

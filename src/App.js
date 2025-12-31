@@ -108,6 +108,8 @@ import AccountBook from "./Pages/Payment/AccountBook";
 import PurchaseAndSale from "./Pages/Report/PurchaseAndSale";
 import TaxRate from "./Pages/Setting/TaxRate";
 import Test from "./Pages/Setting/Test";
+import BusinessLocations from "./Pages/Setting/BusinessLocations";
+import BusinessCategory from "./Pages/Setting/BusinessCategory";
 import TaxReport from "./Pages/Report/TaxReport";
 import CustomersAndSuppliers from "./Pages/Report/CustomersAndSuppliers";
 import StockReport from "./Pages/Report/StockReport";
@@ -634,6 +636,14 @@ const App = () => {
                   <Route path="/TaxReport" element={<TaxReport />} />
                   <Route path="/TaxRate" element={<TaxRate />} />
                   <Route path="/Test" element={<Test />} />
+                  <Route
+                    path="/BusinessLocations"
+                    element={<BusinessLocations />}
+                  />
+                  <Route
+                    path="/BusinessCategory"
+                    element={<BusinessCategory />}
+                  />
                   <Route
                     path="/BusinessDetails"
                     element={<BusinessDetails />}

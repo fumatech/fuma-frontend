@@ -90,6 +90,36 @@ const AddUser = () => {
   const [maxSalesDiscountPercent, setMaxSalesDiscountPercent] = useState("");
   const [allowSelectedContacts, setAllowSelectedContacts] = useState(false);
   const [selectedContacts, setSelectedContacts] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [selectedLocationIds, setSelectedLocationIds] = useState([]);
+  const [allLocationsChecked, setAllLocationsChecked] = useState(false);
+
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
+      .then((res) => res.json())
+      .then((data) => setLocations(data))
+      .catch((err) => console.error(err));
+  }, []);
+  const handleAllLocationsChange = (e) => {
+    const checked = e.target.checked;
+    setAllLocationsChecked(checked);
+
+    if (checked) {
+      // select ALL ids
+      const allIds = locations.map((loc) => loc.id);
+      setSelectedLocationIds(allIds);
+    } else {
+      // clear all
+      setSelectedLocationIds([]);
+    }
+  };
+  const handleLocationChange = (id) => {
+    if (allLocationsChecked) return; // disable manual selection
+
+    setSelectedLocationIds((prev) =>
+      prev.includes(id) ? prev.filter((lid) => lid !== id) : [...prev, id]
+    );
+  };
 
   const navigate = useNavigate();
 
@@ -383,6 +413,7 @@ const AddUser = () => {
       password,
       allowLogin,
       enableServiceStaffPin,
+      locationIds: selectedLocationIds,
       staffPin,
       roles: [
         {
@@ -719,45 +750,47 @@ const AddUser = () => {
 
                             <div className="col-12 col-md-9">
                               <div className="row">
-                                <div className="col-12 mb-2">
-                                  <div className="form-check">
-                                    <input
-                                      className="form-check-input"
-                                      name="access_all_locations"
-                                      type="checkbox"
-                                      value="access_all_locations"
-                                      id="all_locations"
-                                    />
-                                    <label
-                                      className="form-check-label"
-                                      htmlFor="all_locations"
-                                    >
-                                      All Locations
-                                    </label>
-                                    <i
-                                      className="fas fa-info-circle text-info ms-2"
-                                      title="If All Locations selected this role will have permission to access all business locations"
-                                    ></i>
-                                  </div>
+                                <div className="form-check mb-2">
+                                  <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id="all_locations"
+                                    checked={allLocationsChecked}
+                                    onChange={handleAllLocationsChange}
+                                  />
+                                  <label
+                                    className="form-check-label"
+                                    htmlFor="all_locations"
+                                  >
+                                    All Locations
+                                  </label>
                                 </div>
 
-                                <div className="col-12">
-                                  <div className="form-check">
+                                {locations.map((location) => (
+                                  <div className="form-check" key={location.id}>
                                     <input
                                       className="form-check-input"
-                                      name="location_permissions[]"
                                       type="checkbox"
-                                      value="location.1"
-                                      id="location_mm"
+                                      id={`location_${location.id}`}
+                                      checked={
+                                        allLocationsChecked ||
+                                        selectedLocationIds.includes(
+                                          location.id
+                                        )
+                                      }
+                                      disabled={allLocationsChecked}
+                                      onChange={() =>
+                                        handleLocationChange(location.id)
+                                      }
                                     />
                                     <label
                                       className="form-check-label"
-                                      htmlFor="location_mm"
+                                      htmlFor={`location_${location.id}`}
                                     >
-                                      Mm
+                                      {location.name}
                                     </label>
                                   </div>
-                                </div>
+                                ))}
                               </div>
                             </div>
                           </div>

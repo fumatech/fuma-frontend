@@ -1,9 +1,12 @@
 import React from "react";
 import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+
 import axios from "axios";
 import Select from "react-select";
 
 function AddExpense() {
+  const navigate = useNavigate();
   const [userName, setUserName] = useState("");
   const [locationId, setLocationId] = useState("");
   const [expenses, setExpenses] = useState([]);
@@ -27,6 +30,7 @@ function AddExpense() {
   const [recurIntervalType, setRecurIntervalType] = useState("days");
   const [recurRepetitions, setRecurRepetitions] = useState("");
   const [repeatOn, setRepeatOn] = useState("");
+  const [locations, setLocations] = useState([]);
 
   const [amount, setAmount] = useState("");
   const [paidOn, setPaidOn] = useState("");
@@ -59,6 +63,12 @@ function AddExpense() {
     resetFields(e.target.value);
   };
 
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
+      .then((res) => res.json())
+      .then((data) => setLocations(data))
+      .catch((err) => console.error(err));
+  }, []);
   const resetFields = (method) => {
     if (method !== "card") {
       setCardDetails({
@@ -278,6 +288,7 @@ function AddExpense() {
       );
 
       alert("Expenses Saved Successfully!");
+      navigate("/ListExpense"); // Redirect to expenses list page
     } catch (error) {
       console.error("Error:", error);
     }
@@ -314,9 +325,15 @@ function AddExpense() {
                           onChange={(e) => setLocationId(e.target.value)}
                         >
                           <option value="">Please Select</option>
-                          <option value="Fuma">Fuma</option>
+
+                          {locations.map((loc) => (
+                            <option key={loc.id} value={loc.name}>
+                              {loc.name}
+                            </option>
+                          ))}
                         </select>
                       </div>
+
                       {/* Expense Category */}
                       <div className="col-md-4">
                         <label htmlFor="expense_category_id">

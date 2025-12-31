@@ -35,6 +35,7 @@ function ViewExpense() {
   const [recurIntervalType, setRecurIntervalType] = useState("days");
   const [recurRepetitions, setRecurRepetitions] = useState("");
   const [repeatOn, setRepeatOn] = useState("");
+  const [locations, setLocations] = useState([]);
 
   const [amount, setAmount] = useState("");
   const [paidOn, setPaidOn] = useState("");
@@ -62,6 +63,12 @@ function ViewExpense() {
   const [customTransactionNo, setCustomTransactionNo] = useState("");
   const [transactionId, setTransactionId] = useState("");
 
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
+      .then((res) => res.json())
+      .then((data) => setLocations(data))
+      .catch((err) => console.error(err));
+  }, []);
   // Fetch expense data by ID on component mount
   useEffect(() => {
     if (id) {
@@ -126,11 +133,6 @@ function ViewExpense() {
         setChequeNumber(transaction.chequeNumber || "");
         setBankAccountNumber(transaction.bankAccountNumber || "");
         setCustomTransactionNo(transaction.customTransactionNo || "");
-      }
-
-      // After setting category ID, trigger subcategory filter
-      if (expenseData.expenseCategory) {
-        handleCategoryChange(expenseData.expenseCategory.toString());
       }
 
       setLoading(false);
@@ -276,17 +278,20 @@ function ViewExpense() {
     }
   };
 
+  useEffect(() => {
+    if (expenseCategoryId && expenses.length > 0) {
+      const selected = expenses.find((e) => e.id == expenseCategoryId);
+
+      if (selected && selected.subExpenses) {
+        setFilteredSubExpenses(selected.subExpenses);
+      } else {
+        setFilteredSubExpenses([]);
+      }
+    }
+  }, [expenseCategoryId, expenses]);
   const handleCategoryChange = (id) => {
     setExpenseCategoryId(id);
-    setExpenseSubCategoryId("");
-
-    const selected = expenses.find((e) => e.id == id);
-
-    if (selected && selected.subExpenses) {
-      setFilteredSubExpenses(selected.subExpenses);
-    } else {
-      setFilteredSubExpenses([]);
-    }
+    setExpenseSubCategoryId(""); // reset only on manual change
   };
 
   useEffect(() => {
@@ -444,12 +449,16 @@ function ViewExpense() {
                           required
                           id="location_id"
                           value={locationId}
-                          onChange={(e) => setLocationId(e.target.value)}
                           disabled
+                          onChange={(e) => setLocationId(e.target.value)}
                         >
                           <option value="">Please Select</option>
-                          <option value="Fuma">Fuma</option>
-                          <option value="Other">Other</option>
+
+                          {locations.map((loc) => (
+                            <option key={loc.id} value={loc.name}>
+                              {loc.name}
+                            </option>
+                          ))}
                         </select>
                       </div>
                       {/* Expense Category */}

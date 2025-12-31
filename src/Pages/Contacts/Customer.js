@@ -704,9 +704,7 @@ function Customer({ userRoles }) {
                   </button>
                   <button
                     className={`btn ${
-                      !showActiveCustomers
-                        ? "btn-primary"
-                        : "btn-outline-primary"
+                      !showActiveCustomers ? "btn-danger" : "btn-outline-danger"
                     }`}
                     onClick={() => setShowActiveCustomers(false)}
                   >

@@ -7,6 +7,7 @@ import Select from "react-select";
 function EditExpense() {
   const { id } = useParams(); // Get expense ID from URL
   const navigate = useNavigate();
+  const [locations, setLocations] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,6 +70,12 @@ function EditExpense() {
     }
   }, [id]);
 
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
+      .then((res) => res.json())
+      .then((data) => setLocations(data))
+      .catch((err) => console.error(err));
+  }, []);
   const fetchExpenseData = async () => {
     try {
       setLoading(true);
@@ -126,11 +133,6 @@ function EditExpense() {
         setChequeNumber(transaction.chequeNumber || "");
         setBankAccountNumber(transaction.bankAccountNumber || "");
         setCustomTransactionNo(transaction.customTransactionNo || "");
-      }
-
-      // After setting category ID, trigger subcategory filter
-      if (expenseData.expenseCategory) {
-        handleCategoryChange(expenseData.expenseCategory.toString());
       }
 
       setLoading(false);
@@ -278,16 +280,20 @@ function EditExpense() {
 
   const handleCategoryChange = (id) => {
     setExpenseCategoryId(id);
-    setExpenseSubCategoryId("");
-
-    const selected = expenses.find((e) => e.id == id);
-
-    if (selected && selected.subExpenses) {
-      setFilteredSubExpenses(selected.subExpenses);
-    } else {
-      setFilteredSubExpenses([]);
-    }
+    setExpenseSubCategoryId(""); // reset only on manual change
   };
+
+  useEffect(() => {
+    if (expenseCategoryId && expenses.length > 0) {
+      const selected = expenses.find((e) => e.id == expenseCategoryId);
+
+      if (selected && selected.subExpenses) {
+        setFilteredSubExpenses(selected.subExpenses);
+      } else {
+        setFilteredSubExpenses([]);
+      }
+    }
+  }, [expenseCategoryId, expenses]);
 
   useEffect(() => {
     const dueAmount = parseFloat(amount) || 0;
@@ -412,8 +418,12 @@ function EditExpense() {
                           onChange={(e) => setLocationId(e.target.value)}
                         >
                           <option value="">Please Select</option>
-                          <option value="Fuma">Fuma</option>
-                          <option value="Other">Other</option>
+
+                          {locations.map((loc) => (
+                            <option key={loc.id} value={loc.name}>
+                              {loc.name}
+                            </option>
+                          ))}
                         </select>
                       </div>
                       {/* Expense Category */}

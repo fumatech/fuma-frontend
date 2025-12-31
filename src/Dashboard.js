@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import "./Pages/Dashboard.css";
 const Dashboard = () => {
   const [userEmail, setUserEmail] = useState(null);
   const [userCount, setUserCount] = useState(0);
@@ -41,7 +41,10 @@ const Dashboard = () => {
             <div className="row mb-2">
               <div className="col-sm-6">
                 <h2 className="m-0  all-heading fs-1 ">Dashboard</h2>
-                <label className="sub-heading"> Welcome, {userEmail} </label>
+                <label className="sub-heading">
+                  {" "}
+                  Welcome, <b>{userEmail}</b>
+                </label>
               </div>
               {/* /.col */}
               <div className="col-sm-6">
@@ -58,64 +61,86 @@ const Dashboard = () => {
         <section className="content">
           <div className="container-fluid">
             {/* Small boxes (Stat box) */}
-            <div className="row text-light">
-              <div className="col-lg-4 col-6">
-                <div className="small-box shadow blur-card">
-                  <div className="inner">
-                    <h3>{userCount}</h3>
-                    <p>User Registrations</p>
+            <div className="row">
+              {/* Users */}
+              <div className="col-lg-4 col-md-6 mb-4">
+                <div className="dashboard-card users">
+                  <div className="card-content">
+                    <div>
+                      <h3>{userCount}</h3>
+                      <p>User Registrations</p>
+                    </div>
+                    <div
+                      className="card-icon"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => navigate("/Users")}
+                    >
+                      <i className="fas fa-user-plus" />
+                    </div>
                   </div>
-                  <div className="icon">
-                    <i className="ion dashbord-card-logo ion-person-add" />
-                  </div>
+
                   <div
-                    className="small-box-footer"
-                    style={{ cursor: "pointer" }}
+                    className="card-footer"
                     onClick={() => navigate("/Users")}
                   >
-                    More info <i className="fas fa-arrow-circle-right" />
+                    More info <i className="fas fa-arrow-right"></i>
                   </div>
                 </div>
               </div>
 
-              <div className="col-lg-4 col-6">
-                <div className="small-box shadow blur-card">
-                  <div className="inner">
-                    <h3>{vendorCount}</h3>
-                    <p>Vendor Registrations</p>
+              {/* Vendors */}
+              <div className="col-lg-4 col-md-6 mb-4">
+                <div className="dashboard-card vendors">
+                  <div className="card-content">
+                    <div>
+                      <h3>{vendorCount}</h3>
+                      <p>Vendor Registrations</p>
+                    </div>
+                    <div
+                      className="card-icon"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => navigate("/Vendor")}
+                    >
+                      <i className="fas fa-store"></i>
+                    </div>
                   </div>
-                  <div className="icon">
-                    <i className="ion dashbord-card-logo ion-person-add" />
-                  </div>
+
                   <div
-                    className="small-box-footer"
-                    style={{ cursor: "pointer" }}
+                    className="card-footer"
                     onClick={() => navigate("/Vendor")}
                   >
-                    More info <i className="fas fa-arrow-circle-right" />
+                    More info <i className="fas fa-arrow-right"></i>
                   </div>
                 </div>
               </div>
 
-              <div className="col-lg-4 col-6">
-                <div className="small-box shadow blur-card">
-                  <div className="inner">
-                    <h3>{franchiseCount}</h3>
-                    <p>Franchise Registrations</p>
+              {/* Franchise */}
+              <div className="col-lg-4 col-md-6 mb-4">
+                <div className="dashboard-card franchise">
+                  <div className="card-content">
+                    <div>
+                      <h3>{franchiseCount}</h3>
+                      <p>Franchise Registrations</p>
+                    </div>
+                    <div
+                      className="card-icon"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => navigate("/Customer")}
+                    >
+                      <i className="fas fa-building"></i>
+                    </div>
                   </div>
-                  <div className="icon">
-                    <i className="ion dashbord-card-logo ion-person-add" />
-                  </div>
+
                   <div
-                    className="small-box-footer"
-                    style={{ cursor: "pointer" }}
+                    className="card-footer"
                     onClick={() => navigate("/Customer")}
                   >
-                    More info <i className="fas fa-arrow-circle-right" />
+                    More info <i className="fas fa-arrow-right"></i>
                   </div>
                 </div>
               </div>
             </div>
+
             {/* /.row */}
             {/* Main row */}
             <div className="row">
