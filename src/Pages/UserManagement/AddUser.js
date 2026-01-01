@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Select from "react-select";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -14,9 +14,12 @@ import "../../assets/plugins/bs-stepper/css/bs-stepper.min.css";
 import "../../assets/plugins/dropzone/min/dropzone.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../AddUser.css";
+import { toast } from "react-toastify";
 
 const AddUser = () => {
   // Basic Information
+  const emailCheckTimeoutRef = useRef(null);
+  const emailToastShownRef = useRef(false);
   const [prefix, setPrefix] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -27,10 +30,11 @@ const AddUser = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [selectedRoleId, setSelectedRoleId] = useState("");
   const [roles, setRoles] = useState([]);
-  const [emailExists, setEmailExists] = useState(false);
   const [allowLogin, setAllowLogin] = useState(true);
   const [enableServiceStaffPin, setEnableServiceStaffPin] = useState(false);
   const [staffPin, setStaffPin] = useState("");
+  const [emailExists, setEmailExists] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
 
   // Personal Information
   const [language, setLanguage] = useState("");
@@ -220,9 +224,37 @@ const AddUser = () => {
         break;
       case "email":
         setEmail(value);
-        const emailExists = await checkEmailExists(value);
-        setEmailExists(emailExists);
+        setEmailExists(false);
+
+        // clear previous debounce
+        if (emailCheckTimeoutRef.current) {
+          clearTimeout(emailCheckTimeoutRef.current);
+        }
+
+        emailCheckTimeoutRef.current = setTimeout(async () => {
+          if (!value) return;
+
+          setCheckingEmail(true);
+
+          const exists = await checkEmailExists(value);
+          setEmailExists(exists);
+
+          // 🔔 show toast only once
+          if (exists && !emailToastShownRef.current) {
+            toast.error("Email already exists");
+            emailToastShownRef.current = true;
+          }
+
+          // reset toast flag when email is valid
+          if (!exists) {
+            emailToastShownRef.current = false;
+          }
+
+          setCheckingEmail(false);
+        }, 600);
+
         break;
+
       case "username":
         setUsername(value);
         break;
@@ -394,12 +426,12 @@ const AddUser = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      toast.warning("Passwords do not match!");
       return;
     }
 
     if (emailExists) {
-      alert("Email already exists. Please use a different email.");
+      toast.warning("Email already exists. Please use a different email.");
       return;
     }
 
@@ -480,7 +512,7 @@ const AddUser = () => {
         return response.json();
       })
       .then(() => {
-        alert("User saved successfully!");
+        toast.success("User saved successfully!");
         navigate("/users");
       })
       .catch((error) => console.error("Error saving user:", error));
@@ -574,11 +606,11 @@ const AddUser = () => {
                             placeholder="Enter Email"
                             required
                           />
-                          {emailExists && (
+                          {/* {emailExists && (
                             <small className="form-text text-danger">
                               Email already exists.
                             </small>
-                          )}
+                          )} */}
                         </div>
                       </div>
                       <div className="col-md-4">

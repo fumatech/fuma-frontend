@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import queryString from "query-string";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../assets/dist/css/adminlte.min.css";
+import { toast } from "react-toastify";
 
 // Component to render each permission group
 const PermissionGroup = ({
@@ -251,12 +252,12 @@ const EditRoles = () => {
         return response.json();
       })
       .then(() => {
-        alert("Role updated successfully!");
+        toast.success("Role updated successfully!");
         navigate("/roles");
       })
       .catch((error) => {
-        console.error("Error updating role:", error);
-        alert("Failed to update role.");
+        // console.error("Error updating role:", error);
+        toast.error("Failed to update role.");
       });
   };
 

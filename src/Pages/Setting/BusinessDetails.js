@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function BusinessDetails() {
   const navigate = useNavigate();
@@ -70,11 +71,11 @@ function BusinessDetails() {
         throw new Error("Failed to update business details");
       }
 
-      alert("Business details updated successfully!");
+      toast.success("Business details updated successfully!");
       navigate("/Dashboard");
     } catch (error) {
-      console.error("Error updating business details:", error);
-      alert("Failed to update business details. Please try again.");
+      //console.error("Error updating business details:", error);
+      toast.error("Failed to update business details. Please try again.");
     }
   };
 

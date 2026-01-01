@@ -27,7 +27,8 @@ function EditList() {
   const [unit, setUnit] = useState("");
   const [brand, setBrand] = useState("");
   const [category, setCategory] = useState("");
-  const [businessLocation, setBusinessLocation] = useState("");
+  const [businessLocations, setBusinessLocations] = useState([]);
+  const [businessLocation, setBusinessLocation] = useState(null);
   const [description, setDescription] = useState("");
   const [applicableTax, setApplicableTax] = useState("");
   const [sellingPriceTaxType, setSellingPriceTaxType] = useState("");
@@ -52,6 +53,28 @@ function EditList() {
   const [variations, setVariations] = useState([]);
   const [existingImage, setExistingImage] = useState(null); // Store existing image for edit
   const [productVariationId, setProductVariationId] = useState();
+  useEffect(() => {
+    axios
+      .get(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
+      .then((res) => {
+        // Remove duplicate business names
+        const uniqueNamesMap = new Map();
+
+        res.data.forEach((item) => {
+          if (!uniqueNamesMap.has(item.name)) {
+            uniqueNamesMap.set(item.name, {
+              value: item.name,
+              label: item.name,
+            });
+          }
+        });
+
+        setBusinessLocations(Array.from(uniqueNamesMap.values()));
+      })
+      .catch((err) => {
+        console.error("Error fetching business locations", err);
+      });
+  }, []);
   useEffect(() => {
     fetchTaxes(); // Load taxes first
   }, []);
@@ -85,7 +108,11 @@ function EditList() {
         setUnit(product.unit);
         setBrand(product.brand);
         setCategory(product.category);
-        setBusinessLocation(product.businessLocation);
+        const selectedLocation = businessLocations.find(
+          (loc) => loc.value === product.businessLocation
+        );
+
+        setBusinessLocation(selectedLocation || null);
         setDescription(product.description);
 
         const productTax = taxes.find((t) => t.id == product.applicableTax);
@@ -207,7 +234,7 @@ function EditList() {
     };
 
     fetchProductData();
-  }, [productId]);
+  }, [productId, businessLocations]);
 
   const calculateIncTaxFromExc = (excTaxPrice, taxId = applicableTax) => {
     const tax = taxes.find((t) => t.id == taxId);
@@ -806,7 +833,7 @@ function EditList() {
       brand,
       status: 1,
       category,
-      businessLocation,
+      businessLocation: businessLocation?.value || "",
       description,
       applicableTax,
       sellingPriceTaxType,
@@ -1147,21 +1174,20 @@ function EditList() {
                       {/* Business Location */}
                       <div className="col-md-4">
                         <div className="form-group">
-                          <label htmlFor="businessLocation">
-                            Business Location
+                          <label>
+                            Business Location{" "}
                             <span className="text-danger">*</span>
                           </label>
-                          <input
-                            type="text"
-                            className="form-control rounded"
-                            id="businessLocation"
-                            name="businessLocation"
-                            placeholder="Enter here.."
-                            required
+
+                          <Select
+                            options={businessLocations}
                             value={businessLocation}
-                            onChange={(e) =>
-                              setBusinessLocation(e.target.value)
+                            onChange={(selected) =>
+                              setBusinessLocation(selected)
                             }
+                            placeholder="Select business location..."
+                            isSearchable
+                            isClearable
                           />
                         </div>
                       </div>

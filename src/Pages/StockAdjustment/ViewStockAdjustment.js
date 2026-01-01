@@ -273,20 +273,16 @@ function ViewStockAdjustment() {
                         <label htmlFor="businessLocation">
                           Business Location:*
                         </label>
-                        <select
+                        <input
+                          type="text"
+                          className="form-control"
                           id="businessLocation"
                           name="businessLocation"
-                          className="form-control"
                           required
-                          readOnly
                           value={businessLocation}
-                          onChange={handleBusinessLocationChange}
-                        >
-                          <option value="" disabled>
-                            Please Select
-                          </option>
-                          <option value="FUMA">FUMA</option>
-                        </select>
+                          readOnly
+                          onChange={handleReferenceNumberChange}
+                        />
                       </div>{" "}
                       <div className="form-group col-md-3">
                         <label htmlFor="referenceNumber">Reference No:</label>

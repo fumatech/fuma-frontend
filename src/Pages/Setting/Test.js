@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function Test() {
   const [dbName, setDbName] = useState("");
@@ -23,12 +24,12 @@ function Test() {
         requestData
       );
 
-      alert("Database created successfully");
+      toast.success("Database created successfully");
       setDbName("");
       setDbUsername("");
       setDbPassword("");
     } catch (error) {
-      alert("Failed to create database");
+      toast.error("Failed to create database");
     }
   };
 

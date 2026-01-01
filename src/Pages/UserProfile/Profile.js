@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Profile = () => {
   const [userData, setUserData] = useState({
@@ -157,10 +158,10 @@ const Profile = () => {
 
       if (response.ok) {
         setMessage({ text: "Profile updated successfully", type: "success" });
-        alert("Profile Updated Successfully...!!!");
+        toast.success("Profile Updated Successfully...!!!");
         navigate("/Profile");
       } else {
-        throw new Error("Failed to update profile");
+        toast.error("Failed to update profile");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -175,7 +176,7 @@ const Profile = () => {
     e.preventDefault();
 
     if (passwordData.new_password !== passwordData.confirm_password) {
-      alert("New passwords don't match");
+      toast.warning("New passwords don't match");
       return;
     }
 
@@ -196,7 +197,7 @@ const Profile = () => {
       );
 
       if (!authResponse.ok) {
-        alert("Current password is incorrect");
+        toast.warning("Current password is incorrect");
         return;
       }
 
@@ -216,18 +217,18 @@ const Profile = () => {
       );
 
       if (updateResponse.ok) {
-        alert("Password changed successfully");
+        toast.success("Password changed successfully");
         setPasswordData({
           current_password: "",
           new_password: "",
           confirm_password: "",
         });
       } else {
-        alert("Failed to update password");
+        toast.error("Failed to update password");
       }
     } catch (error) {
-      console.error("Error changing password:", error);
-      alert("Error occurred while changing password");
+      //console.error("Error changing password:", error);
+      toast.error("Error occurred while changing password");
     }
   };
 

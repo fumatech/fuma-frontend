@@ -168,7 +168,8 @@ import FollowUps from "./Pages/CRM/FollowUps";
 import BusinessDetails from "./Pages/Setting/BusinessDetails";
 import PrintLabel from "./Pages/Products/PrintLabel";
 import ProductLabel from "./Pages/Products/ProductLabel";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const App = () => {
   const [userRoles, setUserRoles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -242,6 +243,15 @@ const App = () => {
 
   return (
     <BrowserRouter basename="/fumamain">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
       <div className="app-background">
         <Routes>
           <Route

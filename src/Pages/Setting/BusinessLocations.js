@@ -10,6 +10,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { Collapse } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 const BusinessLocations = () => {
   const [businessLocations, setBusinessLocations] = useState([]);
@@ -300,7 +301,7 @@ const BusinessLocations = () => {
       .then(() => {
         fetchBusinessLocations();
         closeModal();
-        alert(
+        toast.success(
           `Business location ${
             modalType === "edit" ? "updated" : "added"
           } successfully!`
@@ -308,7 +309,7 @@ const BusinessLocations = () => {
       })
       .catch((error) => {
         console.error("Error saving business location:", error);
-        alert("Failed to save business location");
+        toast.error("Failed to save business location");
       });
   };
 
@@ -423,9 +424,9 @@ const BusinessLocations = () => {
         .then((response) => {
           if (response.ok) {
             fetchBusinessLocations();
-            alert("Business location deleted successfully!");
+            toast.success("Business location deleted successfully!");
           } else {
-            alert("Failed to delete business location.");
+            toast.error("Failed to delete business location.");
           }
         })
         .catch((error) =>

@@ -25,6 +25,7 @@ import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { toast } from "react-toastify";
 
 pdfmake.vfs = pdfFonts.vfs;
 
@@ -170,9 +171,9 @@ const Users = ({ userRoles }) => {
         .then((response) => {
           if (response.status === 204) {
             setUsers(users.filter((user) => user.id !== id));
-            alert("User deleted successfully!");
+            toast.success("User deleted successfully!");
           } else {
-            alert("Failed to delete user.");
+            toast.error("Failed to delete user.");
           }
         })
         .catch((error) => console.error("Error deleting user:", error));

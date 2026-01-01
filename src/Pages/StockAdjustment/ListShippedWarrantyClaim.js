@@ -46,13 +46,13 @@ const ListShippedWarrantyClaim = () => {
   const [filterValues, setFilterValues] = useState({
     locations: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
     location: "",
   });
-  
+
   const [filteredShippedClaims, setFilteredShippedClaims] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -97,8 +97,10 @@ const ListShippedWarrantyClaim = () => {
   // Extract filter values when ListStockAdjustment data changes
   useEffect(() => {
     if (ListStockAdjustment.length > 0) {
-      const locations = [...new Set(ListStockAdjustment.map(item => item.businessLocation))].filter(Boolean);
-      
+      const locations = [
+        ...new Set(ListStockAdjustment.map((item) => item.businessLocation)),
+      ].filter(Boolean);
+
       setFilterValues({
         locations,
       });
@@ -109,14 +111,14 @@ const ListShippedWarrantyClaim = () => {
   useEffect(() => {
     const filteredData = ListStockAdjustment.filter((claim) => {
       const claimDate = new Date(claim.date);
-      
+
       // Date range filter
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = claimDate >= startDate && claimDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -126,17 +128,18 @@ const ListShippedWarrantyClaim = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = claimDate <= endDate;
       }
-      
+
       // Location filter
-      const locationMatch = activeFilters.location === "" || 
+      const locationMatch =
+        activeFilters.location === "" ||
         claim.businessLocation === activeFilters.location;
-      
+
       // Only show shipped claims (status 3)
       const shippedMatch = claim.status === 3;
-      
+
       return dateMatch && locationMatch && shippedMatch;
     });
-    
+
     setFilteredShippedClaims(filteredData);
   }, [activeFilters, ListStockAdjustment]);
 
@@ -219,8 +222,9 @@ const ListShippedWarrantyClaim = () => {
       "Total Units",
     ];
 
-    const body = filteredShippedClaims.slice(startIndex, endIndex).map(
-      (adjustment) => [
+    const body = filteredShippedClaims
+      .slice(startIndex, endIndex)
+      .map((adjustment) => [
         adjustment.date,
         adjustment.referenceNumber,
         adjustment.businessLocation,
@@ -228,8 +232,7 @@ const ListShippedWarrantyClaim = () => {
         adjustment.totalAmount,
         adjustment.reason,
         adjustment.totalUnits,
-      ]
-    );
+      ]);
 
     doc.text("Shipped Warranty Claims List", 14, 20);
     doc.setFontSize(12);
@@ -301,7 +304,8 @@ const ListShippedWarrantyClaim = () => {
               </tr>
             </thead>
             <tbody>
-              ${filteredShippedClaims.slice(startIndex, endIndex)
+              ${filteredShippedClaims
+                .slice(startIndex, endIndex)
                 .map(
                   (listStockAdjustment) => `
                     <tr>
@@ -320,11 +324,7 @@ const ListShippedWarrantyClaim = () => {
                           ? `<td>${listStockAdjustment.businessLocation}</td>`
                           : ""
                       }
-                      ${
-                        columnsVisibility.status
-                          ? `<td>Claimed</td>`
-                          : ""
-                      }
+                      ${columnsVisibility.status ? `<td>Claimed</td>` : ""}
                       ${
                         columnsVisibility.totalAmount
                           ? `<td>${listStockAdjustment.totalAmount}</td>`
@@ -521,7 +521,7 @@ const ListShippedWarrantyClaim = () => {
 
             <div className="card cardHover rounded-4 border-0">
               <div className="d-flex justify-content-end mb-3">
-                <Link to="/AddStockAdjustment" className="btn btn-add">
+                <Link to="/AddWarrantyClaim" className="btn btn-add">
                   <i className="fas fa-plus"></i> Add
                 </Link>
               </div>
@@ -628,8 +628,9 @@ const ListShippedWarrantyClaim = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredShippedClaims.slice(startIndex, endIndex).map(
-                        (listStockAdjustment) => (
+                      {filteredShippedClaims
+                        .slice(startIndex, endIndex)
+                        .map((listStockAdjustment) => (
                           <tr key={listStockAdjustment.id}>
                             {columnsVisibility.action && (
                               <td>
@@ -660,9 +661,7 @@ const ListShippedWarrantyClaim = () => {
                                 </button>
                               </td>
                             )}
-                            {columnsVisibility.status && (
-                              <td>Claimed</td>
-                            )}
+                            {columnsVisibility.status && <td>Claimed</td>}
 
                             {columnsVisibility.date && (
                               <td>{listStockAdjustment.date}</td>
@@ -685,8 +684,7 @@ const ListShippedWarrantyClaim = () => {
                               <td>{listStockAdjustment.totalUnits}</td>
                             )}
                           </tr>
-                        )
-                      )}
+                        ))}
                     </tbody>
                   </table>
                 </div>

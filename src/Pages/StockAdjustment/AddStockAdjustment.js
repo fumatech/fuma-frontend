@@ -13,6 +13,7 @@ function AddStockAdjustment() {
   const [adjustmentDate, setAdjustmentDate] = useState(new Date());
   const [adjustmentType, setAdjustmentType] = useState("");
   const [businessLocation, setBusinessLocation] = useState("");
+  const [businessLocations, setBusinessLocations] = useState([]);
   const [referenceNumber, setReferenceNumber] = useState("");
   const [locations, setLocations] = useState([]);
   const [productList, setProductList] = useState([]);
@@ -27,7 +28,24 @@ function AddStockAdjustment() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [totalUnits, setTotalUnits] = useState(0); // New state for total units
+  useEffect(() => {
+    const fetchBusinessLocations = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.REACT_APP_BASE_URL}/business-locations/getall`
+        );
 
+        // Optional: filter only active locations
+        const activeLocations = res.data.filter((loc) => loc.isActive === 1);
+
+        setBusinessLocations(activeLocations);
+      } catch (error) {
+        console.error("Error fetching business locations", error);
+      }
+    };
+
+    fetchBusinessLocations();
+  }, []);
   useEffect(() => {
     // Fetch stock adjustment data when component mounts
     const fetchStockAdjustmentData = async () => {
@@ -39,7 +57,7 @@ function AddStockAdjustment() {
         const data = response.data;
 
         setAdjustmentDate(data.date);
-        setBusinessLocation(data.businessLocation);
+        // setBusinessLocation(data.businessLocation);
         setTotalAmount(data.totalAmount);
         setTotalUnits(data.totalUnits);
         setReason(data.reason);
@@ -428,7 +446,12 @@ function AddStockAdjustment() {
                           <option value="" disabled>
                             Please Select
                           </option>
-                          <option value="FUMA">FUMA</option>
+
+                          {businessLocations.map((location) => (
+                            <option key={location.id} value={location.name}>
+                              {location.name}
+                            </option>
+                          ))}
                         </select>
                       </div>{" "}
                       <div className="form-group col-md-3">

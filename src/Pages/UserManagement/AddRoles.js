@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../assets/dist/css/adminlte.min.css";
+import { toast } from "react-toastify";
 
 // Component to render each permission group
 const PermissionGroup = ({
@@ -212,10 +213,11 @@ const AddRoles = () => {
   const handleSave = () => {
     if (!roleName) {
       setRoleNameError("Role name is required");
+      toast.warning("Role name is required");
       return;
     }
     if (roleExists) {
-      alert("Role name already exists!");
+      toast.warning("Role name already exists!");
       return;
     }
 
@@ -238,20 +240,20 @@ const AddRoles = () => {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Failed to save role");
+          toast.error("Failed to save role");
         }
         return response.json();
       })
       .then(() => {
-        alert("Role saved successfully!");
+        toast.success("Role saved successfully!");
         setRoleName("");
         setSelectedPermissions({});
         setSelectAll({});
         navigate("/roles");
       })
       .catch((error) => {
-        console.error("Error saving role:", error);
-        alert("Failed to save role.");
+        toast.error("Error saving role:", error);
+        toast.error("Failed to save role.");
       });
   };
 

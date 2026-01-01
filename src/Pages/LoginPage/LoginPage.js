@@ -5,6 +5,7 @@ import "admin-lte/dist/css/adminlte.min.css";
 import "./LoginPage.css";
 import axios from "axios";
 import Form from "react-bootstrap/Form";
+import { toast } from "react-toastify";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -31,10 +32,9 @@ const LoginPage = () => {
           email,
           password,
         },
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
+
       if (response.data === "Login successful") {
         if (rememberMe) {
           localStorage.setItem("userEmail", email);
@@ -43,12 +43,24 @@ const LoginPage = () => {
         }
 
         sessionStorage.setItem("userEmail", email);
-        window.location.href = "/fumamain/Dashboard";
+
+        // ✅ SUCCESS TOAST
+        toast.success("Login successful! Redirecting...");
+
+        // wait a bit so user can see toast
+        setTimeout(() => {
+          window.location.href = "/fumamain/Dashboard";
+        }, 1500);
       } else {
-        // console.log(response.data);
+        // ❌ INVALID CREDENTIALS
+        toast.error("Invalid email or password");
       }
     } catch (error) {
-      alert("Login failed. Please check your credentials and try again.");
+      // ❌ API / SERVER ERROR
+      toast.error(
+        error.response?.data?.message ||
+          "Login failed. Please check your credentials."
+      );
       console.error("Login error:", error);
     }
   };

@@ -28,7 +28,8 @@ function AddProducts() {
   const [unit, setUnit] = useState("");
   const [brand, setBrand] = useState("");
   const [category, setCategory] = useState("");
-  const [businessLocation, setBusinessLocation] = useState("");
+  const [businessLocations, setBusinessLocations] = useState([]);
+  const [businessLocation, setBusinessLocation] = useState(null);
   const [description, setDescription] = useState("");
   const [applicableTax, setApplicableTax] = useState("");
   const [sellingPriceTaxType, setSellingPriceTaxType] = useState("Exclusive");
@@ -60,6 +61,28 @@ function AddProducts() {
   // Brand modal state
   const [brandName, setBrandName] = useState("");
   const [shortDescription, setShortDescription] = useState("");
+  useEffect(() => {
+    axios
+      .get(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
+      .then((res) => {
+        // Remove duplicate business names
+        const uniqueNamesMap = new Map();
+
+        res.data.forEach((item) => {
+          if (!uniqueNamesMap.has(item.name)) {
+            uniqueNamesMap.set(item.name, {
+              value: item.name,
+              label: item.name,
+            });
+          }
+        });
+
+        setBusinessLocations(Array.from(uniqueNamesMap.values()));
+      })
+      .catch((err) => {
+        console.error("Error fetching business locations", err);
+      });
+  }, []);
 
   // Helper function to get tax rate by ID
   const getTaxRateById = (taxId) => {
@@ -572,7 +595,7 @@ function AddProducts() {
       manageStock,
       alertQuantity,
       category,
-      businessLocation,
+      businessLocation: businessLocation?.value || "",
       description,
       applicableTax,
       sellingPriceTaxType,
@@ -1018,21 +1041,20 @@ function AddProducts() {
                       {/* Business Location */}
                       <div className="col-md-4">
                         <div className="form-group">
-                          <label htmlFor="businessLocation">
+                          <label>
                             Business Location{" "}
                             <span className="text-danger">*</span>
                           </label>
-                          <input
-                            type="text"
-                            className="form-control rounded"
-                            id="businessLocation"
-                            name="businessLocation"
-                            placeholder="Enter here.."
-                            required
+
+                          <Select
+                            options={businessLocations}
                             value={businessLocation}
-                            onChange={(e) =>
-                              setBusinessLocation(e.target.value)
+                            onChange={(selected) =>
+                              setBusinessLocation(selected)
                             }
+                            placeholder="Select business location..."
+                            isSearchable
+                            isClearable
                           />
                         </div>
                       </div>

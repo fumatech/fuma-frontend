@@ -630,7 +630,7 @@ const ListWarrantyClaim = () => {
 
             <div className="card cardHover rounded-4 border-0">
               <div className="d-flex justify-content-end mb-3">
-                <Link to="/AddStockAdjustment" className="btn btn-add">
+                <Link to="/AddWarrantyClaim" className="btn btn-add">
                   <i className="fas fa-plus"></i> Add
                 </Link>
               </div>

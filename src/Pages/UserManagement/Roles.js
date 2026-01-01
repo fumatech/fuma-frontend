@@ -23,6 +23,7 @@ import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { toast } from "react-toastify";
 
 pdfmake.vfs = pdfFonts.vfs;
 
@@ -138,9 +139,9 @@ const Roles = ({ userRoles }) => {
         .then((response) => {
           if (response.status === 204) {
             setRoles(roles.filter((role) => role.id !== roleId));
-            alert("Role deleted successfully!");
+            toast.success("Role deleted successfully!");
           } else {
-            alert("Failed to delete role.");
+            toast.error("Failed to delete role.");
           }
         })
         .catch((error) => console.error("Error deleting role:", error));

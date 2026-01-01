@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Select from "react-select";
 import { useNavigate, useParams } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -14,11 +14,13 @@ import "../../assets/plugins/bs-stepper/css/bs-stepper.min.css";
 import "../../assets/plugins/dropzone/min/dropzone.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../AddUser.css";
+import { toast } from "react-toastify";
 
 const EditUser = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const emailCheckTimeoutRef = useRef(null);
+  const emailToastShownRef = useRef(false);
   // Basic Information
   const [prefix, setPrefix] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -484,12 +486,12 @@ const EditUser = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      toast.warning("Passwords do not match!");
       return;
     }
 
     if (emailExists) {
-      alert("Email already exists. Please use a different email.");
+      toast.warning("Email already exists. Please use a different email.");
       return;
     }
 
@@ -565,12 +567,12 @@ const EditUser = () => {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Failed to update user");
+          toast.error("Failed to update user");
         }
         return response.json();
       })
       .then(() => {
-        alert("User updated successfully!");
+        toast.success("User updated successfully!");
         navigate("/users");
       })
       .catch((error) => console.error("Error updating user:", error));
