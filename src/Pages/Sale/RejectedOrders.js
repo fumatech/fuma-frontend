@@ -12,6 +12,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const RejectedOrders = () => {
   const [rejectedOrders, setRejectedOrders] = useState([]);
@@ -43,20 +44,20 @@ const RejectedOrders = () => {
     franchiseNames: [],
     locations: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
     franchiseName: "",
     location: "",
   });
-  
+
   const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
     fetchAcceptedOrders();
   }, []);
-  
+
   const fetchAcceptedOrders = async () => {
     try {
       const response = await fetch(
@@ -95,9 +96,13 @@ const RejectedOrders = () => {
   // Extract filter values when rejectedOrders data changes
   useEffect(() => {
     if (rejectedOrders.length > 0) {
-      const franchiseNames = [...new Set(rejectedOrders.map(item => item.franchiseName))].filter(Boolean);
-      const locations = [...new Set(rejectedOrders.map(item => item.location))].filter(Boolean);
-      
+      const franchiseNames = [
+        ...new Set(rejectedOrders.map((item) => item.franchiseName)),
+      ].filter(Boolean);
+      const locations = [
+        ...new Set(rejectedOrders.map((item) => item.location)),
+      ].filter(Boolean);
+
       setFilterValues({
         franchiseNames,
         locations,
@@ -109,14 +114,14 @@ const RejectedOrders = () => {
   useEffect(() => {
     const filteredData = rejectedOrders.filter((order) => {
       const orderDate = new Date(order.orderDate);
-      
+
       // Date range filter
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = orderDate >= startDate && orderDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -126,18 +131,20 @@ const RejectedOrders = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = orderDate <= endDate;
       }
-      
+
       // Franchise Name filter
-      const franchiseNameMatch = activeFilters.franchiseName === "" || 
+      const franchiseNameMatch =
+        activeFilters.franchiseName === "" ||
         order.franchiseName === activeFilters.franchiseName;
-      
+
       // Location filter
-      const locationMatch = activeFilters.location === "" || 
+      const locationMatch =
+        activeFilters.location === "" ||
         order.location === activeFilters.location;
-      
+
       return dateMatch && franchiseNameMatch && locationMatch;
     });
-    
+
     setFilteredRejectedOrders(filteredData);
   }, [activeFilters, rejectedOrders]);
 
@@ -305,13 +312,13 @@ const RejectedOrders = () => {
 
       if (response.ok) {
         await fetchAcceptedOrders(); // ✅ Call the function already defined in useEffect
-        alert("Order accepted back successfully.");
+        toast.success("Order accepted back successfully.");
       } else {
-        alert("Failed to accept the order back.");
+        toast.error("Failed to accept the order back.");
       }
     } catch (error) {
-      console.error("Error accepting the order back:", error);
-      alert("An error occurred while accepting the order back.");
+      // console.error("Error accepting the order back:", error);
+      toast.error("An error occurred while accepting the order back.");
     }
   };
 
@@ -396,11 +403,16 @@ const RejectedOrders = () => {
                             onChange={handleFilterChange}
                           >
                             <option value="">All Franchises</option>
-                            {filterValues.franchiseNames.map((franchiseName, index) => (
-                              <option key={`franchise-${index}`} value={franchiseName}>
-                                {franchiseName}
-                              </option>
-                            ))}
+                            {filterValues.franchiseNames.map(
+                              (franchiseName, index) => (
+                                <option
+                                  key={`franchise-${index}`}
+                                  value={franchiseName}
+                                >
+                                  {franchiseName}
+                                </option>
+                              )
+                            )}
                           </select>
                         </div>
                       </div>

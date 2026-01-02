@@ -4,6 +4,7 @@ import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Tooltip, OverlayTrigger } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 function AddStockAdjustment() {
   const { id } = useParams();
@@ -252,7 +253,7 @@ function AddStockAdjustment() {
     );
 
     if (variationsToAdd.length === 0) {
-      alert("Please select at least one variation to add.");
+      toast.warning("Please select at least one variation to add.");
       return;
     }
     const newProducts = variationsToAdd
@@ -400,11 +401,11 @@ function AddStockAdjustment() {
       }
 
       // Success message and navigation
-      alert("Stock adjustment saved successfully.");
+      toast.success("Stock adjustment saved successfully.");
       navigate("/ListStockAdjustment");
     } catch (error) {
       // Handle errors
-      setError("Error saving stock adjustment. Please try again.");
+      toast.error("Error saving stock adjustment. Please try again.");
       console.error("Error saving stock adjustment:", error);
     } finally {
       // Hide loading indicator

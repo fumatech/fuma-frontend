@@ -11,6 +11,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const AcceptedOrders = () => {
   const [acceptedOrders, setAcceptedOrders] = useState([]);
@@ -262,13 +263,13 @@ const AcceptedOrders = () => {
         } else {
           console.error("Failed to fetch updated orders");
         }
-        alert("Order rejected back successfully.");
+        toast.success("Order rejected back successfully.");
       } else {
-        alert("Failed to reject the order back.");
+        toast.error("Failed to reject the order back.");
       }
     } catch (error) {
-      console.error("Error rejecting the order back:", error);
-      alert("An error occurred while rejecting the order back.");
+      // console.error("Error rejecting the order back:", error);
+      toast.error("An error occurred while rejecting the order back.");
     }
   };
 
@@ -298,13 +299,13 @@ const AcceptedOrders = () => {
         } else {
           console.error("Failed to fetch updated orders");
         }
-        alert("Order Viewed back successfully.");
+        toast.success("Order Viewed back successfully.");
       } else {
-        alert("Failed to View the order back.");
+        toast.error("Failed to View the order back.");
       }
     } catch (error) {
-      console.error("Error Viewing the order back:", error);
-      alert("An error occurred while Viewing the order back.");
+      //console.error("Error Viewing the order back:", error);
+      toast.error("An error occurred while Viewing the order back.");
     }
   };
 

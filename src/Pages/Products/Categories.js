@@ -10,6 +10,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { Collapse } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -43,13 +44,13 @@ const Categories = () => {
     categoryCodes: [],
     parentCategories: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     categoryName: "",
     categoryCode: "",
     parentCategory: "",
   });
-  
+
   const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -63,10 +64,16 @@ const Categories = () => {
   // Extract filter values when flattenedCategories changes
   useEffect(() => {
     if (flattenedCategories.length > 0) {
-      const categoryNames = [...new Set(flattenedCategories.map(item => item.categoryName))].filter(Boolean);
-      const categoryCodes = [...new Set(flattenedCategories.map(item => item.categoryCode))].filter(Boolean);
-      const parentCategories = [...new Set(flattenedCategories.map(item => item.parentCategory))].filter(Boolean);
-      
+      const categoryNames = [
+        ...new Set(flattenedCategories.map((item) => item.categoryName)),
+      ].filter(Boolean);
+      const categoryCodes = [
+        ...new Set(flattenedCategories.map((item) => item.categoryCode)),
+      ].filter(Boolean);
+      const parentCategories = [
+        ...new Set(flattenedCategories.map((item) => item.parentCategory)),
+      ].filter(Boolean);
+
       setFilterValues({
         categoryNames,
         categoryCodes,
@@ -78,13 +85,19 @@ const Categories = () => {
   // Apply filters whenever activeFilters or flattenedCategories changes
   useEffect(() => {
     const filteredData = flattenedCategories.filter((category) => {
-      const categoryNameMatch = activeFilters.categoryName === "" || category.categoryName === activeFilters.categoryName;
-      const categoryCodeMatch = activeFilters.categoryCode === "" || category.categoryCode === activeFilters.categoryCode;
-      const parentCategoryMatch = activeFilters.parentCategory === "" || category.parentCategory === activeFilters.parentCategory;
-      
+      const categoryNameMatch =
+        activeFilters.categoryName === "" ||
+        category.categoryName === activeFilters.categoryName;
+      const categoryCodeMatch =
+        activeFilters.categoryCode === "" ||
+        category.categoryCode === activeFilters.categoryCode;
+      const parentCategoryMatch =
+        activeFilters.parentCategory === "" ||
+        category.parentCategory === activeFilters.parentCategory;
+
       return categoryNameMatch && categoryCodeMatch && parentCategoryMatch;
     });
-    
+
     setFilteredCategories(filteredData);
   }, [activeFilters, flattenedCategories]);
 
@@ -189,16 +202,18 @@ const Categories = () => {
       .then(() => {
         fetchCategories();
         closeModal();
-        alert(
+        toast.success(
           `Category ${modalType === "edit" ? "updated" : "added"} successfully!`
         );
       })
       .catch((error) => {
-        console.error(
-          `Error ${modalType === "edit" ? "updating" : "adding"} category:`,
-          error
+        // console.error(
+        //   `Error ${modalType === "edit" ? "updating" : "adding"} category:`,
+        //   error
+        // );
+        toast.error(
+          `Error ${modalType === "edit" ? "updating" : "adding"} category`
         );
-        alert(`Error ${modalType === "edit" ? "updating" : "adding"} category`);
       });
   };
 
@@ -246,12 +261,12 @@ const Categories = () => {
         .then((response) => {
           if (response.ok) {
             fetchCategories();
-            alert("Category deleted successfully!");
+            toast.success("Category deleted successfully!");
           } else {
-            alert("Failed to delete category.");
+            toast.error("Failed to delete category.");
           }
         })
-        .catch((error) => console.error("Error deleting category:", error));
+        .catch((error) => toast.error("Error deleting category:", error));
     }
   };
 
@@ -418,11 +433,13 @@ const Categories = () => {
                             onChange={handleFilterChange}
                           >
                             <option value="">All Parents</option>
-                            {filterValues.parentCategories.map((parent, index) => (
-                              <option key={`parent-${index}`} value={parent}>
-                                {parent}
-                              </option>
-                            ))}
+                            {filterValues.parentCategories.map(
+                              (parent, index) => (
+                                <option key={`parent-${index}`} value={parent}>
+                                  {parent}
+                                </option>
+                              )
+                            )}
                           </select>
                         </div>
                       </div>

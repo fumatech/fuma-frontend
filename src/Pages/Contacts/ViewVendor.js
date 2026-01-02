@@ -14,6 +14,7 @@ import "bootstrap-daterangepicker/daterangepicker.css"; // Import Date Range Pic
 import "bootstrap-daterangepicker"; // Import Date Range Picker JS
 import moment from "moment";
 import { format } from "date-fns";
+import { toast } from "react-toastify";
 
 const ViewVendor = () => {
   const [purchases, setPurchases] = useState([]);
@@ -299,7 +300,7 @@ const ViewVendor = () => {
     e.preventDefault();
 
     if (!paymentMethod || !paymentData.amount) {
-      alert("Please fill in all required fields.");
+      toast.warning("Please fill in all required fields.");
       return;
     }
 
@@ -340,11 +341,11 @@ const ViewVendor = () => {
       const result = await response.json();
       // console.log("Payment submitted:", result);
       fetchPurchasesData();
-      alert("Payment submitted successfully!");
+      toast.success("Payment submitted successfully!");
       handleModalToggle(); // Close modal after submission
     } catch (error) {
-      console.error("Error:", error);
-      alert("Error submitting payment. Please try again.");
+      // console.error("Error:", error);
+      toast.error("Error submitting payment. Please try again.");
     }
   };
 

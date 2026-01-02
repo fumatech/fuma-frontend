@@ -6,6 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import Barcode from "react-barcode"; // Import Barcode component
 import { jsPDF } from "jspdf"; // Import jsPDF
 import bwipjs from "bwip-js"; // Import bwip-js for barcode generation
+import { toast } from "react-toastify";
 
 function ProductLabel() {
   const { productId } = useParams();
@@ -75,7 +76,7 @@ function ProductLabel() {
     );
 
     if (variationsToAdd.length === 0) {
-      alert("Please select at least one variation to add.");
+      toast.warning("Please select at least one variation to add.");
       return;
     }
 
@@ -107,7 +108,7 @@ function ProductLabel() {
       .filter(Boolean);
 
     if (duplicateFound) {
-      alert("This product with variation is already added.");
+      toast.warning("This product with variation is already added.");
     } else {
       setSelectedProducts((prev) => [...prev, ...newProducts]);
     }

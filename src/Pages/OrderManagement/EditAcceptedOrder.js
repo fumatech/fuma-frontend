@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { toast } from "react-toastify";
 
 function EditAcceptedOrder() {
   const { id } = useParams();
@@ -161,7 +162,7 @@ function EditAcceptedOrder() {
     );
 
     if (variationsToAdd.length === 0) {
-      alert("Please select at least one variation to add.");
+      toast.warning("Please select at least one variation to add.");
       return;
     }
     const newProducts = variationsToAdd
@@ -245,7 +246,7 @@ function EditAcceptedOrder() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Error updating purchase:", errorText);
-        alert("Failed to update order. Please check your inputs.");
+        toast.error("Failed to update order. Please check your inputs.");
       } else {
         // console.log("Purchase updated successfully");
 
@@ -262,17 +263,17 @@ function EditAcceptedOrder() {
         );
 
         if (statusResponse.ok) {
-          // console.log("Purchase status updated successfully");
+          toast.success("Purchase status updated successfully");
           window.location.href = "/ShipOrders"; // Redirect
         } else {
           const errorText = await statusResponse.text();
           console.error("Error updating purchase status:", errorText);
-          alert("Error updating status. Check logs.");
+          toast.error("Error updating status. Check logs.");
         }
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("An unexpected error occurred.");
+      toast.error("An unexpected error occurred.");
     }
   };
 

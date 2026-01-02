@@ -18,6 +18,7 @@ import "../../assets/plugins/fontawesome-free/css/all.min.css";
 import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
 import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
 import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
+import { toast } from "react-toastify";
 
 const staticListProducts = [{}];
 
@@ -236,7 +237,7 @@ function ListProducts({ userRoles }) {
   // Bulk status toggle
   const toggleSelectedStatus = async () => {
     if (selectedRows.size === 0) {
-      alert("Please select at least one product");
+      toast.warning("Please select at least one product");
       return;
     }
 
@@ -257,10 +258,10 @@ function ListProducts({ userRoles }) {
 
         fetchProducts(activeTab);
         setSelectedRows(new Set());
-        alert(`Products ${action}d successfully!`);
+        toast.success(`Products ${action}d successfully!`);
       } catch (error) {
-        console.error("Error updating product statuses:", error);
-        alert("Failed to update product statuses.");
+        // console.error("Error updating product statuses:", error);
+        toast.error("Failed to update product statuses.");
       }
     }
   };
@@ -279,10 +280,10 @@ function ListProducts({ userRoles }) {
         );
 
         fetchProducts(activeTab);
-        alert(`Product ${action}d successfully!`);
+        toast.success(`Product ${action}d successfully!`);
       } catch (error) {
-        console.error("Error updating product status:", error);
-        alert("Failed to update product status.");
+        // console.error("Error updating product status:", error);
+        toast.error("Failed to update product status.");
       }
     }
   };
@@ -409,12 +410,12 @@ function ListProducts({ userRoles }) {
             setListProduct((prevProducts) =>
               prevProducts.filter((product) => product.id !== id)
             );
-            alert("Product deleted successfully!");
+            toast.success("Product deleted successfully!");
           } else {
-            alert("Failed to delete product.");
+            toast.error("Failed to delete product.");
           }
         })
-        .catch((error) => console.error("Error deleting product:", error));
+        .catch((error) => toast.error("Error deleting product:", error));
     }
   };
 

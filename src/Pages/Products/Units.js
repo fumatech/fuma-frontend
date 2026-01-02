@@ -11,6 +11,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Collapse } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 function Units({ userRoles }) {
   const [units, setUnits] = useState([]);
@@ -35,11 +36,11 @@ function Units({ userRoles }) {
   const [filterValues, setFilterValues] = useState({
     unitNames: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     unitName: "",
   });
-  
+
   const [filterOpen, setFilterOpen] = useState(false);
 
   const hasPermission = (permission) => {
@@ -90,8 +91,10 @@ function Units({ userRoles }) {
   // Extract filter values when units data changes
   useEffect(() => {
     if (units.length > 0) {
-      const unitNames = [...new Set(units.map(item => item.name))].filter(Boolean);
-      
+      const unitNames = [...new Set(units.map((item) => item.name))].filter(
+        Boolean
+      );
+
       setFilterValues({
         unitNames,
       });
@@ -101,11 +104,12 @@ function Units({ userRoles }) {
   // Apply filters whenever activeFilters or units changes
   useEffect(() => {
     const filteredData = units.filter((unit) => {
-      const unitNameMatch = activeFilters.unitName === "" || unit.name === activeFilters.unitName;
-      
+      const unitNameMatch =
+        activeFilters.unitName === "" || unit.name === activeFilters.unitName;
+
       return unitNameMatch;
     });
-    
+
     setFilteredUnits(filteredData);
   }, [activeFilters, units]);
 
@@ -161,7 +165,11 @@ function Units({ userRoles }) {
     const doc = new jsPDF();
     doc.autoTable({
       head: [["Name", "Short Name", "Allow Decimal"]],
-      body: filteredUnits.map((unit) => [unit.name, unit.shortName, unit.allowDecimal]),
+      body: filteredUnits.map((unit) => [
+        unit.name,
+        unit.shortName,
+        unit.allowDecimal,
+      ]),
     });
     doc.save("units.pdf");
   };
@@ -273,7 +281,7 @@ function Units({ userRoles }) {
         );
         closeModal(); // Close the modal
         fetchUnits();
-        alert("Unit updated successfully!");
+        toast.success("Unit updated successfully!");
       } else if (modalType === "add") {
         const response = await fetch(
           `${process.env.REACT_APP_BASE_URL}/units/save`,
@@ -294,11 +302,11 @@ function Units({ userRoles }) {
         setUnits((prevUnits) => [...prevUnits, newUnit]);
         closeModal();
         fetchUnits();
-        alert("Unit added successfully!");
+        toast.success("Unit added successfully!");
       }
     } catch (error) {
-      console.error("Error saving unit:", error);
-      alert("Error saving unit");
+      //console.error("Error saving unit:", error);
+      toast.error("Error saving unit");
     }
   };
 
@@ -341,13 +349,13 @@ function Units({ userRoles }) {
 
         if (response.status === 204) {
           setUnits((prevUnits) => prevUnits.filter((unit) => unit.id !== id));
-          alert("Unit deleted successfully!");
+          toast.success("Unit deleted successfully!");
         } else {
-          alert("Failed to delete unit.");
+          toast.error("Failed to delete unit.");
         }
       } catch (error) {
-        console.error("Error deleting unit:", error);
-        alert("Error deleting unit");
+        //  console.error("Error deleting unit:", error);
+        toast.error("Error deleting unit");
       }
     }
   };

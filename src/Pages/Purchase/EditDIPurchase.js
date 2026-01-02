@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function EditDIPurchase() {
   const { id } = useParams();
@@ -255,7 +256,7 @@ function EditDIPurchase() {
     );
 
     if (variationsToAdd.length === 0) {
-      alert("Please select at least one variation to add.");
+      toast.warning("Please select at least one variation to add.");
       return;
     }
 
@@ -836,17 +837,17 @@ function EditDIPurchase() {
       );
 
       if (response.ok) {
-        alert("Purchase DI Order updated successfully");
+        toast.success("Purchase DI Order updated successfully");
         navigate("/ListDIPurchaseOrder");
       } else {
         const responseText = await response.text();
-        console.error("Response Status:", response.status);
-        console.error("Response Text:", responseText);
-        alert("Purchase DI Order Not Updated");
+        // console.error("Response Status:", response.status);
+        // console.error("Response Text:", responseText);
+        toast.error("Purchase DI Order Not Updated");
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("Update Failed");
+      // console.error("Error:", error);
+      toast.error("Update Failed");
     }
   };
 

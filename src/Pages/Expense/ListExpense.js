@@ -14,6 +14,7 @@ import $ from "jquery";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Dropdown, DropdownButton } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 const ListExpense = () => {
   const navigate = useNavigate();
@@ -578,7 +579,7 @@ const ListExpense = () => {
           )
         );
         closeModal();
-        alert("expense updated successfully!");
+        toast.success("expense updated successfully!");
       } else if (modalType === "add") {
         const response = await fetch(
           `${process.env.REACT_APP_BASE_URL}/add-expenses/save`,
@@ -598,11 +599,11 @@ const ListExpense = () => {
         const newExpense = await response.json();
         setListExpense((prevLists) => [...prevLists, newExpense]);
         closeModal();
-        alert("expense added successfully!");
+        toast.success("expense added successfully!");
       }
     } catch (error) {
-      console.error("Error saving expense:", error);
-      alert("Error saving expense");
+      // console.error("Error saving expense:", error);
+      toast.error("Error saving expense");
     }
   };
 
@@ -634,13 +635,13 @@ const ListExpense = () => {
           setListExpense((prevLists) =>
             prevLists.filter((expenses) => expenses.id !== id)
           );
-          alert("expenses deleted successfully!");
+          toast.success("expenses deleted successfully!");
         } else {
-          alert("Failed to delete expenses.");
+          toast.error("Failed to delete expenses.");
         }
       } catch (error) {
-        console.error("Error deleting expenses:", error);
-        alert("Error deleting expenses");
+        // console.error("Error deleting expenses:", error);
+        toast.error("Error deleting expenses");
       }
     }
   };

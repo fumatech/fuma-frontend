@@ -68,7 +68,7 @@ function BusinessDetails() {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to update business details");
+        toast.error("Failed to update business details");
       }
 
       toast.success("Business details updated successfully!");

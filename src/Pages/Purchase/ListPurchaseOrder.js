@@ -13,6 +13,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const ListPurchaseOrder = () => {
   const [purchases, setPurchases] = useState([]);
@@ -100,12 +101,12 @@ const ListPurchaseOrder = () => {
             setPurchases((prevPurchases) =>
               prevPurchases.filter((purchase) => purchase.id !== id)
             );
-            alert("Product deleted successfully!");
+            toast.success("Purchase Order deleted successfully!");
           } else {
-            alert("Failed to delete product.");
+            toast.error("Failed to delete purchase.");
           }
         })
-        .catch((error) => console.error("Error deleting product:", error));
+        .catch((error) => toast.error("Error deleting purchase:", error));
     }
   };
 
@@ -130,14 +131,14 @@ const ListPurchaseOrder = () => {
       // Handle successful response
       if (response.status === 200) {
         fetchPurchases();
-        alert("Order canceled successfully!");
+        toast.success("Order canceled successfully!");
       } else {
         console.error("Failed to cancel order", response);
       }
     } catch (error) {
       // Handle errors
-      console.error("Error while canceling order:", error);
-      alert("Failed to cancel the order. Please try again.");
+      //console.error("Error while canceling order:", error);
+      toast.error("Failed to cancel the order. Please try again.");
     }
   };
 

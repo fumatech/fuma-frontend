@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function EditSoSale() {
   const { id: paramId } = useParams(); // Extract `id` from URL
@@ -698,7 +699,7 @@ function EditSoSale() {
     );
 
     if (variationsToAdd.length === 0) {
-      alert("Please select at least one variation to add.");
+      toast.warning("Please select at least one variation to add.");
       return;
     }
 
@@ -996,17 +997,17 @@ function EditSoSale() {
         );
 
         if (stockResponse.ok) {
-          alert("Sale So Updated Successfully");
+          toast.success("Sale So Updated Successfully");
           navigate("/ListSoSale");
         } else {
-          alert("Sale So Not Saved");
+          toast.error("Sale So Not Saved");
         }
       } else {
-        alert("Sale SO  Not Saved");
+        toast.error("Sale SO  Not Saved");
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred while saving the Sale So.");
+      // console.error("Error:", error);
+      toast.error("An error occurred while saving the Sale So.");
     }
   };
 

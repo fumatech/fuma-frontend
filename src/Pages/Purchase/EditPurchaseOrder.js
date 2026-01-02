@@ -4,6 +4,7 @@ import { useNavigate, Link, useParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
+import { toast } from "react-toastify";
 
 function EditPurchaseOrder() {
   const navigate = useNavigate();
@@ -312,7 +313,7 @@ function EditPurchaseOrder() {
     e.preventDefault();
 
     if (!orderDate || !deliveryDate) {
-      alert("Please select order date and delivery date");
+      toast.warning("Please select order date and delivery date");
       return;
     }
 
@@ -359,16 +360,16 @@ function EditPurchaseOrder() {
       );
 
       if (response.ok) {
-        alert("Purchase Order updated successfully");
+        toast.success("Purchase Order updated successfully");
         navigate("/ListPurchaseOrder");
       } else {
-        const errText = await response.text();
-        console.error("Update failed:", errText);
-        alert("Failed to update Purchase Order");
+        // const errText = await response.text();
+        // console.error("Update failed:", errText);
+        toast.error("Failed to update Purchase Order");
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred while updating the Purchase Order");
+      //  console.error("Error:", error);
+      toast.error("An error occurred while updating the Purchase Order");
     }
   };
 
@@ -708,7 +709,7 @@ function EditPurchaseOrder() {
                                           input
                                         );
                                       } else {
-                                        alert(
+                                        toast.warning(
                                           "Only numbers greater than 0 are allowed."
                                         );
                                       }

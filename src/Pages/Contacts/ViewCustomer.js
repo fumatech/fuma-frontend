@@ -14,6 +14,7 @@ import "bootstrap-daterangepicker/daterangepicker.css";
 import "bootstrap-daterangepicker";
 import moment from "moment";
 import { format } from "date-fns";
+import { toast } from "react-toastify";
 
 const ViewCustomer = () => {
   const [sales, setSales] = useState([]);
@@ -304,7 +305,7 @@ const ViewCustomer = () => {
     e.preventDefault();
 
     if (!paymentMethod || !paymentData.amount) {
-      alert("Please fill in all required fields.");
+      toast.warning("Please fill in all required fields.");
       return;
     }
 
@@ -342,11 +343,11 @@ const ViewCustomer = () => {
       const result = await response.json();
       // console.log("Payment submitted:", result);
       fetchSalesData();
-      alert("Payment submitted successfully!");
+      toast.success("Payment submitted successfully!");
       handleModalToggle();
     } catch (error) {
-      console.error("Error:", error);
-      alert("Error submitting payment. Please try again.");
+      // console.error("Error:", error);
+      toast.error("Error submitting payment. Please try again.");
     }
   };
 

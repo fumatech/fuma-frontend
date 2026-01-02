@@ -4,6 +4,7 @@ import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Tooltip, OverlayTrigger } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 function AddWarrantyClaim() {
   const navigate = useNavigate();
@@ -204,7 +205,7 @@ function AddWarrantyClaim() {
     );
 
     if (variationsToAdd.length === 0) {
-      alert("Please select at least one variation to add.");
+      toast.warning("Please select at least one variation to add.");
       return;
     }
     const newProducts = variationsToAdd
@@ -311,11 +312,11 @@ function AddWarrantyClaim() {
       );
 
       // Handle successful response
-      alert("Warranty Claimed Successfully.");
+      toast.success("Warranty Claimed Successfully.");
       navigate("/ListWarrantyClaim"); // Redirect to stock adjustments page
     } catch (error) {
-      setError("Error saving stock adjustment.");
-      console.error(error);
+      toast.error("Error saving stock adjustment.");
+      // console.error(error);
     } finally {
       setLoading(false); // Hide loading indicator
     }

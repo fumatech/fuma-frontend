@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function LeaveType({ userRoles }) {
   const [leaveTypes, setLeaveTypes] = useState([]);
@@ -77,7 +78,7 @@ function LeaveType({ userRoles }) {
   const handleAddLeaveType = async (e) => {
     e.preventDefault();
     if (!currentLeaveType.type.trim()) {
-      alert("Leave Type is required");
+      toast.warning("Leave Type is required");
       return;
     }
 
@@ -211,8 +212,8 @@ function LeaveType({ userRoles }) {
   const endIndex = startIndex + entriesPerPage;
   const displayedLeaveTypes = leaveTypes.slice(startIndex, endIndex);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  // if (loading) return <div>Loading...</div>;
+  // if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="wrapper">

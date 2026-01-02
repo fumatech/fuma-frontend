@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Dropdown, DropdownButton } from "react-bootstrap";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const Campaigns = () => {
   // Table data state
@@ -152,12 +153,13 @@ const Campaigns = () => {
           `${process.env.REACT_APP_BASE_URL}/campaign/save`,
           formData
         );
+        toast.success("Campaign Saved Successfully...");
         setCampaigns([...campaigns, response.data]);
       }
       closeModal();
     } catch (err) {
-      console.error("Error saving campaign:", err);
-      alert("Error saving campaign. Please try again.");
+      //console.error("Error saving campaign:", err);
+      toast.error("Error saving campaign. Please try again.");
     }
   };
 
@@ -171,7 +173,7 @@ const Campaigns = () => {
         setCampaigns(campaigns.filter((campaign) => campaign.id !== id));
       } catch (err) {
         console.error("Error deleting campaign:", err);
-        alert("Error deleting campaign. Please try again.");
+        toast.error("Error deleting campaign. Please try again.");
       }
     }
   };
@@ -225,9 +227,9 @@ const Campaigns = () => {
     link.click();
   };
 
-  const exportExcel = () => alert("Exporting to Excel...");
+  const exportExcel = () => toast.warning("Exporting to Excel...");
   const printData = () => window.print();
-  const exportPDF = () => alert("Exporting to PDF...");
+  const exportPDF = () => toast.warning("Exporting to PDF...");
 
   const visibleColumnsCount =
     Object.values(columnsVisibility).filter(Boolean).length;

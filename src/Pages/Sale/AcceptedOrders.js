@@ -12,6 +12,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const AcceptedOrders = () => {
   const [acceptedOrders, setAcceptedOrders] = useState([]);
@@ -46,14 +47,14 @@ const AcceptedOrders = () => {
     franchiseNames: [],
     locations: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
     franchiseName: "",
     location: "",
   });
-  
+
   const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -95,9 +96,13 @@ const AcceptedOrders = () => {
   // Extract filter values when acceptedOrders data changes
   useEffect(() => {
     if (acceptedOrders.length > 0) {
-      const franchiseNames = [...new Set(acceptedOrders.map(item => item.franchiseName))].filter(Boolean);
-      const locations = [...new Set(acceptedOrders.map(item => item.location))].filter(Boolean);
-      
+      const franchiseNames = [
+        ...new Set(acceptedOrders.map((item) => item.franchiseName)),
+      ].filter(Boolean);
+      const locations = [
+        ...new Set(acceptedOrders.map((item) => item.location)),
+      ].filter(Boolean);
+
       setFilterValues({
         franchiseNames,
         locations,
@@ -109,14 +114,14 @@ const AcceptedOrders = () => {
   useEffect(() => {
     const filteredData = acceptedOrders.filter((order) => {
       const orderDate = new Date(order.orderDate);
-      
+
       // Date range filter
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = orderDate >= startDate && orderDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -126,18 +131,20 @@ const AcceptedOrders = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = orderDate <= endDate;
       }
-      
+
       // Franchise Name filter
-      const franchiseNameMatch = activeFilters.franchiseName === "" || 
+      const franchiseNameMatch =
+        activeFilters.franchiseName === "" ||
         order.franchiseName === activeFilters.franchiseName;
-      
+
       // Location filter
-      const locationMatch = activeFilters.location === "" || 
+      const locationMatch =
+        activeFilters.location === "" ||
         order.location === activeFilters.location;
-      
+
       return dateMatch && franchiseNameMatch && locationMatch;
     });
-    
+
     setFilteredAcceptedOrders(filteredData);
   }, [activeFilters, acceptedOrders]);
 
@@ -304,7 +311,7 @@ const AcceptedOrders = () => {
 
   const updateStatus = async () => {
     if (!dropdown) {
-      alert("Please select a status");
+      toast.warning("Please select a status");
       return;
     }
 
@@ -331,13 +338,13 @@ const AcceptedOrders = () => {
 
         setFilteredAcceptedOrders(updatedOrders);
         setIsModalOpen(false);
-        alert("Status updated successfully");
+        toast.success("Status updated successfully");
       } else {
-        throw new Error("Failed to update status");
+        toast.errorr("Failed to update status");
       }
     } catch (error) {
-      console.error("Error updating status:", error);
-      alert("Error updating status");
+      // console.error("Error updating status:", error);
+      toast.error("Error updating status");
     }
   };
 
@@ -377,13 +384,13 @@ const AcceptedOrders = () => {
         } else {
           console.error("Failed to fetch updated orders");
         }
-        alert("Order rejected back successfully.");
+        toast.success("Order rejected back successfully.");
       } else {
-        alert("Failed to reject the order back.");
+        toast.error("Failed to reject the order back.");
       }
     } catch (error) {
-      console.error("Error rejecting the order back:", error);
-      alert("An error occurred while rejecting the order back.");
+      //console.error("Error rejecting the order back:", error);
+      toast.error("An error occurred while rejecting the order back.");
     }
   };
 
@@ -413,13 +420,13 @@ const AcceptedOrders = () => {
         } else {
           console.error("Failed to fetch updated orders");
         }
-        alert("Order Viewed back successfully.");
+        toast.success("Order Viewed back successfully.");
       } else {
-        alert("Failed to View the order back.");
+        toast.error("Failed to View the order back.");
       }
     } catch (error) {
-      console.error("Error Viewing the order back:", error);
-      alert("An error occurred while Viewing the order back.");
+      //console.error("Error Viewing the order back:", error);
+      toast.error("An error occurred while Viewing the order back.");
     }
   };
 
@@ -510,11 +517,16 @@ const AcceptedOrders = () => {
                             onChange={handleFilterChange}
                           >
                             <option value="">All Franchises</option>
-                            {filterValues.franchiseNames.map((franchiseName, index) => (
-                              <option key={`franchise-${index}`} value={franchiseName}>
-                                {franchiseName}
-                              </option>
-                            ))}
+                            {filterValues.franchiseNames.map(
+                              (franchiseName, index) => (
+                                <option
+                                  key={`franchise-${index}`}
+                                  value={franchiseName}
+                                >
+                                  {franchiseName}
+                                </option>
+                              )
+                            )}
                           </select>
                         </div>
                       </div>

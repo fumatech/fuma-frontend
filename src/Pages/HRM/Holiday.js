@@ -3,6 +3,7 @@ import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
+import { toast } from "react-toastify";
 
 const Holiday = () => {
   const [entriesPerPage, setEntriesPerPage] = useState(25);
@@ -55,10 +56,10 @@ const Holiday = () => {
     }));
   };
 
-  const exportCSV = () => alert("Export CSV functionality");
-  const exportExcel = () => alert("Export Excel functionality");
-  const printData = () => alert("Print functionality");
-  const exportPDF = () => alert("Export PDF functionality");
+  const exportCSV = () => toast.warning("Export CSV functionality");
+  const exportExcel = () => toast.warning("Export Excel functionality");
+  const printData = () => toast.warning("Print functionality");
+  const exportPDF = () => toast.warning("Export PDF functionality");
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -124,9 +125,9 @@ const Holiday = () => {
       }
 
       if (editMode) {
-        alert("Holiday Edited Successfully...!!!");
+        toast.success("Holiday Edited Successfully...!!!");
       } else {
-        alert("Holiday Added Successfully...!!!");
+        toast.success("Holiday Added Successfully...!!!");
       }
 
       fetchHolidays();

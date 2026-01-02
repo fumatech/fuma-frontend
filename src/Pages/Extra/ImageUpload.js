@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -24,7 +25,7 @@ const ImageUpload = () => {
 
   const uploadFile = async () => {
     if (!file) {
-      alert("Please select a file");
+      toast.warning("Please select a file");
       return;
     }
 
@@ -36,12 +37,12 @@ const ImageUpload = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert("File uploaded successfully");
+      toast.success("File uploaded successfully");
       setFile(null);
       fetchFiles();
     } catch (error) {
-      console.error("Upload failed", error);
-      alert("File upload failed");
+      //console.error("Upload failed", error);
+      toast.error("Failed To Upload File");
     }
   };
 

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function Permission() {
   const [startName, setStartName] = useState("");
@@ -19,12 +20,12 @@ function Permission() {
         `${process.env.REACT_APP_BASE_URL}/permissions/save`,
         permission
       );
-      alert("Permission saved Sucessfully");
+      toast.success("Permission saved Sucessfully");
       // console.log("Permission saved:", response.data);
       setStartName("");
       setEndName("");
     } catch (error) {
-      console.error("There was an error saving the permission!", error);
+      toast.error("There was an error saving the permission!");
       // Handle error
     }
   };

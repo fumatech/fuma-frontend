@@ -5,6 +5,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function Designations({ userRoles }) {
   const [designations, setDesignations] = useState([
@@ -58,7 +59,7 @@ function Designations({ userRoles }) {
   const handleAddDesignation = (e) => {
     e.preventDefault();
     if (!newDesignation.designation.trim()) {
-      alert("Designation is required");
+      toast.warning("Designation is required");
       return;
     }
 

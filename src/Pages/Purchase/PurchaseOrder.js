@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./PurchaseOrder.css";
+import { toast } from "react-toastify";
 
 function PurchaseOrder() {
   const [currentStocks, setCurrentStocks] = useState({});
@@ -311,16 +312,16 @@ function PurchaseOrder() {
       );
 
       if (response.ok) {
-        alert("Purchase Order created successfully");
+        toast.success("Purchase Order created successfully");
         navigate("/ListPurchaseOrder");
       } else {
-        const err = await response.text();
-        console.error(err);
-        alert("Failed to save Purchase Order");
+        // const err = await response.text();
+        // console.error(err);
+        toast.error("Failed to save Purchase Order");
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("Something went wrong");
+      // console.error("Error:", error);
+      toast.error("Something went wrong");
     }
   };
 

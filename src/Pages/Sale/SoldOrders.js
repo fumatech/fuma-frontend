@@ -10,6 +10,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
+import { toast } from "react-toastify";
 
 const SoldOrders = () => {
   const [soldOrders, setSoldOrders] = useState([]);
@@ -229,7 +230,7 @@ const SoldOrders = () => {
           )
         );
         closeModal();
-        alert("Order updated successfully!");
+        toast.success("Order updated successfully!");
       } else if (modalType === "add") {
         const response = await fetch(
           `https://fusionmastertech.com:8444/soldOrders/save`,
@@ -249,11 +250,11 @@ const SoldOrders = () => {
         const newOrder = await response.json();
         setSoldOrders((prevOrders) => [...prevOrders, newOrder]);
         closeModal();
-        alert("Order added successfully!");
+        toast.success("Order added successfully!");
       }
     } catch (error) {
-      console.error("Error saving order:", error);
-      alert("Error saving order");
+      //console.error("Error saving order:", error);
+      toast.error("Error saving order");
     }
   };
 
@@ -314,13 +315,13 @@ const SoldOrders = () => {
           setSoldOrders((prevOrders) =>
             prevOrders.filter((order) => order.id !== id)
           );
-          alert("Order deleted successfully!");
+          toast.success("Order deleted successfully!");
         } else {
-          alert("Failed to delete order.");
+          toast.error("Failed to delete order.");
         }
       } catch (error) {
-        console.error("Error deleting order:", error);
-        alert("Error deleting order");
+        //console.error("Error deleting order:", error);
+        toast.error("Error deleting order");
       }
     }
   };

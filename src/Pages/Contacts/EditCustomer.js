@@ -14,6 +14,7 @@ import "../../assets/plugins/bs-stepper/css/bs-stepper.min.css";
 import "../../assets/plugins/dropzone/min/dropzone.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../AddUser.css";
+import { toast } from "react-toastify";
 
 const EditCustomer = () => {
   const { id } = useParams();
@@ -321,7 +322,7 @@ const EditCustomer = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      toast.warning("Passwords do not match!");
       return;
     }
 
@@ -394,11 +395,11 @@ const EditCustomer = () => {
         throw new Error("Failed to update franchise");
       }
 
-      alert("Franchise updated successfully!");
+      toast.success("Franchise updated successfully!");
       navigate("/Customer");
     } catch (error) {
-      console.error("Error updating franchise:", error);
-      alert("Failed to update franchise. Please try again.");
+      //console.error("Error updating franchise:", error);
+      toast.error("Failed to update franchise. Please try again.");
     }
   };
 

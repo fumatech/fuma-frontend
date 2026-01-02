@@ -5,12 +5,12 @@ import "../../assets/plugins/fontawesome-free/css/all.min.css";
 import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
 import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
 import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
-
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
+import { toast } from "react-toastify";
 
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
@@ -206,7 +206,7 @@ const OrderList = () => {
           )
         );
         closeModal();
-        alert("Order updated successfully!");
+        toast.success("Order updated successfully!");
       } else if (modalType === "add") {
         const response = await fetch(
           `${process.env.REACT_APP_BASE_URL}/orders/save`,
@@ -226,11 +226,11 @@ const OrderList = () => {
         const newOrder = await response.json();
         setOrders((prevOrders) => [...prevOrders, newOrder]);
         closeModal();
-        alert("Order added successfully!");
+        toast.success("Order added successfully!");
       }
     } catch (error) {
-      console.error("Error saving order:", error);
-      alert("Error saving order");
+      //console.error("Error saving order:", error);
+      toast.error("Error saving order");
     }
   };
 
@@ -283,13 +283,13 @@ const OrderList = () => {
           setOrders((prevOrders) =>
             prevOrders.filter((order) => order.id !== id)
           );
-          alert("Order deleted successfully!");
+          toast.success("Order deleted successfully!");
         } else {
-          alert("Failed to delete order.");
+          toast.error("Failed to delete order.");
         }
       } catch (error) {
-        console.error("Error deleting order:", error);
-        alert("Error deleting order");
+        // console.error("Error deleting order:", error);
+        toast.error("Error deleting order");
       }
     }
   };

@@ -4,6 +4,7 @@ import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Tooltip, OverlayTrigger } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 function ViewWarrantyClaim() {
   const { id } = useParams();
@@ -114,7 +115,7 @@ function ViewWarrantyClaim() {
     );
 
     if (variationsToAdd.length === 0) {
-      alert("Please select at least one variation to add.");
+      toast.warning("Please select at least one variation to add.");
       return;
     }
     const newProducts = variationsToAdd
@@ -277,12 +278,13 @@ function ViewWarrantyClaim() {
       const updatedWarrantyClaim = await updateResponse.json(); // Get the updated claim details
 
       // Handle successful response
-      alert("Warranty Claim updated successfully.");
+      toast.success("Warranty Claim updated successfully.");
       // Optionally, navigate to another page or reset form
       // navigate("/stock-adjustments"); // Uncomment to redirect if needed
     } catch (error) {
-      setError(error.message); // Set error message in the UI
-      console.error(error);
+      //setError(error.message); // Set error message in the UI
+      // console.error(error);
+      toast.error("Failed to save...");
     } finally {
       setLoading(false); // Hide loading indicator
     }

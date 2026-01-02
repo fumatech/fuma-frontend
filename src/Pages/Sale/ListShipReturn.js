@@ -12,6 +12,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const ListShipReturn = () => {
   const [viewOrders, setViewOrders] = useState([]);
@@ -49,14 +50,14 @@ const ListShipReturn = () => {
     locations: [],
     addedBy: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
     location: "",
     addedBy: "",
   });
-  
+
   const [filteredViewOrders, setFilteredViewOrders] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -103,9 +104,13 @@ const ListShipReturn = () => {
   // Extract filter values when viewOrders data changes
   useEffect(() => {
     if (viewOrders.length > 0) {
-      const locations = [...new Set(viewOrders.map(item => item.location))].filter(Boolean);
-      const addedBy = [...new Set(viewOrders.map(item => item.addedBy))].filter(Boolean);
-      
+      const locations = [
+        ...new Set(viewOrders.map((item) => item.location)),
+      ].filter(Boolean);
+      const addedBy = [
+        ...new Set(viewOrders.map((item) => item.addedBy)),
+      ].filter(Boolean);
+
       setFilterValues({
         locations,
         addedBy,
@@ -117,14 +122,14 @@ const ListShipReturn = () => {
   useEffect(() => {
     const filteredData = viewOrders.filter((order) => {
       const orderDate = new Date(order.orderDate);
-      
+
       // Date range filter
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = orderDate >= startDate && orderDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -134,18 +139,19 @@ const ListShipReturn = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = orderDate <= endDate;
       }
-      
+
       // Location filter
-      const locationMatch = activeFilters.location === "" || 
+      const locationMatch =
+        activeFilters.location === "" ||
         order.location === activeFilters.location;
-      
+
       // Added By filter
-      const addedByMatch = activeFilters.addedBy === "" || 
-        order.addedBy === activeFilters.addedBy;
-      
+      const addedByMatch =
+        activeFilters.addedBy === "" || order.addedBy === activeFilters.addedBy;
+
       return dateMatch && locationMatch && addedByMatch;
     });
-    
+
     setFilteredViewOrders(filteredData);
   }, [activeFilters, viewOrders]);
 
@@ -331,16 +337,16 @@ const ListShipReturn = () => {
           );
           if (response.ok) {
             fetchShipOrders();
-            alert(`Order ${action}ed successfully.`);
+            toast.success(`Order ${action}ed successfully.`);
           } else {
-            alert("Failed to update the order status.");
+            toast.error("Failed to update the order status.");
           }
         } catch (error) {
-          console.error("Error updating order status:", error);
-          alert("An error occurred while updating the order status.");
+          //  console.error("Error updating order status:", error);
+          toast.error("An error occurred while updating the order status.");
         }
       } else {
-        alert("Order action was canceled.");
+        toast.error("Order action was canceled.");
       }
     }
   };

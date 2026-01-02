@@ -42,8 +42,17 @@ const BusinessLocations = () => {
     customField4: "",
     posFeaturedProducts: "",
   });
+
+  // Product search states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [selectedProductNames, setSelectedProductNames] = useState("");
+
   const [paymentOptions, setPaymentOptions] = useState([]);
   const [paymentAccounts, setPaymentAccounts] = useState([]);
+
   useEffect(() => {
     // Fetch payment methods
     fetch(`${process.env.REACT_APP_BASE_URL}/payment-method/getall`)
@@ -67,6 +76,7 @@ const BusinessLocations = () => {
       })
       .catch((err) => console.error("Error fetching payment accounts:", err));
   }, []);
+
   const handlePaymentOptionChange = (index, field, value) => {
     setPaymentOptions((prev) =>
       prev.map((item, i) =>
@@ -241,6 +251,103 @@ const BusinessLocations = () => {
     }));
   };
 
+  // Product search function
+  const searchProducts = async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      // Changed to search only active products
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/product/search-active?query=${query}`
+      );
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      // Fallback: try the original endpoint if the new one doesn't exist
+      try {
+        const fallbackResponse = await fetch(
+          `${process.env.REACT_APP_BASE_URL}/product/search?query=${query}`
+        );
+        const fallbackData = await fallbackResponse.json();
+        // Filter to show only active products (isActive = true or status = 1)
+        const activeProducts = fallbackData.filter(
+          (product) => product.isActive === true || product.status === 1
+        );
+        setSearchResults(activeProducts);
+      } catch (fallbackError) {
+        console.error("Error with fallback search:", fallbackError);
+        setSearchResults([]);
+      }
+    }
+  };
+
+  const handleProductSelect = (product) => {
+    if (!selectedProducts.some((p) => p.id === product.id)) {
+      const updatedProducts = [
+        ...selectedProducts,
+        {
+          id: product.id,
+          name: product.productName, // ✅ important
+        },
+      ];
+
+      setSelectedProducts(updatedProducts);
+
+      // 🔥 Store JSON instead of comma-separated IDs
+      setFormData((prev) => ({
+        ...prev,
+        posFeaturedProducts: JSON.stringify(updatedProducts),
+      }));
+
+      setSelectedProductNames(updatedProducts.map((p) => p.name).join(", "));
+    }
+
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowSearchResults(false);
+  };
+
+  const handleProductRemove = (productId) => {
+    const updatedProducts = selectedProducts.filter((p) => p.id !== productId);
+
+    setSelectedProducts(updatedProducts);
+
+    setFormData((prev) => ({
+      ...prev,
+      posFeaturedProducts: JSON.stringify(updatedProducts),
+    }));
+
+    setSelectedProductNames(updatedProducts.map((p) => p.name).join(", "));
+  };
+
+  const clearSelectedProducts = () => {
+    setSelectedProducts([]);
+    setSelectedProductNames("");
+
+    setFormData((prev) => ({
+      ...prev,
+      posFeaturedProducts: JSON.stringify([]),
+    }));
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if (query.trim()) {
+      searchProducts(query);
+      setShowSearchResults(true);
+    } else {
+      setSearchResults([]);
+      setShowSearchResults(false);
+    }
+  };
+
   const handleSaveLocation = () => {
     const dataToSend = {
       name: formData.name,
@@ -341,6 +448,13 @@ const BusinessLocations = () => {
       customField4: "",
       posFeaturedProducts: "",
     });
+    // Reset product search states
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowSearchResults(false);
+    setSelectedProducts([]);
+    setSelectedProductNames("");
+
     // Reset payment options
     setPaymentOptions(
       paymentOptions.map((option) => ({
@@ -355,60 +469,86 @@ const BusinessLocations = () => {
     const locationToEdit = businessLocations.find(
       (location) => location.id === id
     );
-    if (locationToEdit) {
-      setCurrentLocation(locationToEdit);
-      setFormData({
-        name: locationToEdit.name || "",
-        locationId: locationToEdit.locationId || "",
-        landmark: locationToEdit.landmark || "",
-        city: locationToEdit.city || "",
-        zipCode: locationToEdit.zipCode || "",
-        state: locationToEdit.state || "",
-        country: locationToEdit.country || "",
-        mobile: locationToEdit.mobileNumber || "",
-        businessCategoryId: locationToEdit.businessCategoryId || "",
-        alternateContact: locationToEdit.alternateContactNumber || "",
-        email: locationToEdit.email || "",
-        website: locationToEdit.website || "",
 
-        invoiceSchemePOS: locationToEdit.invoiceSchemeForPosId || "",
-        invoiceSchemeSale: locationToEdit.invoiceSchemeForSaleId || "",
-        invoiceLayoutPOS: locationToEdit.invoiceLayoutForPosId || "",
-        invoiceLayoutSale: locationToEdit.invoiceLayoutForSaleId || "",
+    if (!locationToEdit) return;
 
-        defaultSellingPriceGroup:
-          locationToEdit.defaultSellingPriceGroupId || "",
+    setCurrentLocation(locationToEdit);
 
-        customField1: locationToEdit.customField1 || "",
-        customField2: locationToEdit.customField2 || "",
-        customField3: locationToEdit.customField3 || "",
-        customField4: locationToEdit.customField4 || "",
-        posFeaturedProducts: locationToEdit.featuredProducts || "",
-      });
+    setFormData({
+      name: locationToEdit.name || "",
+      locationId: locationToEdit.locationId || "",
+      landmark: locationToEdit.landmark || "",
+      city: locationToEdit.city || "",
+      zipCode: locationToEdit.zipCode || "",
+      state: locationToEdit.state || "",
+      country: locationToEdit.country || "",
+      mobile: locationToEdit.mobileNumber || "",
+      businessCategoryId: locationToEdit.businessCategoryId || "",
+      alternateContact: locationToEdit.alternateContactNumber || "",
+      email: locationToEdit.email || "",
+      website: locationToEdit.website || "",
 
-      if (locationToEdit.defaultPaymentAccount) {
-        const savedPayments = JSON.parse(locationToEdit.defaultPaymentAccount);
+      invoiceSchemePOS: locationToEdit.invoiceSchemeForPosId || "",
+      invoiceSchemeSale: locationToEdit.invoiceSchemeForSaleId || "",
+      invoiceLayoutPOS: locationToEdit.invoiceLayoutForPosId || "",
+      invoiceLayoutSale: locationToEdit.invoiceLayoutForSaleId || "",
 
-        setPaymentOptions((prev) =>
-          prev.map((option) => {
-            const saved = savedPayments.find(
-              (p) => p.paymentMethodId === option.paymentMethodId
-            );
+      defaultSellingPriceGroup: locationToEdit.defaultSellingPriceGroupId || "",
 
-            return saved
-              ? {
-                  ...option,
-                  enabled: saved.enabled,
-                  defaultAccountId: saved.defaultAccountId,
-                }
-              : option;
-          })
-        );
+      customField1: locationToEdit.customField1 || "",
+      customField2: locationToEdit.customField2 || "",
+      customField3: locationToEdit.customField3 || "",
+      customField4: locationToEdit.customField4 || "",
+
+      // ✅ Keep JSON as-is
+      posFeaturedProducts: locationToEdit.featuredProducts || "[]",
+    });
+
+    /* ================================
+     ✅ PRESELECT FEATURED PRODUCTS
+     ================================ */
+    if (locationToEdit.featuredProducts) {
+      try {
+        const parsedProducts = JSON.parse(locationToEdit.featuredProducts);
+
+        setSelectedProducts(parsedProducts);
+
+        setSelectedProductNames(parsedProducts.map((p) => p.name).join(", "));
+      } catch (err) {
+        console.error("Invalid featuredProducts JSON", err);
+        setSelectedProducts([]);
+        setSelectedProductNames("");
       }
-
-      setModalType("edit");
-      setModalVisible(true);
+    } else {
+      setSelectedProducts([]);
+      setSelectedProductNames("");
     }
+
+    /* ================================
+     ✅ PAYMENT OPTIONS
+     ================================ */
+    if (locationToEdit.defaultPaymentAccount) {
+      const savedPayments = JSON.parse(locationToEdit.defaultPaymentAccount);
+
+      setPaymentOptions((prev) =>
+        prev.map((option) => {
+          const saved = savedPayments.find(
+            (p) => p.paymentMethodId === option.paymentMethodId
+          );
+
+          return saved
+            ? {
+                ...option,
+                enabled: saved.enabled,
+                defaultAccountId: saved.defaultAccountId,
+              }
+            : option;
+        })
+      );
+    }
+
+    setModalType("edit");
+    setModalVisible(true);
   };
 
   const handleDelete = (id) => {
@@ -1053,21 +1193,6 @@ const BusinessLocations = () => {
                             </select>
                           </div>
                         </div>
-                        <div className="col-md-6">
-                          <div className="form-group">
-                            <label htmlFor="posFeaturedProducts">
-                              POS screen Featured Products:
-                            </label>
-                            <textarea
-                              id="posFeaturedProducts"
-                              className="form-control"
-                              value={formData.posFeaturedProducts}
-                              onChange={handleFormChange}
-                              placeholder="POS screen Featured Products"
-                              rows="2"
-                            />
-                          </div>
-                        </div>
                       </div>
 
                       {/* Custom Fields */}
@@ -1126,6 +1251,117 @@ const BusinessLocations = () => {
                               onChange={handleFormChange}
                               placeholder="Custom field 4"
                             />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* POS Screen Featured Products Search */}
+                      <div className="row mt-3">
+                        <div className="col-md-12">
+                          <div className="form-group">
+                            <label htmlFor="posFeaturedProducts">
+                              POS screen Featured Products:
+                            </label>
+
+                            {/* Selected Products Display */}
+                            {selectedProducts.length > 0 && (
+                              <div className="mb-3 p-2 border rounded bg-light">
+                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                  <strong>Selected Products:</strong>
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-danger"
+                                    onClick={clearSelectedProducts}
+                                  >
+                                    <i className="fas fa-times"></i> Clear All
+                                  </button>
+                                </div>
+                                <div className="d-flex flex-wrap gap-2">
+                                  {selectedProducts.map((product) => (
+                                    <div
+                                      key={product.id}
+                                      className="badge badge-primary p-2 d-flex align-items-center"
+                                    >
+                                      <span>{product.name}</span>
+                                      <button
+                                        type="button"
+                                        className="btn btn-sm btn-link text-white ml-2 p-0"
+                                        onClick={() =>
+                                          handleProductRemove(product.id)
+                                        }
+                                        style={{ fontSize: "0.75rem" }}
+                                      >
+                                        <i className="fas fa-times"></i>
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Search Input */}
+                            <div className="position-relative">
+                              <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Search products by name..."
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                                onFocus={() => setShowSearchResults(true)}
+                              />
+
+                              {/* Search Results Dropdown */}
+                              {showSearchResults &&
+                                searchResults.length > 0 && (
+                                  <div
+                                    className="position-absolute w-100 border rounded bg-white shadow-lg"
+                                    style={{
+                                      zIndex: 1050,
+                                      maxHeight: "200px",
+                                      overflowY: "auto",
+                                    }}
+                                  >
+                                    <ul className="list-group list-group-flush">
+                                      {searchResults.map((product) => (
+                                        <li
+                                          key={product.id}
+                                          className="list-group-item list-group-item-action"
+                                          onClick={() =>
+                                            handleProductSelect(product)
+                                          }
+                                          style={{ cursor: "pointer" }}
+                                        >
+                                          <div className="d-flex justify-content-between align-items-center">
+                                            <span>{product.productName}</span>
+                                            {product.sku && (
+                                              <small className="text-muted">
+                                                SKU: {product.sku}
+                                              </small>
+                                            )}
+                                          </div>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                            </div>
+
+                            {/* No results message */}
+                            {showSearchResults &&
+                              searchQuery &&
+                              searchResults.length === 0 && (
+                                <div className="mt-2 text-muted">
+                                  No products found. Try a different search
+                                  term.
+                                </div>
+                              )}
+
+                            {/* Instructions */}
+                            <small className="form-text text-muted">
+                              Search and select products to feature on the POS
+                              screen. Selected products will be stored as
+                              comma-separated IDs.
+                            </small>
                           </div>
                         </div>
                       </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Dropdown, DropdownButton } from "react-bootstrap";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const ContactLogin = () => {
   // Table data state
@@ -126,12 +127,13 @@ const ContactLogin = () => {
           `${process.env.REACT_APP_BASE_URL}/contact-login/save`,
           formData
         );
+        toast.success("Contact login saved successfully...");
         setContacts([...contacts, response.data]);
       }
       closeModal();
     } catch (err) {
-      console.error("Error saving contact login:", err);
-      alert("Error saving contact login. Please try again.");
+      //  console.error("Error saving contact login:", err);
+      toast.error("Error saving contact login. Please try again.");
     }
   };
 
@@ -142,10 +144,11 @@ const ContactLogin = () => {
         await axios.delete(
           `${process.env.REACT_APP_BASE_URL}/contact-login/delete/${id}`
         );
+        toast.success("Contact Login Deleted Successfully...");
         setContacts(contacts.filter((contact) => contact.id !== id));
       } catch (err) {
-        console.error("Error deleting contact login:", err);
-        alert("Error deleting contact login. Please try again.");
+        //  console.error("Error deleting contact login:", err);
+        toast.error("Error deleting contact login. Please try again.");
       }
     }
   };
@@ -205,9 +208,9 @@ const ContactLogin = () => {
     link.click();
   };
 
-  const exportExcel = () => alert("Exporting to Excel...");
+  const exportExcel = () => toast.warning("Exporting to Excel...");
   const printData = () => window.print();
-  const exportPDF = () => alert("Exporting to PDF...");
+  const exportPDF = () => toast.warning("Exporting to PDF...");
 
   const visibleColumnsCount =
     Object.values(columnsVisibility).filter(Boolean).length;

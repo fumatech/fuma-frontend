@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function AddPoPurchase() {
   const navigate = useNavigate();
@@ -567,7 +568,7 @@ function AddPoPurchase() {
     );
 
     if (variationsToAdd.length === 0) {
-      alert("Please select at least one variation to add.");
+      toast.warning("Please select at least one variation to add.");
       return;
     }
 
@@ -895,17 +896,17 @@ function AddPoPurchase() {
         const data = await response.json(); // Assuming the response contains the saved order data
 
         await updateOrderStatus(tempId); // Pass the order ID
-        alert("Purchase PO Order Placed Successfully");
+        toast.success("Purchase PO Order Placed Successfully");
         navigate("/ListPoPurchaseOrder");
       } else {
-        alert("Failed to save purchase order.");
+        toast.error("Failed to save purchase order.");
       }
     } catch (error) {
-      console.error(
-        "Error:",
-        error.response ? error.response.data : error.message
-      );
-      alert("An error occurred while saving the purchase order.");
+      // console.error(
+      //   "Error:",
+      //   error.response ? error.response.data : error.message
+      // );
+      toast.error("An error occurred while saving the purchase order.");
     }
   };
   const updateOrderStatus = async (tempId) => {

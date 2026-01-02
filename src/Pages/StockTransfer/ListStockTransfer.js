@@ -12,6 +12,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
+import { toast } from "react-toastify";
 
 const ListStockTransfer = () => {
   const [ListStockTransfer, setListStockTransfer] = useState([]);
@@ -460,7 +461,7 @@ const ListStockTransfer = () => {
           )
         );
         closeModal();
-        alert("Unit updated successfully!");
+        toast.success("Unit updated successfully!");
       } else if (modalType === "add") {
         const response = await fetch(
           `${process.env.REACT_APP_BASE_URL}/stock-transfer/save`,
@@ -480,11 +481,11 @@ const ListStockTransfer = () => {
         const newUnit = await response.json();
         setListStockTransfer((prevUnits) => [...prevUnits, newUnit]);
         closeModal();
-        alert("Unit added successfully!");
+        toast.success("Unit added successfully!");
       }
     } catch (error) {
-      console.error("Error saving unit:", error);
-      alert("Error saving unit");
+      //console.error("Error saving unit:", error);
+      toast.error("Error saving unit");
     }
   };
 
@@ -547,13 +548,13 @@ const ListStockTransfer = () => {
           setListStockTransfer((prevUnits) =>
             prevUnits.filter((unit) => unit.id !== id)
           );
-          alert("Unit deleted successfully!");
+          toast.success("Unit deleted successfully!");
         } else {
-          alert("Failed to delete unit.");
+          toast.error("Failed to delete unit.");
         }
       } catch (error) {
-        console.error("Error deleting unit:", error);
-        alert("Error deleting unit");
+        //console.error("Error deleting unit:", error);
+        toast.error("Error deleting unit");
       }
     }
   };

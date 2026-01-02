@@ -12,6 +12,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const ListAcceptedReturn = () => {
   const [viewOrders, setViewOrders] = useState([]);
@@ -335,17 +336,17 @@ const ListAcceptedReturn = () => {
             }
           );
           if (response.ok) {
-            alert(`Order ${action}ed successfully.`);
+            toast.success(`Order ${action}ed successfully.`);
             fetchAcceptedOrders();
           } else {
-            alert("Failed to update the order status.");
+            toast.error("Failed to update the order status.");
           }
         } catch (error) {
-          console.error("Error updating order status:", error);
-          alert("An error occurred while updating the order status.");
+          // console.error("Error updating order status:", error);
+          toast.error("An error occurred while updating the order status.");
         }
       } else {
-        alert("Order action was canceled.");
+        toast.error("Order action was canceled.");
       }
     }
   };

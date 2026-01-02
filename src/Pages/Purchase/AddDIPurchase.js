@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function AddDIPurchase() {
   const navigate = useNavigate();
@@ -706,11 +707,11 @@ function AddDIPurchase() {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
 
-      alert("Purchase DI Order Placed Successfully!");
+      toast.success("Purchase DI Order Placed Successfully!");
       navigate("/ListDIPurchaseOrder");
     } catch (error) {
-      console.error("Error Response:", error.response);
-      alert("Order Failed");
+      //console.error("Error Response:", error.response);
+      toast.error("Order Failed To Place");
     }
   };
 

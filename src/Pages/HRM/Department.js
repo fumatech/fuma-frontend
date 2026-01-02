@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { toast } from "react-toastify";
 
 const Department = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,10 +59,10 @@ const Department = () => {
     }));
   };
 
-  const exportCSV = () => alert("Export CSV functionality");
-  const exportExcel = () => alert("Export Excel functionality");
-  const printData = () => alert("Print functionality");
-  const exportPDF = () => alert("Export PDF functionality");
+  const exportCSV = () => toast.warning("Export CSV functionality");
+  const exportExcel = () => toast.warning("Export Excel functionality");
+  const printData = () => toast.warning("Print functionality");
+  const exportPDF = () => toast.warning("Export PDF functionality");
 
   const handleDropdownItemClick = (col, e) => {
     e.stopPropagation();

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Select from "react-select";
+import { toast } from "react-toastify";
 
 function ViewExpense() {
   const { id } = useParams(); // Get expense ID from URL
@@ -137,9 +138,9 @@ function ViewExpense() {
 
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching expense data:", error);
+      // console.error("Error fetching expense data:", error);
       setLoading(false);
-      alert("Failed to load expense data");
+      toast.error("Failed to load expense data");
     }
   };
 
@@ -394,11 +395,11 @@ function ViewExpense() {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
 
-      alert("Expense Updated Successfully!");
+      toast.success("Expense Updated Successfully!");
       navigate("/expenses"); // Redirect to expenses list page
     } catch (error) {
-      console.error("Error updating expense:", error);
-      alert("Failed to update expense. Please try again.");
+      //  console.error("Error updating expense:", error);
+      toast.error("Failed to update expense. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

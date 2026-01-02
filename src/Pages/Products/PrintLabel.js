@@ -5,6 +5,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import Barcode from "react-barcode";
 import { jsPDF } from "jspdf";
 import bwipjs from "bwip-js";
+import { toast } from "react-toastify";
 
 function PrintLabel() {
   const [product, setProduct] = useState(null);
@@ -195,7 +196,7 @@ function PrintLabel() {
     });
 
     if (productsToAdd.length === 0) {
-      alert("Please select at least one product/variation to add.");
+      toast.warning("Please select at least one product/variation to add.");
       return;
     }
 
@@ -467,7 +468,7 @@ function PrintLabel() {
                                     <span className="product-sku">
                                       {product.sku}
                                     </span>
-                                    <span
+                                    {/* <span
                                       className={`stock ${
                                         product.stock > 0
                                           ? "in-stock"
@@ -477,7 +478,7 @@ function PrintLabel() {
                                       {product.stock > 0
                                         ? `Stock: ${product.stock}`
                                         : "Out of stock"}
-                                    </span>
+                                    </span> */}
                                     <span className="product-type">
                                       {product.productType}
                                     </span>

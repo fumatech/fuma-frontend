@@ -10,6 +10,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { Collapse } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 const Brands = () => {
   const [brands, setBrands] = useState([]);
@@ -33,11 +34,11 @@ const Brands = () => {
   const [filterValues, setFilterValues] = useState({
     brandNames: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     brandName: "",
   });
-  
+
   const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -67,8 +68,10 @@ const Brands = () => {
   // Extract filter values when brands data changes
   useEffect(() => {
     if (brands.length > 0) {
-      const brandNames = [...new Set(brands.map(item => item.brandName))].filter(Boolean);
-      
+      const brandNames = [
+        ...new Set(brands.map((item) => item.brandName)),
+      ].filter(Boolean);
+
       setFilterValues({
         brandNames,
       });
@@ -78,11 +81,13 @@ const Brands = () => {
   // Apply filters whenever activeFilters or brands changes
   useEffect(() => {
     const filteredData = brands.filter((brand) => {
-      const brandNameMatch = activeFilters.brandName === "" || brand.brandName === activeFilters.brandName;
-      
+      const brandNameMatch =
+        activeFilters.brandName === "" ||
+        brand.brandName === activeFilters.brandName;
+
       return brandNameMatch;
     });
-    
+
     setFilteredBrands(filteredData);
   }, [activeFilters, brands]);
 
@@ -199,11 +204,11 @@ const Brands = () => {
             )
           );
           closeModal(); // Close the modal
-          alert("Brand updated successfully!");
+          toast.success("Brand updated successfully!");
         })
         .catch((error) => {
-          console.error("Error updating brand:", error);
-          alert("Error updating brand");
+          // console.error("Error updating brand:", error);
+          toast.error("Error updating brand");
         });
     } else if (modalType === "add") {
       fetch(`${process.env.REACT_APP_BASE_URL}/brands/save`, {
@@ -223,11 +228,11 @@ const Brands = () => {
         .then((newBrand) => {
           setBrands((prevBrands) => [...prevBrands, newBrand]);
           closeModal();
-          alert("Brand added successfully!");
+          toast.success("Brand added successfully!");
         })
         .catch((error) => {
-          console.error("Error adding brand:", error);
-          alert("Error adding brand");
+          //console.error("Error adding brand:", error);
+          toast.error("Error adding brand");
         });
     }
   };
@@ -268,12 +273,12 @@ const Brands = () => {
             setBrands((prevBrands) =>
               prevBrands.filter((brand) => brand.id !== id)
             );
-            alert("Brand deleted successfully!");
+            toast.success("Brand deleted successfully!");
           } else {
-            alert("Failed to delete brand.");
+            toast.error("Failed to delete brand.");
           }
         })
-        .catch((error) => console.error("Error deleting brand:", error));
+        .catch((error) => toast.error("Error deleting brand:", error));
     }
   };
 
@@ -599,12 +604,12 @@ const Brands = () => {
                         </>
                       ) : (
                         <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={closeModal}
-                          >
-                            Close
-                          </button>
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={closeModal}
+                        >
+                          Close
+                        </button>
                       )}
                     </div>
                   </form>

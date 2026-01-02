@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css";
+import { toast } from "react-toastify";
 
 function SaleEntry() {
   const [vendor, setVendor] = useState("");
@@ -105,7 +106,7 @@ function SaleEntry() {
     );
 
     if (variationsToAdd.length === 0) {
-      alert("Please select at least one variation to add.");
+      toast.warning("Please select at least one variation to add.");
       return;
     }
     const newProducts = variationsToAdd

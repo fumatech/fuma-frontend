@@ -11,6 +11,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Collapse } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 const Variation = () => {
   const [variations, setVariations] = useState([]);
@@ -33,11 +34,11 @@ const Variation = () => {
   const [filterValues, setFilterValues] = useState({
     variationNames: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     variationName: "",
   });
-  
+
   const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -91,8 +92,10 @@ const Variation = () => {
   // Extract filter values when variations data changes
   useEffect(() => {
     if (variations.length > 0) {
-      const variationNames = [...new Set(variations.map(item => item.variationName))].filter(Boolean);
-      
+      const variationNames = [
+        ...new Set(variations.map((item) => item.variationName)),
+      ].filter(Boolean);
+
       setFilterValues({
         variationNames,
       });
@@ -102,11 +105,13 @@ const Variation = () => {
   // Apply filters whenever activeFilters or variations changes
   useEffect(() => {
     const filteredData = variations.filter((variation) => {
-      const variationNameMatch = activeFilters.variationName === "" || variation.variationName === activeFilters.variationName;
-      
+      const variationNameMatch =
+        activeFilters.variationName === "" ||
+        variation.variationName === activeFilters.variationName;
+
       return variationNameMatch;
     });
-    
+
     setFilteredVariations(filteredData);
   }, [activeFilters, variations]);
 
@@ -229,7 +234,9 @@ const Variation = () => {
   const endIndex = startIndex + entriesPerPage;
 
   const handleEdit = (id) => {
-    const variationToEdit = filteredVariations.find((variation) => variation.id === id);
+    const variationToEdit = filteredVariations.find(
+      (variation) => variation.id === id
+    );
     if (variationToEdit) {
       setCurrentVariation(variationToEdit);
       setFormData({
@@ -265,7 +272,7 @@ const Variation = () => {
           )
         );
         closeModal();
-        alert("Variation updated successfully!");
+        toast.success("Variation updated successfully!");
       } else if (modalType === "add") {
         const response = await fetch(
           `${process.env.REACT_APP_BASE_URL}/variations/save`,
@@ -285,11 +292,11 @@ const Variation = () => {
         const newVariation = await response.json();
         setVariations((prevVariations) => [...prevVariations, newVariation]);
         closeModal();
-        alert("Variation added successfully!");
+        toast.success("Variation added successfully!");
       }
     } catch (error) {
-      console.error("Error saving variation:", error);
-      alert("Error saving variation");
+      // console.error("Error saving variation:", error);
+      toast.error("Error saving variation");
     }
   };
 
@@ -299,7 +306,9 @@ const Variation = () => {
   };
 
   const handleView = (id) => {
-    const variationToView = filteredVariations.find((variation) => variation.id === id);
+    const variationToView = filteredVariations.find(
+      (variation) => variation.id === id
+    );
     if (variationToView) {
       setCurrentVariation(variationToView);
       setModalType("view");
@@ -320,13 +329,13 @@ const Variation = () => {
           setVariations((prevVariations) =>
             prevVariations.filter((variation) => variation.id !== id)
           );
-          alert("Variation deleted successfully!");
+          toast.success("Variation deleted successfully!");
         } else {
-          alert("Failed to delete variation.");
+          toast.error("Failed to delete variation.");
         }
       } catch (error) {
-        console.error("Error deleting variation:", error);
-        alert("Error deleting variation");
+        //console.error("Error deleting variation:", error);
+        toast.error("Error deleting variation");
       }
     }
   };

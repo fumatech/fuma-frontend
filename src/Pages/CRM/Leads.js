@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Dropdown, DropdownButton } from "react-bootstrap";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const Leads = () => {
   // Table data state
@@ -160,12 +161,13 @@ const Leads = () => {
           `${process.env.REACT_APP_BASE_URL}/lead/save`,
           formData
         );
+        toast.success("Lead Saved Successfully...");
         setLeads([...leads, response.data]);
       }
       closeModal();
     } catch (err) {
-      console.error("Error saving lead:", err);
-      alert("Error saving lead. Please try again.");
+      // console.error("Error saving lead:", err);
+      toast.error("Error saving lead. Please try again.");
     }
   };
 
@@ -176,10 +178,11 @@ const Leads = () => {
         await axios.delete(
           `${process.env.REACT_APP_BASE_URL}/lead/delete/${id}`
         );
+        toast.success("Lead Deleted Successfully...");
         setLeads(leads.filter((lead) => lead.id !== id));
       } catch (err) {
-        console.error("Error deleting lead:", err);
-        alert("Error deleting lead. Please try again.");
+        //console.error("Error deleting lead:", err);
+        toast.error("Error deleting lead. Please try again.");
       }
     }
   };
@@ -237,9 +240,9 @@ const Leads = () => {
     link.click();
   };
 
-  const exportExcel = () => alert("Exporting to Excel...");
+  const exportExcel = () => toast.warning("Exporting to Excel...");
   const printData = () => window.print();
-  const exportPDF = () => alert("Exporting to PDF...");
+  const exportPDF = () => toast.warning("Exporting to PDF...");
 
   const visibleColumnsCount =
     Object.values(columnsVisibility).filter(Boolean).length;

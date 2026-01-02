@@ -13,6 +13,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const ListSoSale = () => {
   const [purchases, setPurchases] = useState([]);
@@ -256,19 +257,19 @@ const ListSoSale = () => {
             )
               .then((res) => {
                 if (res.ok) {
-                  alert("Sale So Order deleted successfully!");
+                  toast.success("Sale So Order deleted successfully!");
                 } else {
-                  alert("Sale So Order deleted successfully!");
+                  toast.error("Sale So Order deleted successfully!");
                 }
               })
               .catch((error) =>
                 console.error("Error updating order status:", error)
               );
           } else {
-            alert("Failed to delete product.");
+            toast.error("Failed to delete.");
           }
         })
-        .catch((error) => console.error("Error deleting product:", error));
+        .catch((error) => console.error("Error deleting :", error));
     }
   };
 

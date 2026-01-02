@@ -5,6 +5,7 @@ import Select from "react-select";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function ViewDISale() {
   const { id } = useParams();
@@ -441,7 +442,7 @@ function ViewDISale() {
     );
 
     if (variationsToAdd.length === 0) {
-      alert("Please select at least one variation to add.");
+      toast.warning("Please select at least one variation to add.");
       return;
     }
 

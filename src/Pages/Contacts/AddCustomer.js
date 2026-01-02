@@ -14,6 +14,7 @@ import "../../assets/plugins/bs-stepper/css/bs-stepper.min.css";
 import "../../assets/plugins/dropzone/min/dropzone.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../AddUser.css";
+import { toast } from "react-toastify";
 
 const AddCustomer = () => {
   // Basic Information
@@ -389,12 +390,12 @@ const AddCustomer = () => {
     setIsSubmitting(true);
 
     if (vendorId.trim() === "") {
-      alert("Franchise ID is required");
+      toast.warning("Franchise ID is required");
       setIsSubmitting(false);
       return;
     }
     if (emailError) {
-      alert("Please fix the email error before submitting.");
+      toast.warning("Please fix the email error before submitting.");
       return;
     }
 
@@ -405,19 +406,21 @@ const AddCustomer = () => {
           "Franchise ID already exists. Please use a different one."
         );
         setFranchiseIdValid(false);
-        alert("Franchise ID already exists. Please use a different one.");
+        toast.warning(
+          "Franchise ID already exists. Please use a different one."
+        );
         setIsSubmitting(false);
         return;
       }
     } catch (error) {
       console.error("Error verifying Franchise ID:", error);
-      alert("Error verifying Franchise ID. Please try again.");
+      toast.error("Error verifying Franchise ID. Please try again.");
       setIsSubmitting(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      toast.warning("Passwords do not match!");
       setIsSubmitting(false);
       return;
     }
@@ -491,7 +494,7 @@ const AddCustomer = () => {
       }
 
       const data = await response.json();
-      alert("Franchise added successfully!");
+      toast.success("Franchise added successfully!");
 
       setShowSuccessAlert(true);
 
@@ -501,8 +504,8 @@ const AddCustomer = () => {
         navigate("/Customer");
       }, 3000);
     } catch (error) {
-      console.error("Error saving franchise:", error);
-      alert("Error saving franchise. Please try again.");
+      // console.error("Error saving franchise:", error);
+      toast.error("Error saving franchise. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

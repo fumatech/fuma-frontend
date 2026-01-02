@@ -14,6 +14,7 @@ import "../../assets/plugins/bs-stepper/css/bs-stepper.min.css";
 import "../../assets/plugins/dropzone/min/dropzone.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../AddUser.css";
+import { toast } from "react-toastify";
 
 const EditVendor = () => {
   const { id } = useParams();
@@ -312,7 +313,7 @@ const EditVendor = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      toast.warning("Passwords do not match!");
       return;
     }
 
@@ -380,11 +381,11 @@ const EditVendor = () => {
         throw new Error("Failed to update vendor");
       }
 
-      alert("Vendor updated successfully!");
+      toast.success("Vendor updated successfully!");
       navigate("/Vendor");
     } catch (error) {
-      console.error("Error updating vendor:", error);
-      alert("Failed to update vendor. Please try again.");
+      //console.error("Error updating vendor:", error);
+      toast.error("Failed to update vendor. Please try again.");
     }
   };
 

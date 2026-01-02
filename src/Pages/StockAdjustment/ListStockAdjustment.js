@@ -12,6 +12,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
+import { toast } from "react-toastify";
 
 const ListStockAdjustment = () => {
   const navigate = useNavigate();
@@ -447,13 +448,13 @@ const ListStockAdjustment = () => {
               (listStockAdjustment) => listStockAdjustment.id !== id
             )
           );
-          alert(" deleted successfully!");
+          toast.success(" deleted successfully!");
         } else {
-          alert("Failed to delete .");
+          toast.error("Failed to delete .");
         }
       } catch (error) {
-        console.error("Error deleting :", error);
-        alert("Error deleting ");
+        // console.error("Error deleting :", error);
+        toast.error("Error deleting ");
       }
     }
   };

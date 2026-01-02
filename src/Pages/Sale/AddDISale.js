@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function AddDISale() {
   const navigate = useNavigate();
@@ -634,14 +635,14 @@ function AddDISale() {
       );
 
       if (response.ok) {
-        alert("Sale DI Order Saved Successfully");
+        toast.success("Sale DI Order Saved Successfully");
         navigate("/ListDISale");
       } else {
-        alert("Sale DI Order Not Saved");
+        toast.error("Sale DI Order Not Saved");
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred while saving the sale SO order.");
+      // console.error("Error:", error);
+      toast.error("An error occurred while saving the sale SO order.");
     }
   };
   const handleFranchiseChange = async (e) => {

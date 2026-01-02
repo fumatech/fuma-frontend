@@ -6,13 +6,13 @@ import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
 import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
 import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
 import { Dropdown, DropdownButton } from "react-bootstrap"; // Make sure you have react-bootstrap installed
-
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const ListDIPurchaseOrder = () => {
   const [purchases, setPurchases] = useState([]);
@@ -110,12 +110,12 @@ const ListDIPurchaseOrder = () => {
             setPurchases((prevPurchases) =>
               prevPurchases.filter((purchase) => purchase.id !== id)
             );
-            alert("Purchase deleted successfully!");
+            toast.success("Purchase deleted successfully!");
           } else {
-            alert("Failed to delete Purchase.");
+            toast.error("Failed to delete Purchase.");
           }
         })
-        .catch((error) => console.error("Error deleting Purchase:", error));
+        .catch((error) => toast.error("Error deleting Purchase:", error));
     }
   };
   const exportCSV = () => {

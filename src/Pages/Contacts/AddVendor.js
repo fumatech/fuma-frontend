@@ -14,6 +14,7 @@ import "../../assets/plugins/bs-stepper/css/bs-stepper.min.css";
 import "../../assets/plugins/dropzone/min/dropzone.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../AddUser.css";
+import { toast } from "react-toastify";
 
 const AddVendor = () => {
   // Basic Information
@@ -41,14 +42,14 @@ const AddVendor = () => {
 
   // Personal Information
   const [language, setLanguage] = useState("");
- // Change the dateOfBirth state initialization
-const [dateOfBirth, setDateOfBirth] = useState(() => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-});
+  // Change the dateOfBirth state initialization
+  const [dateOfBirth, setDateOfBirth] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  });
   const [gender, setGender] = useState("");
   const [maritalStatus, setMaritalStatus] = useState("");
   const [bloodGroup, setBloodGroup] = useState("");
@@ -321,11 +322,11 @@ const [dateOfBirth, setDateOfBirth] = useState(() => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      toast.warning("Passwords do not match!");
       return;
     }
     if (emailError) {
-      alert("Please fix the email error before submitting.");
+      toast.warning("Please fix the email error before submitting.");
       return;
     }
 
@@ -393,7 +394,7 @@ const [dateOfBirth, setDateOfBirth] = useState(() => {
         return response.json();
       })
       .then(() => {
-        alert("Vendor saved successfully!");
+        toast.success("Vendor saved successfully!");
         navigate("/Vendor");
       })
       .catch((error) => console.error("Error saving vendor:", error));

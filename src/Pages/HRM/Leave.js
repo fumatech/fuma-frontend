@@ -7,6 +7,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import moment from "moment";
+import { toast } from "react-toastify";
 
 function Leave({ userRoles }) {
   const [leaveData, setLeaveData] = useState([]);
@@ -109,6 +110,18 @@ function Leave({ userRoles }) {
         return "Unknown";
     }
   };
+  const getStatusColorClass = (status) => {
+    switch (status) {
+      case 0:
+        return "text-warning"; // Pending → Yellow
+      case 1:
+        return "text-success"; // Approved → Green
+      case 2:
+        return "text-danger"; // Rejected → Red
+      default:
+        return "text-secondary";
+    }
+  };
 
   // Handle entries per page change
   const handleEntriesChange = (e) => {
@@ -142,7 +155,7 @@ function Leave({ userRoles }) {
       !currentLeave.leaveType ||
       !currentLeave.startDate
     ) {
-      alert("Please fill all required fields");
+      toast.warning("Please fill all required fields");
       return;
     }
 
@@ -359,8 +372,8 @@ function Leave({ userRoles }) {
   const endIndex = startIndex + entriesPerPage;
   const displayedLeaves = leaveData.slice(startIndex, endIndex);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  // if (loading) return <div>Loading...</div>;
+  // if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="wrapper">
@@ -515,8 +528,19 @@ function Leave({ userRoles }) {
                                   <td>{leave.reason}</td>
                                 )}
                                 {columnsVisibility.status && (
-                                  <td>{leave.statusText}</td>
+                                  <td>
+                                    <button
+                                      type="button"
+                                      className={`btn btn-link p-0 ${getStatusColorClass(
+                                        leave.status
+                                      )}`}
+                                      onClick={() => handleEdit(leave)}
+                                    >
+                                      {getStatusText(leave.status)}
+                                    </button>
+                                  </td>
                                 )}
+
                                 <td>
                                   <button
                                     onClick={() => handleEdit(leave)}

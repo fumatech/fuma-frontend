@@ -1,22 +1,23 @@
-import React, { useState , useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 const AllPayrollGroups = () => {
-    const [columnsVisibility, setColumnsVisibility] = useState({
-        name: true,
-        status: true,
-        paymentStatus: true,
-        totalGrossAmount: true,
-        addedBy: true,
-        location: true,
-        createdAt: true,
-        actions: true
-      });
-  
-    // Add new states for location and employee selection
-    const [locations, setLocations] = useState([]);
-    const [allEmployees, setAllEmployees] = useState([]);
-    const [selectedEmployees, setSelectedEmployees] = useState([]);
-    const [selectAllEmployees, setSelectAllEmployees] = useState(false);
+  const [columnsVisibility, setColumnsVisibility] = useState({
+    name: true,
+    status: true,
+    paymentStatus: true,
+    totalGrossAmount: true,
+    addedBy: true,
+    location: true,
+    createdAt: true,
+    actions: true,
+  });
+
+  // Add new states for location and employee selection
+  const [locations, setLocations] = useState([]);
+  const [allEmployees, setAllEmployees] = useState([]);
+  const [selectedEmployees, setSelectedEmployees] = useState([]);
+  const [selectAllEmployees, setSelectAllEmployees] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [payrollData, setPayrollData] = useState([]); // Changed from shiftData to payrollData
   const [formData, setFormData] = useState({
@@ -102,8 +103,8 @@ const AllPayrollGroups = () => {
     setPayrollData(updatedPayrolls);
   };
 
-   // Fetch locations and employees (example with mock data)
-   useEffect(() => {
+  // Fetch locations and employees (example with mock data)
+  useEffect(() => {
     // In a real app, you would fetch these from an API
     setLocations([
       { id: 1, name: "New York Office" },
@@ -121,9 +122,9 @@ const AllPayrollGroups = () => {
 
   // Handle employee selection
   const handleEmployeeSelect = (employeeId) => {
-    setSelectedEmployees(prev =>
+    setSelectedEmployees((prev) =>
       prev.includes(employeeId)
-        ? prev.filter(id => id !== employeeId)
+        ? prev.filter((id) => id !== employeeId)
         : [...prev, employeeId]
     );
   };
@@ -133,13 +134,12 @@ const AllPayrollGroups = () => {
     if (selectAllEmployees) {
       setSelectedEmployees([]);
     } else {
-      setSelectedEmployees(allEmployees.map(emp => emp.id));
+      setSelectedEmployees(allEmployees.map((emp) => emp.id));
     }
     setSelectAllEmployees(!selectAllEmployees);
   };
 
   // ... (keep all existing code until the modal part)
-
 
   return (
     <>
@@ -147,7 +147,6 @@ const AllPayrollGroups = () => {
         <div className="container-fluid">
           <div className="card cardHover rounded-4 border-0">
             <div className="text-right p-3">
-             
               <div className="card-body">
                 {/* Table */}
                 <div className="row mb-3 d-flex align-items-center">
@@ -220,76 +219,89 @@ const AllPayrollGroups = () => {
               </div>
 
               <div id="table-container" style={{ overflowX: "auto" }}>
-              <table className="table table-bordered table-hover" id="example1">
-  <thead>
-    <tr role="row">
-      {columnsVisibility.name && (
-        <th className="sorting_asc">Name</th>
-      )}
-      {columnsVisibility.status && (
-        <th className="sorting">Status</th>
-      )}
-      {columnsVisibility.paymentStatus && (
-        <th className="sorting">Payment Status</th>
-      )}
-      {columnsVisibility.totalGrossAmount && (
-        <th className="sorting">Total Gross Amount</th>
-      )}
-      {columnsVisibility.addedBy && (
-        <th className="sorting">Added By</th>
-      )}
-      {columnsVisibility.location && (
-        <th className="sorting">Location</th>
-      )}
-      {columnsVisibility.createdAt && (
-        <th className="sorting">Created At</th>
-      )}
-      {columnsVisibility.actions && (
-        <th className="sorting">Action</th>
-      )}
-    </tr>
-  </thead>
-  <tbody>
-    {payrollData.map((payroll) => (
-      <tr key={payroll.id} role="row">
-        {columnsVisibility.name && <td>{payroll.name}</td>}
-        {columnsVisibility.status && <td>{payroll.status}</td>}
-        {columnsVisibility.paymentStatus && <td>{payroll.paymentStatus}</td>}
-        {columnsVisibility.totalGrossAmount && <td>{payroll.totalGrossAmount}</td>}
-        {columnsVisibility.addedBy && <td>{payroll.addedBy}</td>}
-        {columnsVisibility.location && <td>{payroll.location}</td>}
-        {columnsVisibility.createdAt && <td>{payroll.createdAt}</td>}
-        {columnsVisibility.actions && (
-          <td className="text-right">
-            <div className="btn-group btn-group-sm btn-icon-only">
-              <button
-                type="button"
-                className="btn-edit"
-                onClick={() => openModal(payroll)}
-              >
-                <i className="fas fa-edit btn-icon"></i> Edit
-              </button>
-              <button
-                type="button"
-                className="btn-view"
-                onClick={() => openModal(payroll)}
-              >
-                <i className="fas fa-eye btn-icon"></i> View
-              </button>
-              <button
-                type="button"
-                className="btn-delete"
-                onClick={() => handleDelete(payroll.id)}
-              >
-                <i className="fas fa-trash btn-icon"></i> Delete
-              </button>
-            </div>
-          </td>
-        )}
-      </tr>
-    ))}
-  </tbody>
-</table>
+                <table
+                  className="table table-bordered table-hover"
+                  id="example1"
+                >
+                  <thead>
+                    <tr role="row">
+                      {columnsVisibility.name && (
+                        <th className="sorting_asc">Name</th>
+                      )}
+                      {columnsVisibility.status && (
+                        <th className="sorting">Status</th>
+                      )}
+                      {columnsVisibility.paymentStatus && (
+                        <th className="sorting">Payment Status</th>
+                      )}
+                      {columnsVisibility.totalGrossAmount && (
+                        <th className="sorting">Total Gross Amount</th>
+                      )}
+                      {columnsVisibility.addedBy && (
+                        <th className="sorting">Added By</th>
+                      )}
+                      {columnsVisibility.location && (
+                        <th className="sorting">Location</th>
+                      )}
+                      {columnsVisibility.createdAt && (
+                        <th className="sorting">Created At</th>
+                      )}
+                      {columnsVisibility.actions && (
+                        <th className="sorting">Action</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payrollData.map((payroll) => (
+                      <tr key={payroll.id} role="row">
+                        {columnsVisibility.name && <td>{payroll.name}</td>}
+                        {columnsVisibility.status && <td>{payroll.status}</td>}
+                        {columnsVisibility.paymentStatus && (
+                          <td>{payroll.paymentStatus}</td>
+                        )}
+                        {columnsVisibility.totalGrossAmount && (
+                          <td>{payroll.totalGrossAmount}</td>
+                        )}
+                        {columnsVisibility.addedBy && (
+                          <td>{payroll.addedBy}</td>
+                        )}
+                        {columnsVisibility.location && (
+                          <td>{payroll.location}</td>
+                        )}
+                        {columnsVisibility.createdAt && (
+                          <td>{payroll.createdAt}</td>
+                        )}
+                        {columnsVisibility.actions && (
+                          <td className="text-right">
+                            <div className="btn-group btn-group-sm btn-icon-only">
+                              <button
+                                type="button"
+                                className="btn-edit"
+                                onClick={() => openModal(payroll)}
+                              >
+                                <i className="fas fa-edit btn-icon"></i> Edit
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-view"
+                                onClick={() => openModal(payroll)}
+                              >
+                                <i className="fas fa-eye btn-icon"></i> View
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-delete"
+                                onClick={() => handleDelete(payroll.id)}
+                              >
+                                <i className="fas fa-trash btn-icon"></i> Delete
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -297,7 +309,7 @@ const AllPayrollGroups = () => {
       </section>
 
       {/* Modal */}
-  {/* Modal */}
+      {/* Modal */}
       {isModalOpen && (
         <>
           <div
@@ -352,7 +364,7 @@ const AllPayrollGroups = () => {
                         required
                       >
                         <option value="">Select Location</option>
-                        {locations.map(location => (
+                        {locations.map((location) => (
                           <option key={location.id} value={location.id}>
                             {location.name}
                           </option>
@@ -363,7 +375,9 @@ const AllPayrollGroups = () => {
                     {/* Employee Selection */}
                     <div className="form-group">
                       <div className="d-flex justify-content-between align-items-center mb-2">
-                        <label className="font-weight-bold mb-0">Employees:*</label>
+                        <label className="font-weight-bold mb-0">
+                          Employees:*
+                        </label>
                         <button
                           type="button"
                           className="btn btn-sm btn-outline-primary"
@@ -372,8 +386,11 @@ const AllPayrollGroups = () => {
                           {selectAllEmployees ? "Deselect All" : "Select All"}
                         </button>
                       </div>
-                      <div className="employee-select-container border rounded p-2" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                        {allEmployees.map(employee => (
+                      <div
+                        className="employee-select-container border rounded p-2"
+                        style={{ maxHeight: "200px", overflowY: "auto" }}
+                      >
+                        {allEmployees.map((employee) => (
                           <div key={employee.id} className="form-check">
                             <input
                               className="form-check-input"
@@ -382,7 +399,10 @@ const AllPayrollGroups = () => {
                               checked={selectedEmployees.includes(employee.id)}
                               onChange={() => handleEmployeeSelect(employee.id)}
                             />
-                            <label className="form-check-label" htmlFor={`emp-${employee.id}`}>
+                            <label
+                              className="form-check-label"
+                              htmlFor={`emp-${employee.id}`}
+                            >
                               {employee.name}
                             </label>
                           </div>
@@ -411,7 +431,7 @@ const AllPayrollGroups = () => {
                       <button
                         type="submit"
                         className="btn btn-primary btn-lg"
-                        style={{ minWidth: '200px' }}
+                        style={{ minWidth: "200px" }}
                       >
                         {formData.id ? "Update Payroll" : "Generate Payroll"}
                       </button>

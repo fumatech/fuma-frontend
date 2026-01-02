@@ -1,5 +1,6 @@
 import React from "react";
 import { FaCalendarAlt, FaMoneyBillAlt } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 const PayrollGroupPayment = () => {
   // Static data

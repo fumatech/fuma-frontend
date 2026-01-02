@@ -6,6 +6,7 @@ import "../../assets/plugins/fontawesome-free/css/all.min.css";
 import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
 import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
 import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
+import { toast } from "react-toastify";
 
 const ListPaymentMethod = () => {
   const [paymentMethods, setPaymentMethods] = useState([]);
@@ -20,12 +21,13 @@ const ListPaymentMethod = () => {
         `${process.env.REACT_APP_BASE_URL}/payment-method/getall`
       );
       if (!response.ok) {
-        throw new Error("Failed to fetch payment methods");
+        toast.error("Failed to fetch payment methods");
       }
       const data = await response.json();
       setPaymentMethods(data);
     } catch (error) {
-      console.error("Error fetching payment methods:", error);
+      //console.error("Error fetching payment methods:", error);
+      toast.error("Failed to fetch payment methods");
     }
   };
 
@@ -46,11 +48,13 @@ const ListPaymentMethod = () => {
             method.id === id ? { ...method, isActive: !currentStatus } : method
           )
         );
+        toast.success("Payment Method Status Upadted");
       } else {
-        console.error("Failed to update status");
+        toast.error("Failed to update status");
       }
     } catch (error) {
-      console.error("Error updating status:", error);
+      //console.error("Error updating status:", error);
+      toast.error("Failed to update status");
     }
   };
 

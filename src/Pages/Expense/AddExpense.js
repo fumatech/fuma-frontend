@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 
 import axios from "axios";
 import Select from "react-select";
+import { toast } from "react-toastify";
 
 function AddExpense() {
   const navigate = useNavigate();
@@ -287,10 +288,11 @@ function AddExpense() {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
 
-      alert("Expenses Saved Successfully!");
+      toast.success("Expenses Saved Successfully!");
       navigate("/ListExpense"); // Redirect to expenses list page
     } catch (error) {
-      console.error("Error:", error);
+      //console.error("Error:", error);
+      toast.error("Failed To Save Expense");
     }
   };
 

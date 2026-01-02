@@ -7,6 +7,7 @@ import "../../assets/plugins/fontawesome-free/css/all.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "bootstrap-daterangepicker";
 import "bootstrap-daterangepicker/daterangepicker.css";
+import { toast } from "react-toastify";
 
 const AttendanceDate = () => {
   const [attendanceData, setAttendanceData] = useState([]);

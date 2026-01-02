@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function AddSoSale() {
   const { franchisePurchaseOrderId } = useParams(); // Get the franchisePurchaseOrderId from URL
@@ -590,7 +591,7 @@ function AddSoSale() {
     );
 
     if (variationsToAdd.length === 0) {
-      alert("Please select at least one variation to add.");
+      toast.warning("Please select at least one variation to add.");
       return;
     }
 
@@ -879,17 +880,17 @@ function AddSoSale() {
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error details:", errorData);
-        alert("Error: " + errorData.message || "Failed to save order");
+        toast.error("Failed to save order");
         return;
       }
 
       if (response.ok) {
-        alert("Sale So Order Placed Successfully");
+        toast.success("Sale So Order Placed Successfully");
         navigate("/ListSoSale");
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred while saving the sale SO order.");
+      // console.error("Error:", error);
+      toast.error("An error occurred while saving the sale SO order.");
     }
   };
 

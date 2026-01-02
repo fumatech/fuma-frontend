@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { toast } from "react-toastify";
 
 const HRMSettings = () => {
   const [activeTab, setActiveTab] = useState("leave");

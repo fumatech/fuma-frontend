@@ -10,6 +10,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { Collapse } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 const BusinessCategory = () => {
   const [categories, setCategories] = useState([]);
@@ -113,21 +114,42 @@ const BusinessCategory = () => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
 
   const handleSave = () => {
-    const url =
-      modalType === "edit"
-        ? `${process.env.REACT_APP_BASE_URL}/business-category/update/${currentCategory.id}`
-        : `${process.env.REACT_APP_BASE_URL}/business-category/save`;
+    const isEdit = modalType === "edit";
+
+    const url = isEdit
+      ? `${process.env.REACT_APP_BASE_URL}/business-category/update/${currentCategory.id}`
+      : `${process.env.REACT_APP_BASE_URL}/business-category/save`;
 
     fetch(url, {
-      method: modalType === "edit" ? "PUT" : "POST",
+      method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
     })
-      .then((res) => res.json())
-      .then(() => {
-        window.location.reload();
+      .then((res) => {
+        if (!res.ok) throw new Error("Save failed");
+        return res.json();
       })
-      .catch(console.error);
+      .then((savedCategory) => {
+        if (isEdit) {
+          // 🔥 UPDATE row in table
+          setCategories((prev) =>
+            prev.map((c) => (c.id === savedCategory.id ? savedCategory : c))
+          );
+
+          toast.success("Business category updated successfully!");
+        } else {
+          // 🔥 ADD new row to table (top)
+          setCategories((prev) => [savedCategory, ...prev]);
+
+          toast.success("Business category saved successfully!");
+        }
+
+        setModalType(null); // close modal
+      })
+      .catch((error) => {
+        console.error(error);
+        toast.error("Failed to save business category");
+      });
   };
 
   const handleDelete = (id) => {
@@ -135,7 +157,16 @@ const BusinessCategory = () => {
       fetch(
         `${process.env.REACT_APP_BASE_URL}/business-category/delete/${id}`,
         { method: "DELETE" }
-      ).then(() => setCategories((prev) => prev.filter((c) => c.id !== id)));
+      )
+        .then((res) => {
+          if (!res.ok) throw new Error("Delete failed");
+          toast.success("Business category deleted successfully!");
+          setCategories((prev) => prev.filter((c) => c.id !== id));
+        })
+        .catch((error) => {
+          console.error(error);
+          toast.error("Failed to delete business category");
+        });
     }
   };
 

@@ -12,6 +12,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const SaleReturn = () => {
   const [viewOrders, setViewOrders] = useState([]);
@@ -49,7 +50,7 @@ const SaleReturn = () => {
     locations: [],
     addedBy: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
@@ -57,7 +58,7 @@ const SaleReturn = () => {
     location: "",
     addedBy: "",
   });
-  
+
   const [filteredViewOrders, setFilteredViewOrders] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -104,10 +105,16 @@ const SaleReturn = () => {
   // Extract filter values when viewOrders data changes
   useEffect(() => {
     if (viewOrders.length > 0) {
-      const franchiseNames = [...new Set(viewOrders.map(item => item.franchiseId))].filter(Boolean);
-      const locations = [...new Set(viewOrders.map(item => item.location))].filter(Boolean);
-      const addedBy = [...new Set(viewOrders.map(item => item.addedBy))].filter(Boolean);
-      
+      const franchiseNames = [
+        ...new Set(viewOrders.map((item) => item.franchiseId)),
+      ].filter(Boolean);
+      const locations = [
+        ...new Set(viewOrders.map((item) => item.location)),
+      ].filter(Boolean);
+      const addedBy = [
+        ...new Set(viewOrders.map((item) => item.addedBy)),
+      ].filter(Boolean);
+
       setFilterValues({
         franchiseNames,
         locations,
@@ -120,14 +127,14 @@ const SaleReturn = () => {
   useEffect(() => {
     const filteredData = viewOrders.filter((order) => {
       const orderDate = new Date(order.orderDate);
-      
+
       // Date range filter
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = orderDate >= startDate && orderDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -137,22 +144,24 @@ const SaleReturn = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = orderDate <= endDate;
       }
-      
+
       // Franchise Name filter
-      const franchiseNameMatch = activeFilters.franchiseName === "" || 
+      const franchiseNameMatch =
+        activeFilters.franchiseName === "" ||
         order.franchiseId === activeFilters.franchiseName;
-      
+
       // Location filter
-      const locationMatch = activeFilters.location === "" || 
+      const locationMatch =
+        activeFilters.location === "" ||
         order.location === activeFilters.location;
-      
+
       // Added By filter
-      const addedByMatch = activeFilters.addedBy === "" || 
-        order.addedBy === activeFilters.addedBy;
-      
+      const addedByMatch =
+        activeFilters.addedBy === "" || order.addedBy === activeFilters.addedBy;
+
       return dateMatch && franchiseNameMatch && locationMatch && addedByMatch;
     });
-    
+
     setFilteredViewOrders(filteredData);
   }, [activeFilters, viewOrders]);
 
@@ -333,17 +342,17 @@ const SaleReturn = () => {
             }
           );
           if (response.ok) {
-            alert("Sale Return rejected successfully.");
+            toast.success("Sale Return rejected successfully.");
             fetchPendingOrders();
           } else {
-            alert("Failed to update the order status.");
+            toast.error("Failed to update the order status.");
           }
         } catch (error) {
-          console.error("Error updating order status:", error);
-          alert("An error occurred while rejecting the order.");
+          // console.error("Error updating order status:", error);
+          toast.error("An error occurred while rejecting the order.");
         }
       } else {
-        alert("Return rejection was canceled.");
+        toast.error("Return rejection was canceled.");
       }
     } else if (action === "accept") {
       const userConfirmed = window.confirm(
@@ -435,11 +444,16 @@ const SaleReturn = () => {
                             onChange={handleFilterChange}
                           >
                             <option value="">All Franchises</option>
-                            {filterValues.franchiseNames.map((franchiseName, index) => (
-                              <option key={`franchise-${index}`} value={franchiseName}>
-                                {franchiseName}
-                              </option>
-                            ))}
+                            {filterValues.franchiseNames.map(
+                              (franchiseName, index) => (
+                                <option
+                                  key={`franchise-${index}`}
+                                  value={franchiseName}
+                                >
+                                  {franchiseName}
+                                </option>
+                              )
+                            )}
                           </select>
                         </div>
                       </div>

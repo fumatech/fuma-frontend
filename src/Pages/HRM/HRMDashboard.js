@@ -16,6 +16,7 @@ import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { toast } from "react-toastify";
 
 const Settings = () => <div>Settings Content</div>;
 

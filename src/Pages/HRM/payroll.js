@@ -5,6 +5,7 @@ import AllPayrolls from "./AllPayrolls";
 import AllPayrollGroups from "./AllPayrollGroups";
 import PayComponents from "./PayComponents";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { toast } from "react-toastify";
 
 import {
   faSquare,
@@ -44,7 +45,7 @@ const Payroll = () => {
   return (
     <>
       <div className="wrapper">
-        <div >
+        <div>
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">

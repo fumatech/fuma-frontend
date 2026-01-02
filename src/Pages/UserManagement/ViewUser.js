@@ -14,6 +14,7 @@ import "../../assets/plugins/bs-stepper/css/bs-stepper.min.css";
 import "../../assets/plugins/dropzone/min/dropzone.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../AddUser.css";
+import { toast } from "react-toastify";
 
 const ViewUser = () => {
   const { id } = useParams();
@@ -482,12 +483,12 @@ const ViewUser = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      toast.warning("Passwords do not match!");
       return;
     }
 
     if (emailExists) {
-      alert("Email already exists. Please use a different email.");
+      toast.warning("Email already exists. Please use a different email.");
       return;
     }
 
@@ -568,10 +569,10 @@ const ViewUser = () => {
         return response.json();
       })
       .then(() => {
-        alert("User updated successfully!");
+        toast.success("User updated successfully!");
         navigate("/users");
       })
-      .catch((error) => console.error("Error updating user:", error));
+      .catch((error) => toast.error("Error updating user:", error));
   };
 
   return (

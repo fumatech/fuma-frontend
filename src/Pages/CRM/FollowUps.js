@@ -13,6 +13,7 @@ import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const FollowUps = () => {
   // State for filters
@@ -212,8 +213,8 @@ const FollowUps = () => {
         notification: false,
       });
     } catch (err) {
-      console.error("Error saving follow-up:", err);
-      alert("Failed to save follow-up. Please try again.");
+      //  console.error("Error saving follow-up:", err);
+      toast.error("Failed to save follow-up. Please try again.");
     }
   };
 
@@ -338,7 +339,7 @@ const FollowUps = () => {
   // Handle view action
   const handleView = (followUp) => {
     const customerName = getCustomerFullName(followUp.customer);
-    alert(
+    toast.warning(
       `Viewing follow-up:\n\nTitle: ${followUp.title}\nContact: ${customerName}\nStatus: ${followUp.status}\nDescription: ${followUp.description}`
     );
   };
@@ -350,10 +351,11 @@ const FollowUps = () => {
         await axios.delete(
           `${process.env.REACT_APP_BASE_URL}/follow-ups/delete/${id}`
         );
+        toast.success("Follow-up deleted Successfully...");
         setAllFollowUps(allFollowUps.filter((f) => f.id !== id));
       } catch (err) {
-        console.error("Error deleting follow-up:", err);
-        alert("Failed to delete follow-up. Please try again.");
+        // console.error("Error deleting follow-up:", err);
+        toast.error("Failed to delete follow-up. Please try again.");
       }
     }
   };

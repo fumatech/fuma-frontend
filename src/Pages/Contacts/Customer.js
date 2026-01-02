@@ -7,6 +7,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Collapse } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 function Customer({ userRoles }) {
   const [customers, setCustomers] = useState([]);
@@ -214,16 +215,16 @@ function Customer({ userRoles }) {
               prev.filter((customer) => customer.id !== id)
             );
             setCustomers((prev) => [...prev, data]);
-            alert("Franchise activated successfully.");
+            toast.success("Franchise activated successfully.");
             fetchCustomers();
           } else {
-            alert("Failed to activate franchise.");
+            toast.error("Failed to activate franchise.");
             fetchCustomers();
           }
         })
         .catch((err) => {
           console.error("Error:", err);
-          alert("An error occurred while activating.");
+          toast.error("An error occurred while activating.");
         });
     }
   };
@@ -243,16 +244,16 @@ function Customer({ userRoles }) {
               prev.filter((customer) => customer.id !== id)
             );
             setInactiveCustomers((prev) => [...prev, data]);
-            alert("Franchise deactivated successfully.");
+            toast.success("Franchise deactivated successfully.");
             fetchCustomers();
           } else {
-            alert("Failed to deactivate franchise.");
+            toast.error("Failed to deactivate franchise.");
             fetchCustomers();
           }
         })
         .catch((err) => {
           console.error("Error:", err);
-          alert("An error occurred while deactivating.");
+          toast.error("An error occurred while deactivating.");
         });
     }
   };

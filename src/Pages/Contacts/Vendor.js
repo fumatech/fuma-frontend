@@ -7,6 +7,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Collapse } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 function Vendor({ userRoles }) {
   const [vendors, setVendors] = useState([]);
@@ -213,15 +214,15 @@ function Vendor({ userRoles }) {
               prev.filter((vendor) => vendor.id !== id)
             );
             setVendors((prev) => [...prev, data]);
-            alert("Vendor activated successfully.");
+            toast.success("Vendor activated successfully.");
             fetchVendors();
           } else {
-            alert("Failed to activate vendor.");
+            toast.error("Failed to activate vendor.");
           }
         })
         .catch((err) => {
-          console.error("Error:", err);
-          alert("An error occurred while activating.");
+          // console.error("Error:", err);
+          toast.error("An error occurred while activating.");
         });
     }
   };

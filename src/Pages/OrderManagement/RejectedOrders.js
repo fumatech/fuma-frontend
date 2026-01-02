@@ -11,6 +11,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const RejectedOrders = () => {
   const [rejectedOrders, setRejectedOrders] = useState([]);
@@ -222,13 +223,13 @@ const RejectedOrders = () => {
         } else {
           console.error("Failed to fetch updated orders");
         }
-        alert("Order accepted back successfully.");
+        toast.success("Order accepted back successfully.");
       } else {
-        alert("Failed to accept the order back.");
+        toast.error("Failed to accept the order back.");
       }
     } catch (error) {
-      console.error("Error accepting the order back:", error);
-      alert("An error occurred while accepting the order back.");
+      // console.error("Error accepting the order back:", error);
+      toast.error("An error occurred while accepting the order back.");
     }
   };
 

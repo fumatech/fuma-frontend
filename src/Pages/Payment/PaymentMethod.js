@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const PaymentMethod = () => {
   const navigate = useNavigate();
@@ -33,10 +34,10 @@ const PaymentMethod = () => {
       );
 
       if (response.data) {
-        alert("Payment Method saved successfully");
+        toast.success("Payment Method saved successfully");
         navigate("/ListPaymentMethod");
       } else {
-        alert("Error saving payment method.");
+        toast.error("Error saving payment method.");
       }
 
       setFormData({
@@ -44,8 +45,8 @@ const PaymentMethod = () => {
         isActive: false,
       });
     } catch (error) {
-      console.error("Error saving payment method:", error);
-      alert("An error occurred while saving.");
+      //console.error("Error saving payment method:", error);
+      toast.error("An error occurred while saving.");
     }
   };
 

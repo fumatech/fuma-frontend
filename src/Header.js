@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { toast } from "react-toastify";
 import {
   faVolumeMute,
   faDownload,
@@ -368,8 +369,8 @@ const Header = () => {
       navigate("/", { replace: true });
       window.location.reload();
     } catch (error) {
-      console.error("Logout failed:", error);
-      alert("Logout failed. Please try again.");
+      // console.error("Logout failed:", error);
+      toast.error("Logout failed. Please try again.");
     }
   };
 

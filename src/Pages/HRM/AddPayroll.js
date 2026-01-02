@@ -8,6 +8,7 @@ import {
 } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const AddPayroll = () => {
   const location = useLocation();
@@ -212,7 +213,7 @@ const AddPayroll = () => {
     e.preventDefault();
 
     if (!payrollData.payroll_group_status) {
-      setError("Please select a payroll status");
+      toast.warning("Please select a payroll status");
       return;
     }
 

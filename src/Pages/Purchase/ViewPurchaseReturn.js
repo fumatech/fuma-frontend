@@ -5,6 +5,7 @@ import Select from "react-select";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function ViewPurchaseReturn() {
   const { id } = useParams();
@@ -397,7 +398,7 @@ function ViewPurchaseReturn() {
       prevProducts.map((product) => {
         if (product.id === productId && product.variationId === variationId) {
           if (parseInt(newQuantity, 10) > product.stock) {
-            alert("Quantity cannot exceed available stock!");
+            toast.warning("Quantity cannot exceed available stock!");
             return product;
           }
           return { ...product, quantity: parseInt(newQuantity, 10) || 1 };
@@ -479,13 +480,13 @@ function ViewPurchaseReturn() {
         }
       );
       if (response.ok) {
-        alert("Purchase return updated successfully");
+        toast.success("Purchase return updated successfully");
         navigate("/ReturnPurchase");
       } else {
-        alert("Purchase return update failed");
+        toast.error("Purchase return update failed");
       }
     } catch (error) {
-      console.error("Error:", error);
+      toast.error("Error:", error);
     }
   };
 

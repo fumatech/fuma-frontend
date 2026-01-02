@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { Link, useNavigate } from "react-router-dom";
-
 import "react-datepicker/dist/react-datepicker.css";
+import { toast } from "react-toastify";
 
 function EditAcceptedOrder() {
   const { id } = useParams();
@@ -228,7 +228,7 @@ function EditAcceptedOrder() {
     );
 
     if (variationsToAdd.length === 0) {
-      alert("Please select at least one variation to add.");
+      toast.warning("Please select at least one variation to add.");
       return;
     }
     const newProducts = variationsToAdd
@@ -321,7 +321,7 @@ function EditAcceptedOrder() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Error updating purchase:", errorText);
-        alert("Failed to update order. Please check your inputs.");
+        toast.error("Failed to update order. Please check your inputs.");
       } else {
         // console.log("Purchase updated successfully");
 
@@ -338,18 +338,18 @@ function EditAcceptedOrder() {
         );
 
         if (statusResponse.ok) {
-          alert("Order shipped  successfully");
+          toast.success("Order shipped  successfully");
 
           navigate(`/ShipOrders`);
         } else {
-          const errorText = await statusResponse.text();
-          console.error("Error updating purchase status:", errorText);
-          alert("Error updating status. Check logs.");
+          // const errorText = await statusResponse.text();
+          // console.error("Error updating purchase status:", errorText);
+          toast.error("Error updating status. Check logs.");
         }
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("An unexpected error occurred.");
+      // console.error("Error:", error);
+      toast.error("An unexpected error occurred.");
     }
   };
 

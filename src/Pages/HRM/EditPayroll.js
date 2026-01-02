@@ -6,6 +6,7 @@ import {
   FaInfoCircle,
   FaSave,
 } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 const EditPayroll = () => {
   const [employees, setEmployees] = useState([]);

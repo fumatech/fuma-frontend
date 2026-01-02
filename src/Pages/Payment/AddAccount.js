@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const AddAccount = () => {
   const navigate = useNavigate();
@@ -79,11 +80,11 @@ const AddAccount = () => {
       );
 
       if (response.data) {
-        alert("Account saved successfully");
+        toast.success("Account saved successfully");
         navigate("/accounts");
       } else {
-        console.error("Error saving account:", response.data);
-        alert("There was an issue saving the account. Please try again.");
+        //  console.error("Error saving account:", response.data);
+        toast.error("There was an issue saving the account. Please try again.");
       }
 
       setFormData({
@@ -96,8 +97,8 @@ const AddAccount = () => {
         addedBy: userEmail,
       });
     } catch (error) {
-      console.error("Error saving account:", error);
-      alert("An error occurred while saving the account.");
+      // console.error("Error saving account:", error);
+      toast.error("An error occurred while saving the account.");
     }
   };
 

@@ -2,6 +2,7 @@ import React from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 function AddNewItem() {
   const [defaultPurchasePrice, setDefaultPurchasePrice] = useState({

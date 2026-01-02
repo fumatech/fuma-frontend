@@ -12,6 +12,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
+import { toast } from "react-toastify";
 
 const ListVendorWarrantyClaim = () => {
   const navigate = useNavigate();
@@ -484,11 +485,11 @@ const ListVendorWarrantyClaim = () => {
           .then((response) => response.json())
           .then((data) => {
             // console.log(`${actionMessage}ed warranty claim:`, data);
-            alert(`${actionMessage}ed successfully!`);
+            toast.success(`${actionMessage}ed successfully!`);
             fetchListStockAdjustment();
           })
           .catch((error) => {
-            console.error("Error updating warranty claim:", error);
+            toast.error("Error updating warranty claim:", error);
           });
       } else {
         event.target.value = "";

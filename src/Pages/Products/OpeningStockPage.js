@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Table, Form, Button } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const OpeningStockPage = () => {
   const { productId } = useParams(); // Fetch the product ID from URL params
@@ -54,7 +55,7 @@ const OpeningStockPage = () => {
 
   const handleSave = async () => {
     if (!selectedProduct || selectedProduct.length === 0) {
-      alert("No product data to save.");
+      toast.warning("No product data to save.");
       return;
     }
 
@@ -82,14 +83,14 @@ const OpeningStockPage = () => {
       );
 
       if (response.ok) {
-        alert("Open Stock Added successfully!");
+        toast.success("Open Stock Added successfully!");
         navigate(-1); // Navigate back to the previous page
       } else {
-        alert("Failed to save stock.");
+        toast.error("Failed to save stock.");
       }
     } catch (error) {
-      console.error("Error saving data:", error);
-      alert("An error occurred.");
+      // console.error("Error saving data:", error);
+      toast.error("An error occurred.");
     }
   };
 

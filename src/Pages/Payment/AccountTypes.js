@@ -10,6 +10,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
+import { toast } from "react-toastify";
 
 const AccountTypes = () => {
   const [accountTypes, setAccountTypes] = useState([]);
@@ -251,7 +252,7 @@ const AccountTypes = () => {
           )
         );
         closeModal();
-        alert("Account type updated successfully!");
+        toast.success("Account type updated successfully!");
       } else if (modalType === "add") {
         const response = await fetch(
           `${process.env.REACT_APP_BASE_URL}/accountTypes/save`,
@@ -271,11 +272,11 @@ const AccountTypes = () => {
         const newAccountType = await response.json();
         setAccountTypes((prevTypes) => [...prevTypes, newAccountType]);
         closeModal();
-        alert("Account type added successfully!");
+        toast.success("Account type added successfully!");
       }
     } catch (error) {
-      console.error("Error saving account type:", error);
-      alert("Error saving account type");
+      // console.error("Error saving account type:", error);
+      toast.error("Error saving account type");
     }
   };
 
@@ -320,13 +321,13 @@ const AccountTypes = () => {
           setAccountTypes((prevTypes) =>
             prevTypes.filter((type) => type.id !== id)
           );
-          alert("Account type deleted successfully!");
+          toast.success("Account type deleted successfully!");
         } else {
-          alert("Failed to delete account type.");
+          toast.error("Failed to delete account type.");
         }
       } catch (error) {
-        console.error("Error deleting account type:", error);
-        alert("Error deleting account type");
+        // console.error("Error deleting account type:", error);
+        toast.error("Error deleting account type");
       }
     }
   };

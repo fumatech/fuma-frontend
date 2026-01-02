@@ -6,13 +6,13 @@ import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
 import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
 import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
 import { Dropdown, DropdownButton } from "react-bootstrap"; // Make sure you have react-bootstrap installed
-
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const ListPoPurchaseOrder = () => {
   const [purchases, setPurchases] = useState([]);
@@ -153,16 +153,16 @@ const ListPoPurchaseOrder = () => {
                 (purchase) => purchase.purchasePoOrderId !== orderId
               )
             );
-            alert("Purchase deleted successfully!");
+            toast.success("Purchase deleted successfully!");
           } else {
-            alert("Failed to delete purchase.");
+            toast.error("Failed to delete purchase.");
           }
         } else {
-          alert("Failed to update purchase status.");
+          toast.error("Failed to update purchase status.");
         }
       } catch (error) {
         //console.error("Error in delete/update process:", error);
-        alert("Error occurred while processing purchase.");
+        toast.error("Error occurred while processing purchase.");
       }
     }
   };

@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min";
 import axios from "axios";
 import Select from "react-select";
+import { toast } from "react-toastify";
 
 function EditList() {
   const { productId } = useParams(); // Get productId from URL params
@@ -503,7 +504,7 @@ function EditList() {
 
     // Validate selected file size
     if (selectedFile && selectedFile.size > 5 * 1024 * 1024) {
-      alert("Max file size: 5MB");
+      toast.warning("Max file size: 5MB");
       return;
     }
 
@@ -946,14 +947,14 @@ function EditList() {
           },
         }
       );
-      alert("Product Updated Successfully!");
+      toast.success("Product Updated Successfully!");
 
       // Optionally reset the form
       resetForm();
       navigate("/ListProducts"); // Redirect to the List Products page
     } catch (error) {
-      alert("Failed To Update Product");
-      console.error("Error updating product:", error);
+      toast.error("Failed To Update Product");
+      // console.error("Error updating product:", error);
     }
   };
 

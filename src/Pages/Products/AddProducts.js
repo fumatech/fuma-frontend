@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min";
 import axios from "axios";
 import Select from "react-select";
+import { toast } from "react-toastify";
 
 function AddProducts() {
   const formRef = useRef(null);
@@ -380,7 +381,7 @@ function AddProducts() {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       if (selectedFile.size > 5 * 1024 * 1024) {
-        alert("Max file size is 5MB");
+        toast.warning("Max file size is 5MB");
         return;
       }
       setProductImage(selectedFile);
@@ -407,7 +408,7 @@ function AddProducts() {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       if (selectedFile.size > 5 * 1024 * 1024) {
-        alert("Max file size: 5MB");
+        toast.warning("Max file size: 5MB");
         return;
       }
 
@@ -580,7 +581,7 @@ function AddProducts() {
 
     const checkSkuExists = await checkIfSkuExists(sku);
     if (checkSkuExists) {
-      alert("SKU already exists. Please choose a unique SKU.");
+      toast.warning("SKU already exists. Please choose a unique SKU.");
       return;
     }
 
@@ -686,15 +687,15 @@ function AddProducts() {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
-      alert("Product Saved Successfully!");
+      toast.success("Product Saved Successfully!");
       resetForm();
       navigate("/ListProducts");
     } catch (error) {
-      console.error(
-        "Error saving product:",
-        error.response?.data || error.message
-      );
-      setErrorMessage("Failed to save product. Please try again.");
+      // console.error(
+      //   "Error saving product:",
+      //   error.response?.data || error.message
+      // );
+      toast.error("Failed to save product. Please try again.");
     }
   };
 
@@ -773,15 +774,15 @@ function AddProducts() {
         }
       );
       if (response.ok) {
-        alert("Unit saved successfully!");
+        toast.success("Unit saved successfully!");
         fetchUnits();
         closeUnitModal();
       } else {
-        alert("Error saving unit");
+        toast.error("Error saving unit");
       }
     } catch (error) {
-      console.error("Network error:", error);
-      alert("Network error: Unable to save unit");
+      //console.error("Network error:", error);
+      toast.error("Network error: Unable to save unit");
     }
   };
   const closeUnitModal = () => {
@@ -809,15 +810,15 @@ function AddProducts() {
         }
       );
       if (response.ok) {
-        alert("Brand saved successfully!");
+        toast.success("Brand saved successfully!");
         fetchBrands();
         closeBrandModal();
       } else {
-        alert("Error saving brand");
+        toast.error("Error saving brand");
       }
     } catch (error) {
-      console.error("Network error:", error);
-      alert("Network error: Unable to save brand");
+      //  console.error("Network error:", error);
+      toast.error("Network error: Unable to save brand");
     }
   };
 
@@ -893,7 +894,7 @@ function AddProducts() {
                               if (newSku) {
                                 const exists = await checkIfSkuExists(newSku);
                                 if (exists) {
-                                  alert(
+                                  toast.warning(
                                     "This SKU already exists. Please enter a unique SKU."
                                   );
                                   setSku(""); // optional

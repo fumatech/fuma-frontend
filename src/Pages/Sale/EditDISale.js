@@ -5,6 +5,7 @@ import Select from "react-select";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function EditDISale() {
   const { id } = useParams();
@@ -472,7 +473,7 @@ function EditDISale() {
     );
 
     if (variationsToAdd.length === 0) {
-      alert("Please select at least one variation to add.");
+      toast.warning("Please select at least one variation to add.");
       return;
     }
 
@@ -720,15 +721,15 @@ function EditDISale() {
       );
 
       if (response.ok) {
-        alert("Sale DI Order updated successfully!");
+        toast.success("Sale DI Order updated successfully!");
       } else {
-        const error = await response.json();
-        console.error("Update failed:", error);
-        alert("Failed to update Sale DI Order.");
+        // const error = await response.json();
+        // console.error("Update failed:", error);
+        toast.error("Failed to update Sale DI Order.");
       }
     } catch (error) {
-      console.error("Error updating Sale DI Order:", error);
-      alert("An error occurred during update.");
+      // console.error("Error updating Sale DI Order:", error);
+      toast.error("An error occurred during update.");
     }
   };
 

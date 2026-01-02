@@ -149,32 +149,43 @@ function TaxRate() {
     setSelectedTaxesForGroup(selectedOptions);
   };
 
-  // CRUD operations
   const handleTaxSubmit = async (e) => {
     e.preventDefault();
+
     try {
       if (selectedTax) {
         await axios.put(
           `${process.env.REACT_APP_BASE_URL}/tax/update/${selectedTax.id}`,
           formData
         );
+
+        toast.success("Tax updated successfully!");
       } else {
         await axios.post(
           `${process.env.REACT_APP_BASE_URL}/tax/save`,
           formData
         );
+
+        toast.success("Tax saved successfully!");
       }
+
       closeModal();
       fetchTaxes();
     } catch (error) {
       console.error("Error saving tax:", error);
+
+      toast.error(
+        error.response?.data?.message || "Failed to save tax. Please try again."
+      );
     }
   };
 
   const handleTaxGroupSubmit = async (e) => {
     e.preventDefault();
+
     try {
       const includedTaxIds = selectedTaxesForGroup.map((tax) => tax.value);
+
       const data = {
         taxName: taxGroupFormData.taxName,
         includedTaxes: includedTaxIds.map((id) => ({ id })),
@@ -185,22 +196,38 @@ function TaxRate() {
           `${process.env.REACT_APP_BASE_URL}/tax/update/${selectedTaxGroup.id}`,
           data
         );
+
+        toast.success("Tax group updated successfully!");
       } else {
         await axios.post(`${process.env.REACT_APP_BASE_URL}/tax/save`, data);
+
+        toast.success("Tax group saved successfully!");
       }
+
       closeTaxGroupModal();
       fetchTaxes();
     } catch (error) {
       console.error("Error saving tax group:", error);
+
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to save tax group. Please try again."
+      );
     }
   };
-
   const handleDeleteTax = async (id) => {
     try {
       await axios.delete(`${process.env.REACT_APP_BASE_URL}/tax/delete/${id}`);
+
+      toast.success("Tax deleted successfully!");
       fetchTaxes();
     } catch (error) {
       console.error("Error deleting tax:", error);
+
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to delete tax. Please try again."
+      );
     }
   };
 

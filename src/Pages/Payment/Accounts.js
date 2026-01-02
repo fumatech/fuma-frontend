@@ -11,6 +11,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Accounts = () => {
   const navigate = useNavigate();
@@ -221,13 +222,13 @@ const Accounts = () => {
       );
 
       if (response.ok) {
-        alert("Deposit added successfully!");
+        toast.success("Deposit added successfully!");
         setDepositModalOpen(false);
       } else {
-        alert("Failed to add deposit (check console)");
+        toast.error("Failed to add deposit (check console)");
       }
     } catch (error) {
-      console.error("Error adding deposit:", error);
+      toast.error("Error adding deposit:", error);
     }
   };
 
@@ -256,17 +257,17 @@ const Accounts = () => {
               account.id === id ? { ...account, status: newStatus } : account
             )
           );
-          alert(
+          toast.success(
             `Account ${
               newStatus === 1 ? "activated" : "deactivated"
             } successfully!`
           );
         } else {
-          alert("Failed to update account status.");
+          toast.error("Failed to update account status.");
         }
       } catch (error) {
-        console.error("Error updating account status:", error);
-        alert("Error updating account status.");
+        // console.error("Error updating account status:", error);
+        toast.error("Error updating account status.");
       }
     }
   };

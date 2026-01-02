@@ -6,13 +6,13 @@ import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
 import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
 import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
 import { Dropdown, DropdownButton, Collapse } from "react-bootstrap";
-
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const ListDISale = () => {
   const [purchases, setPurchases] = useState([]);
@@ -243,14 +243,14 @@ const ListDISale = () => {
             setPurchases((prevPurchases) =>
               prevPurchases.filter((purchase) => purchase.id !== id)
             );
-            alert("Sale DI Order deleted successfully!");
+            toast.success("Sale DI Order deleted successfully!");
           } else {
-            alert("Failed to delete sale.");
+            toast.error("Failed to delete sale.");
           }
         })
         .catch((error) => {
-          console.error("Error deleting sale:", error);
-          alert("An error occurred while deleting the sale.");
+          // console.error("Error deleting sale:", error);
+          toast.error("An error occurred while deleting the sale.");
         });
     }
   };

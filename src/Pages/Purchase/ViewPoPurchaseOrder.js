@@ -5,6 +5,7 @@ import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
+import { toast } from "react-toastify";
 
 function EditPoPurchaseOrder() {
   const { id } = useParams();
@@ -859,17 +860,17 @@ function EditPoPurchaseOrder() {
       );
 
       if (response.ok) {
-        alert("Purchase PO Order updated Successfully");
+        toast.success("Purchase PO Order updated Successfully");
         // navigate("/ListPoPurchaseOrder");
       } else {
-        const responseText = await response.text();
-        console.log("Response Status:", response.status);
-        console.log("Response Text:", responseText);
-        alert("Purchase PO Order Not Saved");
+        // const responseText = await response.text();
+        // console.log("Response Status:", response.status);
+        // console.log("Response Text:", responseText);
+        toast.error("Purchase PO Order Not Saved");
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred while saving the purchase order.");
+      //console.error("Error:", error);
+      toast.error("An error occurred while saving the purchase order.");
     }
   };
 
