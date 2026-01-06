@@ -68,6 +68,9 @@ const Shifts = () => {
   const handleModalToggle = () => {
     setIsModalOpen(!isModalOpen);
   };
+  const isShiftFixed = () => {
+    return formData.shiftType === "fixed_shift";
+  };
 
   // Open modal with data (edit or add new)
   const openModal = (shift = null) => {
@@ -444,48 +447,50 @@ const Shifts = () => {
                       </div>
                     </div>
 
-                    <div className="row mt-3">
-                      <div className="col-md-6">
-                        <div className="form-group">
-                          <label
-                            htmlFor="start_time"
-                            className="font-weight-bold"
-                          >
-                            Start time:*
-                          </label>
-                          <input
-                            className="form-control"
-                            placeholder="Start time"
-                            required
-                            id="start_time"
-                            name="startTime"
-                            type="time"
-                            value={formData.startTime}
-                            onChange={handleInputChange}
-                          />
+                    {isShiftFixed() && (
+                      <div className="row mt-3">
+                        <div className="col-md-6">
+                          <div className="form-group">
+                            <label
+                              htmlFor="start_time"
+                              className="font-weight-bold"
+                            >
+                              Start time:*
+                            </label>
+                            <input
+                              className="form-control"
+                              placeholder="Start time"
+                              required
+                              id="start_time"
+                              name="startTime"
+                              type="time"
+                              value={formData.startTime}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                        </div>
+                        <div className="col-md-6">
+                          <div className="form-group">
+                            <label
+                              htmlFor="end_time"
+                              className="font-weight-bold"
+                            >
+                              End time:*
+                            </label>
+                            <input
+                              className="form-control"
+                              placeholder="End time"
+                              required
+                              id="end_time"
+                              name="endTime"
+                              type="time"
+                              value={formData.endTime}
+                              onChange={handleInputChange}
+                            />
+                          </div>
                         </div>
                       </div>
-                      <div className="col-md-6">
-                        <div className="form-group">
-                          <label
-                            htmlFor="end_time"
-                            className="font-weight-bold"
-                          >
-                            End time:*
-                          </label>
-                          <input
-                            className="form-control"
-                            placeholder="End time"
-                            required
-                            id="end_time"
-                            name="endTime"
-                            type="time"
-                            value={formData.endTime}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-                      </div>
-                    </div>
+                    )}
 
                     <div className="form-group">
                       <label htmlFor="holidays" className="font-weight-bold">

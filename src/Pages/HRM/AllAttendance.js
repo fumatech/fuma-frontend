@@ -31,67 +31,80 @@ const AllAttendance = () => {
   const [attendances, setAttendances] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // State for handling the form data
   const [formData, setFormData] = useState({
-    employee: [],
-    inTime: [],
-    outTime: [],
-    shift: [],
-    ipAddress: [],
-    inNote: [],
-    outNote: [],
+    attendanceDate: "",
+    records: [
+      {
+        employeeId: "",
+        shiftId: "",
+        inTime: "",
+        outTime: "",
+        ipAddress: "",
+        inNote: "",
+        outNote: "",
+      },
+    ],
   });
 
   // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const [employeesRes, attendancesRes] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_BASE_URL}/user/getall`),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/attendance/getall`),
-        ]);
+      const [empRes, attRes, shiftRes] = await Promise.all([
+        axios.get(`${process.env.REACT_APP_BASE_URL}/user/getall`),
+        axios.get(`${process.env.REACT_APP_BASE_URL}/attendance/getall`),
+        axios.get(`https://fusionmastertech.com:8443/shift/getall`),
+      ]);
 
-        setEmployees(employeesRes.data);
-        setAttendances(attendancesRes.data);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setIsLoading(false);
-      }
+      setEmployees(empRes.data);
+      setAttendances(attRes.data);
+      setShifts(shiftRes.data);
+      setIsLoading(false);
     };
 
     fetchData();
   }, []);
 
-  // Function to open the modal for adding new attendance
   const openAddModal = () => {
     setIsEditMode(false);
     setCurrentAttendanceId(null);
+
     setFormData({
-      employee: [],
-      inTime: [],
-      outTime: [],
-      shift: [],
-      ipAddress: [],
-      inNote: [],
-      outNote: [],
+      attendanceDate: "",
+      records: [
+        {
+          employeeId: "",
+          shiftId: "",
+          inTime: "",
+          outTime: "",
+          ipAddress: "",
+          inNote: "",
+          outNote: "",
+        },
+      ],
     });
+
     setIsModalOpen(true);
   };
 
-  // Function to open the modal for editing attendance
   const openEditModal = (attendance) => {
     setIsEditMode(true);
     setCurrentAttendanceId(attendance.id);
+
     setFormData({
-      employee: attendance.employee || [],
-      inTime: attendance.inTime || [],
-      outTime: attendance.outTime || [],
-      shift: attendance.shift || [],
-      ipAddress: attendance.ipAddress || [],
-      inNote: attendance.inNote || [],
-      outNote: attendance.outNote || [],
+      attendanceDate: attendance.attendanceDate || "",
+      records: [
+        {
+          employeeId: attendance.employeeId,
+          shiftId: attendance.shiftId,
+          inTime: attendance.inTime || "",
+          outTime: attendance.outTime || "",
+          ipAddress: attendance.ipAddress || "",
+          inNote: attendance.inNote || "",
+          outNote: attendance.outNote || "",
+        },
+      ],
     });
+
     setIsModalOpen(true);
   };
 
@@ -99,87 +112,94 @@ const AllAttendance = () => {
   const closeModal = () => {
     setIsModalOpen(false);
   };
-
   const handleInputChange = (index, e) => {
     const { name, value } = e.target;
-    const newFormData = { ...formData };
-
-    // Ensure the array exists and has enough elements
-    if (!newFormData[name]) newFormData[name] = [];
-    if (index >= newFormData[name].length) {
-      // Fill the array up to the index with empty values if needed
-      while (newFormData[name].length <= index) {
-        newFormData[name].push("");
-      }
-    }
-
-    newFormData[name][index] = value;
-    setFormData(newFormData);
-  };
-
-  // Add new attendance row in the modal
-  const addNewAttendanceRow = () => {
-    setFormData((prev) => ({
-      ...prev,
-      employee: [...prev.employee, ""],
-      inTime: [...prev.inTime, ""],
-      outTime: [...prev.outTime, ""],
-      shift: [...prev.shift, ""],
-      ipAddress: [...prev.ipAddress, ""],
-      inNote: [...prev.inNote, ""],
-      outNote: [...prev.outNote, ""],
-    }));
-  };
-
-  // Remove attendance row from the modal
-  const removeAttendanceRow = (index) => {
-    if (formData.employee.length <= 1) return;
 
     setFormData((prev) => {
-      const newData = { ...prev };
-      Object.keys(newData).forEach((key) => {
-        if (Array.isArray(newData[key])) {
-          // Added missing parenthesis here
-          newData[key] = newData[key].filter((_, i) => i !== index);
-        }
-      });
-      return newData;
+      const updatedRecords = [...prev.records];
+      updatedRecords[index] = {
+        ...updatedRecords[index],
+        [name]: value,
+      };
+
+      return {
+        ...prev,
+        records: updatedRecords,
+      };
     });
   };
 
-  // Save attendance (both add and edit)
+  const addNewAttendanceRow = () => {
+    setFormData((prev) => ({
+      ...prev,
+      records: [
+        ...prev.records,
+        {
+          employeeId: "",
+          shiftId: "",
+          inTime: "",
+          outTime: "",
+          ipAddress: "",
+          inNote: "",
+          outNote: "",
+        },
+      ],
+    }));
+  };
+  const removeAttendanceRow = (index) => {
+    setFormData((prev) => {
+      // prevent removing last row
+      if (prev.records.length === 1) return prev;
+
+      return {
+        ...prev,
+        records: prev.records.filter((_, i) => i !== index),
+      };
+    });
+  };
+
+  const getShiftName = (shiftId) => {
+    const shift = shifts.find((s) => s.id === shiftId);
+    return shift ? shift.name : "Unknown";
+  };
+
   const saveAttendance = async () => {
     try {
-      const attendanceData = {
-        employee: formData.employee.map((id) => Number(id)),
-        inTime: formData.inTime,
-        outTime: formData.outTime,
-        shift: formData.shift,
-        ipAddress: formData.ipAddress,
-        inNote: formData.inNote,
-        outNote: formData.outNote,
-      };
-
       if (isEditMode) {
         await axios.put(
           `${process.env.REACT_APP_BASE_URL}/attendance/update/${currentAttendanceId}`,
-          attendanceData
+          formData.records[0]
         );
+        toast.success("Attendance updated successfully");
       } else {
+        const payload = {
+          attendanceDate: formData.attendanceDate,
+          records: formData.records.map((r) => ({
+            employeeId: Number(r.employeeId),
+            shiftId: r.shiftId, // ensure this matches backend
+            inTime: r.inTime,
+            outTime: r.outTime,
+            ipAddress: r.ipAddress,
+            inNote: r.inNote,
+            outNote: r.outNote,
+          })),
+        };
         await axios.post(
-          `${process.env.REACT_APP_BASE_URL}/attendance/add`,
-          attendanceData
+          `${process.env.REACT_APP_BASE_URL}/attendance/bulk`,
+          payload
         );
+        toast.success("Attendance saved successfully");
       }
+      closeModal();
 
       // Refresh data
       const response = await axios.get(
         `${process.env.REACT_APP_BASE_URL}/attendance/getall`
       );
       setAttendances(response.data);
-      closeModal();
-    } catch (error) {
-      console.error("Error saving attendance:", error);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save attendance");
     }
   };
 
@@ -189,12 +209,15 @@ const AllAttendance = () => {
       await axios.delete(
         `${process.env.REACT_APP_BASE_URL}/attendance/delete/${id}`
       );
-      const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/attendance/getall`
-      );
-      setAttendances(response.data);
+
+      // Remove the deleted attendance from state
+      setAttendances((prev) => prev.filter((att) => att.id !== id));
+
+      // Show toast
+      toast.success("Attendance deleted successfully!");
     } catch (error) {
       console.error("Error deleting attendance:", error);
+      toast.error("Failed to delete attendance.");
     }
   };
 
@@ -202,13 +225,13 @@ const AllAttendance = () => {
   const exportCSV = () => {
     const csvData = attendances.map((att) => ({
       ID: att.id,
-      Employee: att.employee.join(", "),
-      "Clock In Time": att.inTime.join(", "),
-      "Clock Out Time": att.outTime.join(", "),
-      Shift: att.shift.join(", "),
-      "IP Address": att.ipAddress.join(", "),
-      "Clock In Note": att.inNote.join(", "),
-      "Clock Out Note": att.outNote.join(", "),
+      Employee: getEmployeeName(att.employeeId),
+      "Clock In Time": att.inTime,
+      "Clock Out Time": att.outTime,
+      Shift: getShiftName(att.shiftId),
+      "IP Address": att.ipAddress,
+      "Clock In Note": att.inNote,
+      "Clock Out Note": att.outNote,
     }));
 
     const csv = [
@@ -226,10 +249,10 @@ const AllAttendance = () => {
     const ws = XLSX.utils.json_to_sheet(
       attendances.map((att) => ({
         ID: att.id,
-        Employee: att.employee.join(", "),
         "Clock In Time": att.inTime.join(", "),
         "Clock Out Time": att.outTime.join(", "),
-        Shift: att.shift.join(", "),
+        Employee: getEmployeeName(att.employeeId),
+        Shift: getShiftName(att.shiftId),
         "IP Address": att.ipAddress.join(", "),
         "Clock In Note": att.inNote.join(", "),
         "Clock Out Note": att.outNote.join(", "),
@@ -262,10 +285,6 @@ const AllAttendance = () => {
       ? `${employee.prefix} ${employee.firstname} ${employee.lastname}`
       : "Unknown";
   };
-
-  if (isLoading) {
-    return <div className="text-center py-5">Loading...</div>;
-  }
 
   return (
     <div className="content">
@@ -378,41 +397,27 @@ const AllAttendance = () => {
                       <tr key={attendance.id}>
                         <td>{attendance.id}</td>
                         {columnsVisibility.name && (
-                          <td>
-                            {attendance.employee.map((id) => (
-                              <div key={id}>{getEmployeeName(id)}</div>
-                            ))}
-                          </td>
+                          <td>{getEmployeeName(attendance.employeeId)}</td>
                         )}
                         {columnsVisibility.shiftType && (
-                          <td>{attendance.shift.join(", ")}</td>
+                          <td>{getShiftName(attendance.shiftId)}</td>
                         )}
                         {columnsVisibility.startTime && (
                           <td>
-                            {attendance.inTime.map((time, i) => (
-                              <div key={i}>
-                                {new Date(time).toLocaleString()}
-                                <br />
-                                {attendance.inNote}
-                              </div>
-                            ))}
+                            {attendance.inTime
+                              ? new Date(attendance.inTime).toLocaleString()
+                              : "-"}
                           </td>
                         )}
                         {columnsVisibility.endTime && (
                           <td>
-                            {attendance.outTime.map((time, i) => (
-                              <div key={i}>
-                                {time
-                                  ? new Date(time).toLocaleString()
-                                  : "Not clocked out"}
-                                <br />
-                                {attendance.outNote}
-                              </div>
-                            ))}
+                            {attendance.outTime
+                              ? new Date(attendance.outTime).toLocaleString()
+                              : "-"}
                           </td>
                         )}
                         {columnsVisibility.holiday && (
-                          <td>{attendance.ipAddress.join(", ")}</td>
+                          <td>{attendance.ipAddress || "-"}</td>
                         )}
                         <td>
                           <button
@@ -502,7 +507,7 @@ const AllAttendance = () => {
                   overflowY: "auto",
                 }}
               >
-                {formData.employee.map((empId, index) => (
+                {formData.records.map((record, index) => (
                   <div key={index} className="card mb-3">
                     <div className="card-header d-flex justify-content-between align-items-center">
                       <h6 className="mb-0">Attendance Entry #{index + 1}</h6>
@@ -524,16 +529,9 @@ const AllAttendance = () => {
                         <div className="col-sm-9">
                           <select
                             className="form-control"
-                            value={empId || ""}
-                            onChange={(e) =>
-                              handleInputChange(index, {
-                                target: {
-                                  name: "employee",
-                                  value: e.target.value,
-                                },
-                              })
-                            }
-                            required
+                            name="employeeId"
+                            value={record.employeeId}
+                            onChange={(e) => handleInputChange(index, e)}
                           >
                             <option value="">Select Employee</option>
                             {employees.map((employee) => (
@@ -555,9 +553,8 @@ const AllAttendance = () => {
                             type="datetime-local"
                             className="form-control"
                             name="inTime"
-                            value={formData.inTime[index] || ""}
+                            value={record.inTime}
                             onChange={(e) => handleInputChange(index, e)}
-                            required
                           />
                         </div>
                       </div>
@@ -571,7 +568,7 @@ const AllAttendance = () => {
                             type="datetime-local"
                             className="form-control"
                             name="outTime"
-                            value={formData.outTime[index] || ""}
+                            value={record.outTime}
                             onChange={(e) => handleInputChange(index, e)}
                           />
                         </div>
@@ -584,10 +581,9 @@ const AllAttendance = () => {
                         <div className="col-sm-9">
                           <select
                             className="form-control"
-                            name="shift"
-                            value={formData.shift[index] || ""}
+                            name="shiftId"
+                            value={record.shiftId}
                             onChange={(e) => handleInputChange(index, e)}
-                            required
                           >
                             <option value="">Select Shift</option>
                             {shifts.map((shift) => (
@@ -608,7 +604,7 @@ const AllAttendance = () => {
                             type="text"
                             className="form-control"
                             name="ipAddress"
-                            value={formData.ipAddress[index] || ""}
+                            value={record.ipAddress}
                             onChange={(e) => handleInputChange(index, e)}
                           />
                         </div>
@@ -623,7 +619,7 @@ const AllAttendance = () => {
                             className="form-control"
                             rows="2"
                             name="inNote"
-                            value={formData.inNote[index] || ""}
+                            value={record.inNote}
                             onChange={(e) => handleInputChange(index, e)}
                           ></textarea>
                         </div>
@@ -638,7 +634,7 @@ const AllAttendance = () => {
                             className="form-control"
                             rows="2"
                             name="outNote"
-                            value={formData.outNote[index] || ""}
+                            value={record.outNote}
                             onChange={(e) => handleInputChange(index, e)}
                           ></textarea>
                         </div>

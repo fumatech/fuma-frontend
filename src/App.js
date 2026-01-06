@@ -83,6 +83,8 @@ import SaleReturn from "./Pages/Sale/SaleReturn";
 import ListShipReturn from "./Pages/Sale/ListShipReturn";
 import ListAcceptedReturn from "./Pages/Sale/ListAcceptedReturn";
 import AddStockTransfer from "./Pages/StockTransfer/AddStockTransfer";
+import EditStockTransfer from "./Pages/StockTransfer/EditStockTransfer";
+import ViewStockTransfer from "./Pages/StockTransfer/ViewStockTransfer";
 import ListStockTransfer from "./Pages/StockTransfer/ListStockTransfer";
 import AddStockAdjustment from "./Pages/StockAdjustment/AddStockAdjustment";
 import ViewStockAdjustment from "./Pages/StockAdjustment/ViewStockAdjustment";
@@ -566,6 +568,14 @@ const App = () => {
                   <Route
                     path="/AddStockTransfer"
                     element={<AddStockTransfer />}
+                  />
+                  <Route
+                    path="/EditStockTransfer/:id"
+                    element={<EditStockTransfer />}
+                  />
+                  <Route
+                    path="/ViewStockTransfer/:id"
+                    element={<ViewStockTransfer />}
                   />
                   <Route
                     path="/AddStockAdjustment/:id"

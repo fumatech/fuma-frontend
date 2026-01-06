@@ -38,6 +38,18 @@ function Leave({ userRoles }) {
 
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const getDateWithDays = (startDate, endDate) => {
+    if (!startDate || !endDate) return "";
+
+    const start = moment(startDate);
+    const end = moment(endDate);
+
+    const totalDays = end.diff(start, "days") + 1; // inclusive
+
+    return `${start.format("YYYY-MM-DD")} to ${end.format(
+      "YYYY-MM-DD"
+    )} (${totalDays} days)`;
+  };
 
   // Fetch all required data
   useEffect(() => {
@@ -65,9 +77,8 @@ function Leave({ userRoles }) {
           leavesResponse.data.map((leave) => ({
             ...leave,
             referenceNo: `REF${leave.id.toString().padStart(3, "0")}`,
-            date: `${moment(leave.startDate).format("YYYY-MM-DD")} to ${moment(
-              leave.endDate
-            ).format("YYYY-MM-DD")}`,
+            date: getDateWithDays(leave.startDate, leave.endDate),
+
             statusText: getStatusText(leave.status),
             employeeName: getEmployeeName(
               leave.employee,
@@ -174,9 +185,11 @@ function Leave({ userRoles }) {
                   referenceNo: `REF${response.data.id
                     .toString()
                     .padStart(3, "0")}`,
-                  date: `${moment(response.data.startDate).format(
-                    "YYYY-MM-DD"
-                  )} to ${moment(response.data.endDate).format("YYYY-MM-DD")}`,
+                  date: getDateWithDays(
+                    response.data.startDate,
+                    response.data.endDate
+                  ),
+
                   statusText: getStatusText(response.data.status),
                   employeeName: getEmployeeName(
                     response.data.employee,
@@ -201,9 +214,11 @@ function Leave({ userRoles }) {
           {
             ...response.data,
             referenceNo: `REF${response.data.id.toString().padStart(3, "0")}`,
-            date: `${moment(response.data.startDate).format(
-              "YYYY-MM-DD"
-            )} to ${moment(response.data.endDate).format("YYYY-MM-DD")}`,
+            date: getDateWithDays(
+              response.data.startDate,
+              response.data.endDate
+            ),
+
             statusText: getStatusText(response.data.status),
             employeeName: getEmployeeName(response.data.employee, employees),
             leaveTypeName: getLeaveTypeName(
@@ -218,6 +233,35 @@ function Leave({ userRoles }) {
       resetForm();
     } catch (err) {
       setError(err.message);
+    }
+  };
+  const updateLeaveStatus = async (id, status) => {
+    const statusText = getStatusText(status);
+    const confirmUpdate = window.confirm(
+      `Are you sure you want to change the status to "${statusText}"?`
+    );
+    if (!confirmUpdate) return;
+
+    try {
+      const response = await axios.put(
+        `${process.env.REACT_APP_BASE_URL}/add-leave/update-status/${id}?status=${status}`
+      );
+
+      setLeaveData((prev) =>
+        prev.map((leave) =>
+          leave.id === id
+            ? {
+                ...leave,
+                status: response.data.status,
+                statusText: getStatusText(response.data.status),
+              }
+            : leave
+        )
+      );
+
+      toast.success("Leave status updated successfully");
+    } catch (err) {
+      toast.error("Failed to update status");
     }
   };
 
@@ -267,9 +311,7 @@ function Leave({ userRoles }) {
       "Reference No": `REF${leave.id.toString().padStart(3, "0")}`,
       "Leave Type": leave.leaveTypeName,
       Employee: leave.employeeName,
-      Date: `${moment(leave.startDate).format("YYYY-MM-DD")} to ${moment(
-        leave.endDate
-      ).format("YYYY-MM-DD")}`,
+      Date: getDateWithDays(leave.startDate, leave.endDate),
       Reason: leave.reason,
       Status: leave.statusText,
     }));
@@ -340,6 +382,7 @@ function Leave({ userRoles }) {
           `${process.env.REACT_APP_BASE_URL}/add-leave/delete/${id}`
         );
         setLeaveData(leaveData.filter((leave) => leave.id !== id));
+        toast.success("Leave deleted successfully...");
       } catch (err) {
         setError(err.message);
       }
@@ -529,15 +572,22 @@ function Leave({ userRoles }) {
                                 )}
                                 {columnsVisibility.status && (
                                   <td>
-                                    <button
-                                      type="button"
-                                      className={`btn btn-link p-0 ${getStatusColorClass(
+                                    <select
+                                      className={`form-control form-control-sm ${getStatusColorClass(
                                         leave.status
                                       )}`}
-                                      onClick={() => handleEdit(leave)}
+                                      value={leave.status}
+                                      onChange={(e) =>
+                                        updateLeaveStatus(
+                                          leave.id,
+                                          Number(e.target.value)
+                                        )
+                                      }
                                     >
-                                      {getStatusText(leave.status)}
-                                    </button>
+                                      <option value={0}>Pending</option>
+                                      <option value={1}>Approved</option>
+                                      <option value={2}>Canceled</option>
+                                    </select>
                                   </td>
                                 )}
 

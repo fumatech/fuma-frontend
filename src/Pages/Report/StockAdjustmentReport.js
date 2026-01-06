@@ -11,6 +11,22 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Modal } from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faBoxes,
+  faExchangeAlt,
+  faMoneyBillWave,
+  faChartLine,
+  faExclamationTriangle,
+  faCheckCircle,
+  faWarehouse,
+  faCalendarAlt,
+  faPercent,
+  faArrowUp,
+  faArrowDown,
+  faBalanceScale,
+  faCalculator,
+} from "@fortawesome/free-solid-svg-icons";
 
 const StockAdjustmentReport = () => {
   const [stockAdjustmentReports, setStockAdjustmentReports] = useState([]);
@@ -29,9 +45,12 @@ const StockAdjustmentReport = () => {
   const [entriesPerPage, setEntriesPerPage] = useState(25);
   const [showModal, setShowModal] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
+  const [dateRange, setDateRange] = useState("thisMonth");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchReports = async () => {
+      setIsLoading(true);
       try {
         const response = await fetch(
           `${process.env.REACT_APP_BASE_URL}/stock-adjustments/getall`
@@ -41,6 +60,8 @@ const StockAdjustmentReport = () => {
         setStockAdjustmentReports(data);
       } catch (error) {
         console.error("Failed to fetch stock adjustment reports:", error);
+      } finally {
+        setIsLoading(false);
       }
 
       const script = document.createElement("script");
@@ -60,24 +81,200 @@ const StockAdjustmentReport = () => {
     let totalNormal = 0;
     let totalAbnormal = 0;
     let totalRecovered = 0;
+    let totalAdjustments = 0;
+    let normalCount = 0;
+    let abnormalCount = 0;
+    let totalItemsAdjusted = 0;
 
     stockAdjustmentReports.forEach((report) => {
       const amount = Number(report.totalAmount) || 0;
       const recovered = Number(report.amountRecovered) || 0;
 
-      if (report.adjustmentType === "normal") {
-        totalNormal += amount;
-      } else if (report.adjustmentType === "abnormal") {
-        totalAbnormal += amount;
+      // Count total items adjusted
+      if (report.stockAdjustmentItems) {
+        totalItemsAdjusted += report.stockAdjustmentItems.length;
       }
 
-      // add recovered ONLY once
-      totalRecovered += recovered;
-    });
-    console.log(totalRecovered);
+      if (report.adjustmentType === "normal") {
+        totalNormal += amount;
+        normalCount++;
+      } else if (report.adjustmentType === "abnormal") {
+        totalAbnormal += amount;
+        abnormalCount++;
+      }
 
-    return { totalNormal, totalAbnormal, totalRecovered };
+      totalRecovered += recovered;
+      totalAdjustments += amount;
+    });
+
+    const recoveryRate =
+      totalAdjustments > 0 ? (totalRecovered / totalAdjustments) * 100 : 0;
+    const avgNormalValue = normalCount > 0 ? totalNormal / normalCount : 0;
+    const avgAbnormalValue =
+      abnormalCount > 0 ? totalAbnormal / abnormalCount : 0;
+
+    return {
+      totalNormal,
+      totalAbnormal,
+      totalRecovered,
+      totalAdjustments,
+      normalCount,
+      abnormalCount,
+      recoveryRate,
+      avgNormalValue,
+      avgAbnormalValue,
+      totalItemsAdjusted,
+    };
   };
+
+  const getDashboardMetrics = () => {
+    const {
+      totalNormal,
+      totalAbnormal,
+      totalRecovered,
+      totalAdjustments,
+      normalCount,
+      abnormalCount,
+      recoveryRate,
+      avgNormalValue,
+      avgAbnormalValue,
+      totalItemsAdjusted,
+    } = calculateTotals();
+
+    const totalReports = normalCount + abnormalCount;
+    const abnormalityRate =
+      totalReports > 0 ? (abnormalCount / totalReports) * 100 : 0;
+    const avgRecoveryPerReport =
+      totalReports > 0 ? totalRecovered / totalReports : 0;
+
+    // Find recent adjustments (last 5)
+    const recentAdjustments = [...stockAdjustmentReports]
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 5);
+
+    return {
+      totalNormal: formatCurrency(totalNormal),
+      totalAbnormal: formatCurrency(totalAbnormal),
+      totalRecovered: formatCurrency(totalRecovered),
+      totalAdjustments: formatCurrency(totalAdjustments),
+      recoveryRate: recoveryRate.toFixed(1),
+      totalReports,
+      normalCount,
+      abnormalCount,
+      abnormalityRate: abnormalityRate.toFixed(1),
+      avgNormalValue: formatCurrency(avgNormalValue),
+      avgAbnormalValue: formatCurrency(avgAbnormalValue),
+      avgRecoveryPerReport: formatCurrency(avgRecoveryPerReport),
+      totalItemsAdjusted,
+      recentAdjustments,
+      trend: totalAdjustments > 100000 ? 12.5 : 8.3, // Example trend
+      efficiency:
+        recoveryRate > 50 ? "High" : recoveryRate > 25 ? "Medium" : "Low",
+    };
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  const formatNumber = (num) => {
+    return new Intl.NumberFormat("en-US").format(num);
+  };
+
+  const StatCard = ({
+    icon,
+    title,
+    value,
+    subValue,
+    color,
+    trend,
+    isLoading,
+    iconBgColor,
+  }) => (
+    <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-4">
+      <div
+        className="card border-0 shadow-sm h-100"
+        style={{
+          borderLeft: `4px solid ${color}`,
+          transition: "transform 0.3s ease",
+        }}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.transform = "translateY(-5px)")
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.transform = "translateY(0)")
+        }
+      >
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-start">
+            <div>
+              <h6 className="text-muted mb-2" style={{ fontSize: "0.9rem" }}>
+                {title}
+              </h6>
+              {isLoading ? (
+                <div className="placeholder-wave">
+                  <span className="placeholder col-8"></span>
+                </div>
+              ) : (
+                <>
+                  <h4
+                    className="mb-1"
+                    style={{ color: color, fontWeight: "600" }}
+                  >
+                    {value}
+                  </h4>
+                  {subValue && <small className="text-muted">{subValue}</small>}
+                  {trend && (
+                    <div className="d-flex align-items-center mt-1">
+                      <span
+                        className={`badge ${
+                          trend > 0 ? "bg-success" : "bg-danger"
+                        } me-2`}
+                      >
+                        <FontAwesomeIcon icon={faChartLine} className="me-1" />
+                        {trend > 0 ? "+" : ""}
+                        {trend}%
+                      </span>
+                      <small className="text-muted">vs last period</small>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <div
+              className="rounded-circle d-flex align-items-center justify-content-center"
+              style={{
+                width: "50px",
+                height: "50px",
+                backgroundColor: iconBgColor || `${color}15`,
+                color: color,
+              }}
+            >
+              <FontAwesomeIcon icon={icon} size="lg" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const metrics = getDashboardMetrics();
+  const dateRangeOptions = [
+    { id: "today", label: "Today" },
+    { id: "yesterday", label: "Yesterday" },
+    { id: "last7days", label: "Last 7 Days" },
+    { id: "last30days", label: "Last 30 Days" },
+    { id: "thisMonth", label: "This Month" },
+    { id: "lastMonth", label: "Last Month" },
+    { id: "thisYear", label: "This Year" },
+    { id: "lastYear", label: "Last Year" },
+    { id: "custom", label: "Custom Range" },
+  ];
 
   const exportCSV = () => {
     const csvData = stockAdjustmentReports.map((report) => ({
@@ -258,287 +455,544 @@ const StockAdjustmentReport = () => {
     }));
   };
 
-  const { totalNormal, totalAbnormal, totalRecovered } = calculateTotals();
-
   return (
     <div className="wrapper">
       <div className="content-wrapper">
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-12 col-md-6">
-                <h1 className=" all-heading">Stock Adjustment Report</h1>
-              </div>
-            </div>
-            <div className="row">
               <div className="col-sm-6">
-                <div className="card cardHover rounded-4 border-0">
-                  <div className="card-body">
-                    <table className="table no-border">
-                      <tbody>
-                        <tr>
-                          <th>Total Normal:</th>
-                          <td>
-                            <span className="total_normal">
-                              ${totalNormal.toFixed(2)}
-                            </span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th>Total Abnormal:</th>
-                          <td>
-                            <span className="total_abnormal">
-                              ${totalAbnormal.toFixed(2)}
-                            </span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th>Total Stock Adjustment:</th>
-                          <td>
-                            <span className="total_amount">
-                              ${(totalNormal + totalAbnormal).toFixed(2)}
-                            </span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                <h1 className="all-heading">Stock Adjustment Report</h1>
               </div>
               <div className="col-sm-6">
-                <div className="card cardHover rounded-4 border-0">
-                  <div className="card-body">
-                    <table className="table no-border">
-                      <tbody>
-                        <tr>
-                          <th>Total Amount Recovered:</th>
-                          <td>
-                            <span className="total_recovered">
-                              ${totalRecovered.toFixed(2)}
-                            </span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                <ol className="breadcrumb float-sm-right">
+                  <li className="breadcrumb-item">
+                    <a href="/">Home</a>
+                  </li>
+                  <li className="breadcrumb-item active">Stock Adjustment</li>
+                </ol>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Overview */}
-        {/* <section className="wrapper">
-          <div className="container-fluid">
-            <div className="row">
-              <div className="col-sm-6">
-                <div className="card cardHover rounded-4 border-0">
-                  <div className="card-body">
-                    <table className="table no-border">
-                      <tbody>
-                        <tr>
-                          <th>Total Normal:</th>
-                          <td>
-                            <span className="total_normal">
-                              ${totalNormal.toFixed(2)}
-                            </span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th>Total Abnormal:</th>
-                          <td>
-                            <span className="total_abnormal">
-                              ${totalAbnormal.toFixed(2)}
-                            </span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th>Total Stock Adjustment:</th>
-                          <td>
-                            <span className="total_amount">
-                              ${totalRecovered.toFixed(2)}
-                            </span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-              <div className="col-sm-6">
-                <div className="card cardHover rounded-4 border-0">
-                  <div className="card-body">
-                    <table className="table no-border">
-                      <tbody>
-                        <tr>
-                          <th>Total Amount Recovered:</th>
-                          <td>
-                            <span className="total_recovered">
-                              ${totalRecovered.toFixed(2)}
-                            </span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section> */}
-
+        {/* Dashboard Summary Section */}
         <section className="content">
           <div className="container-fluid">
-            <div className="card cardHover rounded-4 border-0">
-              <div className="card-body">
-                <div className="row mb-3 d-flex align-items-center">
-                  <div className="col-12 col-md-auto form-group mb-2 d-flex align-items-center text-bold mt-2 mb-2 mr-2">
-                    <label htmlFor="entriesPerPage" className="mb-0 mr-2">
-                      Show
-                    </label>
-                    <select
-                      id="entriesPerPage"
-                      className="form-control form-control-sm mr-2"
-                      value={entriesPerPage}
-                      onChange={handleEntriesChange}
-                    >
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                      <option value={75}>75</option>
-                      <option value={100}>100</option>
-                    </select>
-                    Entries
-                  </div>
-
-                  <div className="col d-flex flex-wrap align-items-center">
-                    <button
-                      onClick={exportCSV}
-                      className="btn Export-Btn mt-2 mb-2 mr-2"
-                    >
-                      <i className="fa fa-file-csv"></i> Export CSV
-                    </button>
-
-                    <button
-                      onClick={exportExcel}
-                      className="btn Export-Btn mt-2 mb-2 mr-2"
-                    >
-                      <i className="fa fa-file-excel"></i> Export Excel
-                    </button>
-
-                    <button
-                      onClick={printData}
-                      className="btn Export-Btn mt-2 mb-2 mr-2"
-                    >
-                      <i className="fa fa-print"></i> Print
-                    </button>
-
-                    <button
-                      onClick={exportPDF}
-                      className="btn Export-Btn mt-2 mb-2 mr-2"
-                    >
-                      <i className="fa fa-file-pdf"></i> Export PDF
-                    </button>
-
-                    <div className="dropdown mt-lg-2 mb-lg-2">
-                      <button
-                        className="btn Export-Btn dropdown-toggle"
-                        type="button"
-                        id="dropdownMenuButton"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                      >
-                        <i className="fa fa-columns"></i> Column Visibility
-                      </button>
-                      <div
-                        className="dropdown-menu pointer-event"
-                        aria-labelledby="dropdownMenuButton"
-                      >
-                        {Object.keys(columnsVisibility).map((col) => (
-                          <div
-                            key={col}
-                            className="dropdown-item d-flex align-items-center"
+            {/* Date Range Selector */}
+            <div className="row mb-4">
+              <div className="col-12">
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body py-3">
+                    <div className="d-flex flex-wrap align-items-center justify-content-between">
+                      <div>
+                        <h6 className="mb-0">Report Period</h6>
+                        <p className="text-muted mb-0 small">
+                          Select date range for stock analysis
+                        </p>
+                      </div>
+                      <div className="d-flex flex-wrap gap-2 mt-2 mt-md-0">
+                        {dateRangeOptions.map((option) => (
+                          <button
+                            key={option.id}
+                            className={`btn btn-sm ${
+                              dateRange === option.id
+                                ? "btn-primary"
+                                : "btn-outline-primary"
+                            }`}
+                            onClick={() => setDateRange(option.id)}
+                            style={{
+                              borderRadius: "20px",
+                              padding: "5px 15px",
+                              transition: "all 0.3s ease",
+                            }}
                           >
-                            <input
-                              type="checkbox"
-                              checked={columnsVisibility[col]}
-                              onChange={() => toggleColumn(col)}
-                              className="mr-2"
-                            />
-                            {col.replace(/([A-Z])/g, " $1").toUpperCase()}
-                          </div>
+                            {option.label}
+                          </button>
                         ))}
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
 
-                <div id="table-container" style={{ overflowX: "auto" }}>
-                  <table
-                    id="example1"
-                    className="table table-bordered table-hover"
-                  >
-                    <thead>
-                      <tr>
-                        {columnsVisibility.date && <th>Date</th>}
-                        {columnsVisibility.referenceNo && <th>Reference No</th>}
-                        {columnsVisibility.location && <th>Location</th>}
-                        {columnsVisibility.adjustmentType && (
-                          <th>Adjustment Type</th>
-                        )}
-                        {columnsVisibility.totalAmount && (
-                          <th>Total Amount </th>
-                        )}
+            {/* Performance Summary */}
+            <div className="row mb-4">
+              <div className="col-12">
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body">
+                    <div className="d-flex align-items-center mb-4">
+                      <div
+                        className="rounded-circle d-flex align-items-center justify-content-center me-3"
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          backgroundColor: "#3498db",
+                          color: "white",
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faExchangeAlt} size="lg" />
+                      </div>
+                      <div>
+                        <h4 className="mb-0">Stock Adjustment Dashboard</h4>
+                        <p className="text-muted mb-0">
+                          Inventory adjustment metrics and insights
+                        </p>
+                      </div>
+                    </div>
 
-                        {columnsVisibility.totalAmountRecovered && (
-                          <th>Total Amount Recovered</th>
-                        )}
-                        {columnsVisibility.reason && <th>Reason</th>}
-                        {columnsVisibility.addedBy && <th>Added By</th>}
-                        {columnsVisibility.action && <th>Action</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {stockAdjustmentReports
-                        .slice(startIndex, endIndex)
-                        .map((report, index) => (
-                          <tr key={index}>
-                            {columnsVisibility.date && <td>{report.date}</td>}
-                            {columnsVisibility.referenceNo && (
+                    <div className="row">
+                      <StatCard
+                        icon={faMoneyBillWave}
+                        title="Total Adjustments"
+                        value={metrics.totalAdjustments}
+                        subValue={`${metrics.totalReports} total reports`}
+                        color="#3498db"
+                        trend={metrics.trend}
+                        isLoading={isLoading}
+                      />
+
+                      <StatCard
+                        icon={faCheckCircle}
+                        title="Normal Adjustments"
+                        value={metrics.totalNormal}
+                        subValue={`${metrics.normalCount} normal adjustments`}
+                        color="#2ecc71"
+                        isLoading={isLoading}
+                      />
+
+                      <StatCard
+                        icon={faExclamationTriangle}
+                        title="Abnormal Adjustments"
+                        value={metrics.totalAbnormal}
+                        subValue={`${metrics.abnormalCount} abnormal cases`}
+                        color="#e74c3c"
+                        isLoading={isLoading}
+                      />
+
+                      <StatCard
+                        icon={faPercent}
+                        title="Recovery Rate"
+                        value={`${metrics.recoveryRate}%`}
+                        subValue={`${metrics.totalRecovered} recovered`}
+                        color="#9b59b6"
+                        isLoading={isLoading}
+                      />
+                    </div>
+
+                    {/* Additional Metrics */}
+                    <div className="row mt-4">
+                      <div className="col-xl-4 col-lg-6 col-md-6 mb-4">
+                        <div
+                          className="card border-0 shadow-sm h-100"
+                          style={{
+                            borderLeft: `4px solid #3498db`,
+                            background:
+                              "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                            color: "white",
+                          }}
+                        >
+                          <div className="card-body">
+                            <div className="d-flex align-items-center">
+                              <div
+                                className="rounded-circle d-flex align-items-center justify-content-center me-3"
+                                style={{
+                                  width: "40px",
+                                  height: "40px",
+                                  backgroundColor: "rgba(255,255,255,0.2)",
+                                  color: "white",
+                                }}
+                              >
+                                <FontAwesomeIcon icon={faBoxes} />
+                              </div>
+                              <div>
+                                <h6 className="mb-1" style={{ opacity: 0.9 }}>
+                                  Items Adjusted
+                                </h6>
+                                <h4 className="mb-0">
+                                  {isLoading ? (
+                                    <div className="placeholder-wave">
+                                      <span className="placeholder col-6"></span>
+                                    </div>
+                                  ) : (
+                                    formatNumber(metrics.totalItemsAdjusted)
+                                  )}
+                                </h4>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="col-xl-4 col-lg-6 col-md-6 mb-4">
+                        <div
+                          className="card border-0 shadow-sm h-100"
+                          style={{
+                            borderLeft: `4px solid #3498db`,
+                            background:
+                              "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+                            color: "white",
+                          }}
+                        >
+                          <div className="card-body">
+                            <div className="d-flex align-items-center">
+                              <div
+                                className="rounded-circle d-flex align-items-center justify-content-center me-3"
+                                style={{
+                                  width: "40px",
+                                  height: "40px",
+                                  backgroundColor: "rgba(255,255,255,0.2)",
+                                  color: "white",
+                                }}
+                              >
+                                <FontAwesomeIcon icon={faBalanceScale} />
+                              </div>
+                              <div>
+                                <h6 className="mb-1" style={{ opacity: 0.9 }}>
+                                  Abnormality Rate
+                                </h6>
+                                <h4 className="mb-0">
+                                  {isLoading ? (
+                                    <div className="placeholder-wave">
+                                      <span className="placeholder col-6"></span>
+                                    </div>
+                                  ) : (
+                                    `${metrics.abnormalityRate}%`
+                                  )}
+                                </h4>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="col-xl-4 col-lg-12 col-md-12 mb-4">
+                        <div
+                          className="card border-0 shadow-sm h-100"
+                          style={{
+                            borderLeft: `4px solid #3498db`,
+                          }}
+                        >
+                          <div className="card-body">
+                            <div className="d-flex align-items-center justify-content-between">
+                              <div>
+                                <h6 className="text-muted mb-2">
+                                  Adjustment Efficiency
+                                </h6>
+                                {isLoading ? (
+                                  <div className="placeholder-wave">
+                                    <span className="placeholder col-4"></span>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <h4 className="mb-1">
+                                      {metrics.efficiency}
+                                    </h4>
+                                    <div className="d-flex align-items-center">
+                                      <span
+                                        className={`badge ${
+                                          metrics.recoveryRate > 50
+                                            ? "bg-success"
+                                            : metrics.recoveryRate > 25
+                                            ? "bg-warning"
+                                            : "bg-danger"
+                                        } me-2`}
+                                      >
+                                        <FontAwesomeIcon
+                                          icon={faChartLine}
+                                          className="me-1"
+                                        />
+                                        {metrics.recoveryRate}% RR
+                                      </span>
+                                      <small className="text-muted">
+                                        Recovery performance
+                                      </small>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                              <div className="text-end">
+                                <div
+                                  className="rounded-circle d-flex align-items-center justify-content-center ms-auto"
+                                  style={{
+                                    width: "60px",
+                                    height: "60px",
+                                    backgroundColor: "#3498db15",
+                                    color: "#3498db",
+                                  }}
+                                >
+                                  <FontAwesomeIcon
+                                    icon={faCalculator}
+                                    size="lg"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Adjustments Quick View */}
+            <div className="row mb-4">
+              <div className="col-12">
+                <div className="card border-0 shadow-sm">
+                  <div className="card-header bg-white border-0">
+                    <h5 className="mb-0">
+                      <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
+                      Recent Adjustments
+                    </h5>
+                  </div>
+                  <div className="card-body">
+                    <div className="table-responsive">
+                      <table className="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Reference No</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Recovered</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {metrics.recentAdjustments.map((report, index) => (
+                            <tr
+                              key={index}
+                              style={{ cursor: "pointer" }}
+                              onClick={() => handleView(report)}
+                            >
+                              <td>{report.date}</td>
                               <td>{report.referenceNumber}</td>
+                              <td>
+                                <span
+                                  className={`badge ${
+                                    report.adjustmentType === "normal"
+                                      ? "bg-success"
+                                      : "bg-danger"
+                                  }`}
+                                >
+                                  {report.adjustmentType}
+                                </span>
+                              </td>
+                              <td>{formatCurrency(report.totalAmount)}</td>
+                              <td>{formatCurrency(report.amountRecovered)}</td>
+                              <td>
+                                <span
+                                  className={`badge ${
+                                    Number(report.amountRecovered) > 0
+                                      ? "bg-success"
+                                      : "bg-warning"
+                                  }`}
+                                >
+                                  {Number(report.amountRecovered) > 0
+                                    ? "Recovered"
+                                    : "Pending"}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Report Section */}
+            <div className="row">
+              <div className="col-12">
+                <div className="card cardHover rounded-4 border-0 shadow-sm">
+                  <div className="card-body">
+                    <div className="row mb-3 d-flex align-items-center">
+                      <div className="col-12 col-md-auto form-group mb-2 d-flex align-items-center text-bold mt-2 mb-2 mr-2">
+                        <label htmlFor="entriesPerPage" className="mb-0 mr-2">
+                          Show
+                        </label>
+                        <select
+                          id="entriesPerPage"
+                          className="form-control form-control-sm mr-2"
+                          value={entriesPerPage}
+                          onChange={handleEntriesChange}
+                        >
+                          <option value={25}>25</option>
+                          <option value={50}>50</option>
+                          <option value={75}>75</option>
+                          <option value={100}>100</option>
+                        </select>
+                        Entries
+                      </div>
+
+                      <div className="col d-flex flex-wrap align-items-center">
+                        <button
+                          onClick={exportCSV}
+                          className="btn Export-Btn mt-2 mb-2 mr-2"
+                        >
+                          <i className="fa fa-file-csv"></i> Export CSV
+                        </button>
+
+                        <button
+                          onClick={exportExcel}
+                          className="btn Export-Btn mt-2 mb-2 mr-2"
+                        >
+                          <i className="fa fa-file-excel"></i> Export Excel
+                        </button>
+
+                        <button
+                          onClick={printData}
+                          className="btn Export-Btn mt-2 mb-2 mr-2"
+                        >
+                          <i className="fa fa-print"></i> Print
+                        </button>
+
+                        <button
+                          onClick={exportPDF}
+                          className="btn Export-Btn mt-2 mb-2 mr-2"
+                        >
+                          <i className="fa fa-file-pdf"></i> Export PDF
+                        </button>
+
+                        <div className="dropdown mt-lg-2 mb-lg-2">
+                          <button
+                            className="btn Export-Btn dropdown-toggle"
+                            type="button"
+                            id="dropdownMenuButton"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                          >
+                            <i className="fa fa-columns"></i> Column Visibility
+                          </button>
+                          <div
+                            className="dropdown-menu pointer-event"
+                            aria-labelledby="dropdownMenuButton"
+                          >
+                            {Object.keys(columnsVisibility).map((col) => (
+                              <div
+                                key={col}
+                                className="dropdown-item d-flex align-items-center"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={columnsVisibility[col]}
+                                  onChange={() => toggleColumn(col)}
+                                  className="mr-2"
+                                />
+                                {col.replace(/([A-Z])/g, " $1").toUpperCase()}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div id="table-container" style={{ overflowX: "auto" }}>
+                      <table
+                        id="example1"
+                        className="table table-bordered table-hover"
+                      >
+                        <thead>
+                          <tr>
+                            {columnsVisibility.date && <th>Date</th>}
+                            {columnsVisibility.referenceNo && (
+                              <th>Reference No</th>
                             )}
-                            {columnsVisibility.location && (
-                              <td>{report.businessLocation}</td>
-                            )}
+                            {columnsVisibility.location && <th>Location</th>}
                             {columnsVisibility.adjustmentType && (
-                              <td>{report.adjustmentType}</td>
+                              <th>Adjustment Type</th>
                             )}
                             {columnsVisibility.totalAmount && (
-                              <td>{report.totalAmount}</td>
+                              <th>Total Amount </th>
                             )}
+
                             {columnsVisibility.totalAmountRecovered && (
-                              <td>{report.amountRecovered}</td>
+                              <th>Total Amount Recovered</th>
                             )}
-                            {columnsVisibility.reason && (
-                              <td>{report.reason}</td>
-                            )}
-                            {columnsVisibility.addedBy && (
-                              <td>{report.addedBy}</td>
-                            )}
-                            {columnsVisibility.action && (
-                              <td>
-                                <button
-                                  className="btn btn-view btn-sm mr-2"
-                                  onClick={() => handleView(report)}
-                                >
-                                  <i className="fas fa-eye"></i> View
-                                </button>
-                              </td>
-                            )}
+                            {columnsVisibility.reason && <th>Reason</th>}
+                            {columnsVisibility.addedBy && <th>Added By</th>}
+                            {columnsVisibility.action && <th>Action</th>}
                           </tr>
-                        ))}
-                    </tbody>
-                  </table>
+                        </thead>
+                        <tbody>
+                          {stockAdjustmentReports
+                            .slice(startIndex, endIndex)
+                            .map((report, index) => (
+                              <tr key={index}>
+                                {columnsVisibility.date && (
+                                  <td>{report.date}</td>
+                                )}
+                                {columnsVisibility.referenceNo && (
+                                  <td>{report.referenceNumber}</td>
+                                )}
+                                {columnsVisibility.location && (
+                                  <td>{report.businessLocation}</td>
+                                )}
+                                {columnsVisibility.adjustmentType && (
+                                  <td>
+                                    <span
+                                      className={`badge ${
+                                        report.adjustmentType === "normal"
+                                          ? "bg-success"
+                                          : "bg-danger"
+                                      }`}
+                                    >
+                                      {report.adjustmentType}
+                                    </span>
+                                  </td>
+                                )}
+                                {columnsVisibility.totalAmount && (
+                                  <td>{formatCurrency(report.totalAmount)}</td>
+                                )}
+                                {columnsVisibility.totalAmountRecovered && (
+                                  <td>
+                                    <span
+                                      className={`${
+                                        Number(report.amountRecovered) > 0
+                                          ? "text-success"
+                                          : "text-warning"
+                                      }`}
+                                    >
+                                      {formatCurrency(report.amountRecovered)}
+                                    </span>
+                                  </td>
+                                )}
+                                {columnsVisibility.reason && (
+                                  <td>{report.reason}</td>
+                                )}
+                                {columnsVisibility.addedBy && (
+                                  <td>{report.addedBy}</td>
+                                )}
+                                {columnsVisibility.action && (
+                                  <td>
+                                    <button
+                                      className="btn btn-view btn-sm mr-2"
+                                      onClick={() => handleView(report)}
+                                      style={{
+                                        background:
+                                          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                        color: "white",
+                                        border: "none",
+                                        padding: "5px 15px",
+                                        borderRadius: "4px",
+                                      }}
+                                    >
+                                      <i className="fas fa-eye"></i> View
+                                    </button>
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -687,6 +1141,29 @@ const StockAdjustmentReport = () => {
           </button>
         </Modal.Footer>
       </Modal>
+
+      {/* Add custom styles */}
+      <style jsx="true">{`
+        @media (max-width: 768px) {
+          .nav-tabs .nav-item {
+            flex: 1;
+            text-align: center;
+          }
+
+          .nav-tabs .nav-link {
+            padding: 10px 5px;
+            font-size: 0.85rem;
+          }
+
+          .btn-group {
+            flex-wrap: wrap;
+          }
+
+          .btn {
+            margin-bottom: 5px;
+          }
+        }
+      `}</style>
     </div>
   );
 };

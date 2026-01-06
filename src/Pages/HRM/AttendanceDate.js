@@ -106,20 +106,17 @@ const AttendanceDate = () => {
     );
   };
 
-  // Process attendance summary for the selected range
   const processAttendanceSummary = (
     start = startDate,
     end = endDate,
     label = selectedRange
   ) => {
+    if (!userData.length || !attendanceData.length) return;
+
     const summary = {
       dateRange: label
         ? `${label} (${start.format("MMM D")} - ${end.format("MMM D")})`
         : `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`,
-      presentEmployees: new Set(),
-      absentEmployees: new Set(userData.map((user) => user.id)),
-      presentCount: 0,
-      absentCount: 0,
       dailyRecords: [],
     };
 
@@ -129,56 +126,60 @@ const AttendanceDate = () => {
       const dateStr = currentDate.format("YYYY-MM-DD");
       summary.dailyRecords.push({
         date: dateStr,
-        present: new Set(),
-        absent: new Set(userData.map((user) => user.id)),
+        present: [],
+        absent: [...userData.map((user) => user.id)], // all absent initially
       });
       currentDate.add(1, "day");
     }
 
-    // Process all attendance records within the date range
-    attendanceData.forEach((attendance) => {
-      attendance.inTime.forEach((inTime, index) => {
-        const date = moment(inTime.split("T")[0]);
-        const employeeId = attendance.employee[index];
+    // Fill present/absent
+    summary.dailyRecords.forEach((daily) => {
+      attendanceData.forEach((attendance) => {
+        const attendanceDate = attendance.attendanceDate
+          ? moment(attendance.attendanceDate).format("YYYY-MM-DD")
+          : moment(attendance.inTime).format("YYYY-MM-DD"); // fallback to inTime
 
-        if (date.isBetween(start, end, null, "[]")) {
-          summary.presentEmployees.add(employeeId);
-          summary.absentEmployees.delete(employeeId);
-          summary.presentCount++;
-
-          // Update daily records
-          const dailyRecord = summary.dailyRecords.find(
-            (record) => record.date === date.format("YYYY-MM-DD")
+        if (attendanceDate === daily.date && attendance.status === "PRESENT") {
+          daily.present.push(attendance.employeeId);
+          daily.absent = daily.absent.filter(
+            (id) => id !== attendance.employeeId
           );
-          if (dailyRecord) {
-            dailyRecord.present.add(employeeId);
-            dailyRecord.absent.delete(employeeId);
-          }
         }
       });
     });
 
-    // Calculate absent count
-    summary.absentCount =
-      userData.length * summary.dailyRecords.length - summary.presentCount;
+    // Convert IDs to employee details
+    summary.dailyRecords = summary.dailyRecords.map((daily) => ({
+      ...daily,
+      present: daily.present
+        .map((id) => userData.find((u) => u.id === id))
+        .filter(Boolean)
+        .map((u) => ({ id: u.id, name: `${u.firstname} ${u.lastname}` })),
+      absent: daily.absent
+        .map((id) => userData.find((u) => u.id === id))
+        .filter(Boolean)
+        .map((u) => ({ id: u.id, name: `${u.firstname} ${u.lastname}` })),
+    }));
 
-    // Convert Sets to arrays with user details
+    // Compute totals for period
+    const presentEmployees = new Set();
+    const absentEmployees = new Set();
+
+    summary.dailyRecords.forEach((daily) => {
+      daily.present.forEach((emp) => presentEmployees.add(emp.id));
+      daily.absent.forEach((emp) => absentEmployees.add(emp.id));
+    });
+
     setSummaryData({
       ...summary,
-      presentEmployees: Array.from(summary.presentEmployees)
-        .map((id) => userData.find((user) => user.id === id))
-        .filter((user) => user)
-        .map((user) => ({
-          id: user.id,
-          name: `${user.firstname} ${user.lastname}`,
-        })),
-      absentEmployees: Array.from(summary.absentEmployees)
-        .map((id) => userData.find((user) => user.id === id))
-        .filter((user) => user)
-        .map((user) => ({
-          id: user.id,
-          name: `${user.firstname} ${user.lastname}`,
-        })),
+      presentEmployees: Array.from(presentEmployees)
+        .map((id) => userData.find((u) => u.id === id))
+        .filter(Boolean)
+        .map((u) => ({ id: u.id, name: `${u.firstname} ${u.lastname}` })),
+      absentEmployees: Array.from(absentEmployees)
+        .map((id) => userData.find((u) => u.id === id))
+        .filter(Boolean)
+        .map((u) => ({ id: u.id, name: `${u.firstname} ${u.lastname}` })),
     });
   };
 
@@ -210,10 +211,6 @@ const AttendanceDate = () => {
       });
     }
   };
-
-  if (loading) {
-    return <div className="text-center py-5">Loading attendance data...</div>;
-  }
 
   return (
     <div className="content">

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../../assets/plugins/fontawesome-free/css/all.min.css";
@@ -16,6 +17,7 @@ import { toast } from "react-toastify";
 
 const ListStockTransfer = () => {
   const [ListStockTransfer, setListStockTransfer] = useState([]);
+  const navigate = useNavigate();
   const [columnsVisibility, setColumnsVisibility] = useState({
     data: true,
     referenceNo: true,
@@ -59,6 +61,10 @@ const ListStockTransfer = () => {
 
   const [filteredStockTransfers, setFilteredStockTransfers] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
+
+  useEffect(() => {
+    fetchStockTransfer();
+  }, []);
   const [locations, setLocations] = useState([]);
   const [locationMap, setLocationMap] = useState({});
 
@@ -77,11 +83,6 @@ const ListStockTransfer = () => {
       })
       .catch((err) => console.error(err));
   }, []);
-
-  useEffect(() => {
-    fetchStockTransfer();
-  }, []);
-
   const fetchStockTransfer = async () => {
     try {
       const response = await fetch(
@@ -121,11 +122,9 @@ const ListStockTransfer = () => {
       const locationsFrom = [
         ...new Set(ListStockTransfer.map((item) => item.locationFrom)),
       ].filter(Boolean);
-
       const locationsTo = [
         ...new Set(ListStockTransfer.map((item) => item.locationTo)),
       ].filter(Boolean);
-
       const statuses = [
         ...new Set(ListStockTransfer.map((item) => item.status)),
       ].filter(Boolean);
@@ -436,91 +435,31 @@ const ListStockTransfer = () => {
   const startIndex = (currentPage - 1) * entriesPerPage;
   const endIndex = startIndex + entriesPerPage;
 
-  const handleSaveUnit = async () => {
-    try {
-      if (modalType === "edit" && currentListStock) {
-        const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/stock-transfer/update/${currentListStock.id}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ ...formData, id: currentListStock.id }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to update unit");
-        }
-
-        const updatedUnit = await response.json();
-        setListStockTransfer((prevUnits) =>
-          prevUnits.map((unit) =>
-            unit.id === updatedUnit.id ? updatedUnit : unit
-          )
-        );
-        closeModal();
-        toast.success("Unit updated successfully!");
-      } else if (modalType === "add") {
-        const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/stock-transfer/save`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-          }
-        );
-
-        if (response.status !== 201) {
-          throw new Error("Failed to add unit");
-        }
-
-        const newUnit = await response.json();
-        setListStockTransfer((prevUnits) => [...prevUnits, newUnit]);
-        closeModal();
-        toast.success("Unit added successfully!");
-      }
-    } catch (error) {
-      //console.error("Error saving unit:", error);
-      toast.error("Error saving unit");
-    }
-  };
-
-  const closeModal = () => {
-    setModalType(null);
-    setCurrentListStock(null);
-    setFormData({
-      data: "",
-      referenceNo: "",
-      locationFrom: "",
-      locationTo: "",
-      status: "",
-      shippingCharges: "",
-      totalAmount: "",
-      additionalNotes: "",
-    });
-  };
-
   const handleEdit = (id) => {
     const StockTransferToEdit = ListStockTransfer.find(
       (StockTransfer) => StockTransfer.id === id
     );
+
     if (StockTransferToEdit) {
+      // If you want to set data first (optional)
       setCurrentListStock(StockTransferToEdit);
       setFormData({
-        date: StockTransferToEdit.date,
-        referenceNumber: StockTransferToEdit.referenceNumber,
+        data: StockTransferToEdit.data,
+        referenceNo: StockTransferToEdit.referenceNo,
         locationFrom: StockTransferToEdit.locationFrom,
         locationTo: StockTransferToEdit.locationTo,
         status: StockTransferToEdit.status,
         shippingCharges: StockTransferToEdit.shippingCharges,
         totalAmount: StockTransferToEdit.totalAmount,
-        note: StockTransferToEdit.note,
+        additionalNotes: StockTransferToEdit.additionalNotes,
       });
-      setModalType("edit");
+
+      // Then redirect to edit page
+      navigate(`/EditStockTransfer/${id}`, {
+        state: {
+          stockTransferData: StockTransferToEdit,
+        },
+      });
     }
   };
 
@@ -528,14 +467,19 @@ const ListStockTransfer = () => {
     const StockTransferToView = ListStockTransfer.find(
       (StockTransfer) => StockTransfer.id === id
     );
+
     if (StockTransferToView) {
-      setCurrentListStock(StockTransferToView);
-      setModalType("view");
+      // Navigate to view page with ID and data
+      navigate(`/ViewStockTransfer/${id}`, {
+        state: {
+          stockTransferData: StockTransferToView,
+        },
+      });
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this unit?")) {
+    if (window.confirm("Are you sure you want to delete this ?")) {
       try {
         const response = await fetch(
           `${process.env.REACT_APP_BASE_URL}/stock-transfer/delete/${id}`,
@@ -548,13 +492,13 @@ const ListStockTransfer = () => {
           setListStockTransfer((prevUnits) =>
             prevUnits.filter((unit) => unit.id !== id)
           );
-          toast.success("Unit deleted successfully!");
+          toast.success("Deleted successfully!");
         } else {
-          toast.error("Failed to delete unit.");
+          toast.error("Failed to delete...");
         }
       } catch (error) {
         //console.error("Error deleting unit:", error);
-        toast.error("Error deleting unit");
+        toast.error("Error deleting...");
       }
     }
   };
@@ -624,17 +568,19 @@ const ListStockTransfer = () => {
                         <div className="form-group">
                           <label className="me-2">Location From:</label>
                           <select
+                            className="form-select"
                             name="locationFrom"
                             value={activeFilters.locationFrom}
                             onChange={handleFilterChange}
-                            className="form-control"
                           >
-                            <option value="">All</option>
-                            {filterValues.locationsFrom.map((id) => (
-                              <option key={id} value={id}>
-                                {locationMap[id] || "Unknown Location"}
-                              </option>
-                            ))}
+                            <option value="">All Locations</option>
+                            {filterValues.locationsFrom.map(
+                              (location, index) => (
+                                <option key={`from-${index}`} value={location}>
+                                  {locationMap[location] || location}
+                                </option>
+                              )
+                            )}
                           </select>
                         </div>
                       </div>
@@ -644,15 +590,15 @@ const ListStockTransfer = () => {
                         <div className="form-group">
                           <label className="me-2">Location To:</label>
                           <select
+                            className="form-select"
                             name="locationTo"
                             value={activeFilters.locationTo}
                             onChange={handleFilterChange}
-                            className="form-control"
                           >
-                            <option value="">All</option>
-                            {filterValues.locationsTo.map((id) => (
-                              <option key={id} value={id}>
-                                {locationMap[id] || "Unknown Location"}
+                            <option value="">All Locations</option>
+                            {filterValues.locationsTo.map((location, index) => (
+                              <option key={`to-${index}`} value={location}>
+                                {locationMap[location] || location}
                               </option>
                             ))}
                           </select>
@@ -792,7 +738,7 @@ const ListStockTransfer = () => {
                   >
                     <thead>
                       <tr>
-                        {columnsVisibility.data && <th>Date</th>}
+                        {columnsVisibility.data && <th>Data</th>}
                         {columnsVisibility.referenceNo && <th>Reference No</th>}
                         {columnsVisibility.locationFrom && (
                           <th>Location (From)</th>
@@ -831,7 +777,6 @@ const ListStockTransfer = () => {
                                 {locationMap[StockTransfer.locationTo] || "—"}
                               </td>
                             )}
-
                             {columnsVisibility.status && (
                               <td>{StockTransfer.status}</td>
                             )}
@@ -875,209 +820,6 @@ const ListStockTransfer = () => {
             </div>
           </div>
         </section>
-
-        {/* Modal */}
-        {modalType && (
-          <div
-            className="modal fade show"
-            id="unitModal"
-            tabIndex="-1"
-            role="dialog"
-            aria-labelledby="unitModalLabel"
-            aria-hidden={!modalType}
-            style={{ display: modalType ? "block" : "none" }}
-          >
-            <div className="modal-dialog" role="document">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title" id="unitModalLabel">
-                    {modalType === "add"
-                      ? "Add Unit"
-                      : modalType === "edit"
-                      ? "Edit Unit"
-                      : "View Unit"}
-                  </h5>
-                  <button
-                    type="button"
-                    className="close"
-                    onClick={closeModal}
-                    aria-label="Close"
-                  >
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div className="modal-body">
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      handleSaveUnit();
-                    }}
-                  >
-                    {modalType === "edit" && (
-                      <div>
-                        <div className="form-group">
-                          <label htmlFor="date">Date</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            id="date"
-                            value={formData.date}
-                            onChange={handleFormChange}
-                            placeholder="Enter date"
-                            required
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label htmlFor="referenceNumber">Reference No</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            id="referenceNumber"
-                            value={formData.referenceNumber}
-                            onChange={handleFormChange}
-                            placeholder="Enter reference number"
-                            required
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label htmlFor="locationFrom">Location (From)</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            id="locationFrom"
-                            value={formData.locationFrom}
-                            onChange={handleFormChange}
-                            placeholder="Enter location from"
-                            required
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label htmlFor="locationTo">Location (To)</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            id="locationTo"
-                            value={formData.locationTo}
-                            onChange={handleFormChange}
-                            placeholder="Enter location to"
-                            required
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label htmlFor="status">Status</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            id="status"
-                            value={formData.status}
-                            onChange={handleFormChange}
-                            placeholder="Enter status"
-                            required
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label htmlFor="shippingCharges">
-                            Shipping Charges
-                          </label>
-                          <input
-                            type="number"
-                            className="form-control"
-                            id="shippingCharges"
-                            value={formData.shippingCharges}
-                            onChange={handleFormChange}
-                            placeholder="Enter shipping charges"
-                            required
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label htmlFor="totalAmount">Total Amount</label>
-                          <input
-                            type="number"
-                            className="form-control"
-                            id="totalAmount"
-                            value={formData.totalAmount}
-                            onChange={handleFormChange}
-                            placeholder="Enter total amount"
-                            required
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label htmlFor="note">Additional Notes</label>
-                          <textarea
-                            className="form-control"
-                            id="note"
-                            value={formData.note}
-                            onChange={handleFormChange}
-                            placeholder="Enter additional notes"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {modalType === "view" && currentListStock && (
-                      <div>
-                        <p>
-                          <strong>Date:</strong> {currentListStock.date}
-                        </p>
-                        <p>
-                          <strong>Reference No:</strong>{" "}
-                          {currentListStock.referenceNumber}
-                        </p>
-                        <p>
-                          <strong>Location (From):</strong>{" "}
-                          {currentListStock.locationFrom}
-                        </p>
-                        <p>
-                          <strong>Location (To):</strong>{" "}
-                          {currentListStock.locationTo}
-                        </p>
-                        <p>
-                          <strong>Status:</strong> {currentListStock.status}
-                        </p>
-                        <p>
-                          <strong>Shipping Charges:</strong>{" "}
-                          {currentListStock.shippingCharges}
-                        </p>
-                        <p>
-                          <strong>Total Amount:</strong>{" "}
-                          {currentListStock.totalAmount}
-                        </p>
-                        <p>
-                          <strong>Additional Notes:</strong>{" "}
-                          {currentListStock.note}
-                        </p>
-                      </div>
-                    )}
-                    <div className="modal-footer">
-                      {modalType === "add" || modalType === "edit" ? (
-                        <>
-                          <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={closeModal}
-                          >
-                            Close
-                          </button>
-                          <button type="submit" className="btn btn-primary">
-                            Save
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          className="btn btn-secondary"
-                          onClick={closeModal}
-                        >
-                          Close
-                        </button>
-                      )}
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

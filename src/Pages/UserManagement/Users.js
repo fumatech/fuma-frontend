@@ -38,10 +38,26 @@ const Users = ({ userRoles }) => {
     role: true,
     isActive: true,
     actions: true,
+    location: true,
   });
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
+  const [businessLocations, setBusinessLocations] = useState([]);
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
+      .then((res) => res.json())
+      .then((data) => setBusinessLocations(data))
+      .catch((err) => console.error("Error fetching locations", err));
+  }, []);
+  const getUserLocations = (locationIds = []) => {
+    if (!locationIds.length || !businessLocations.length) return "-";
+
+    return businessLocations
+      .filter((loc) => locationIds.includes(Number(loc.id)))
+      .map((loc) => loc.name)
+      .join(", ");
+  };
 
   // Improved extractRole function
   const extractRole = (roles) => {
@@ -324,6 +340,10 @@ const Users = ({ userRoles }) => {
                         {columnsVisibility.isActive && (
                           <th className="text-center">Is Active</th>
                         )}
+                        {columnsVisibility.location && (
+                          <th>Business Locations</th>
+                        )}
+
                         {columnsVisibility.actions && (
                           <th className="text-center">Actions</th>
                         )}
@@ -363,6 +383,12 @@ const Users = ({ userRoles }) => {
                                 />
                               </td>
                             )}
+                            {columnsVisibility.location && (
+                              <td>
+                                {getUserLocations(user.locationIds) || "-"}
+                              </td>
+                            )}
+
                             {columnsVisibility.actions && (
                               <td className="text-center">
                                 <div className="btn-group btn-group-sm btn-icon-only">

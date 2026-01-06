@@ -48,6 +48,42 @@ const Profile = () => {
 
   const [message, setMessage] = useState({ text: "", type: "" });
   const navigate = useNavigate();
+  const [locations, setLocations] = useState([]);
+  const [selectedLocationIds, setSelectedLocationIds] = useState([]);
+  const [allLocationsChecked, setAllLocationsChecked] = useState(false);
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
+      .then((res) => res.json())
+      .then((data) => setLocations(data))
+      .catch((err) => console.error("Error loading locations", err));
+  }, []);
+  const handleAllLocationsChange = (e) => {
+    const checked = e.target.checked;
+    setAllLocationsChecked(checked);
+
+    if (checked) {
+      setSelectedLocationIds(locations.map((loc) => loc.id));
+    } else {
+      setSelectedLocationIds([]);
+    }
+  };
+
+  const handleLocationChange = (id) => {
+    if (allLocationsChecked) return;
+
+    setSelectedLocationIds((prev) =>
+      prev.includes(id) ? prev.filter((lid) => lid !== id) : [...prev, id]
+    );
+  };
+  useEffect(() => {
+    if (locations.length === 0) return;
+
+    if (selectedLocationIds.length === locations.length) {
+      setAllLocationsChecked(true);
+    } else {
+      setAllLocationsChecked(false);
+    }
+  }, [selectedLocationIds, locations]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -127,6 +163,7 @@ const Profile = () => {
           salaryIn: data.salaryIn,
           payComponentId: data.payComponentId,
         });
+        setSelectedLocationIds(data.locationIds || []);
       } catch (error) {
         console.error("Error fetching user data:", error);
         setMessage({ text: "Failed to load user data", type: "error" });
@@ -143,6 +180,7 @@ const Profile = () => {
 
       const updatedUserData = {
         ...userData,
+        locationIds: selectedLocationIds, // ✅ ADD THIS
       };
 
       const response = await fetch(
@@ -694,6 +732,51 @@ const Profile = () => {
                                   value={userData.currentAddress}
                                   onChange={handleInputChange}
                                 />
+                              </div>
+                              <div className="form-group col-md-6">
+                                <label>Business Locations</label>
+
+                                <div className="form-check mb-2">
+                                  <input
+                                    type="checkbox"
+                                    className="form-check-input"
+                                    id="allLocations"
+                                    checked={allLocationsChecked}
+                                    onChange={handleAllLocationsChange}
+                                  />
+                                  <label
+                                    className="form-check-label"
+                                    htmlFor="allLocations"
+                                  >
+                                    All Locations
+                                  </label>
+                                </div>
+
+                                {locations.map((location) => (
+                                  <div className="form-check" key={location.id}>
+                                    <input
+                                      className="form-check-input"
+                                      type="checkbox"
+                                      id={`location_${location.id}`}
+                                      checked={
+                                        allLocationsChecked ||
+                                        selectedLocationIds.includes(
+                                          location.id
+                                        )
+                                      }
+                                      disabled={allLocationsChecked}
+                                      onChange={() =>
+                                        handleLocationChange(location.id)
+                                      }
+                                    />
+                                    <label
+                                      className="form-check-label"
+                                      htmlFor={`location_${location.id}`}
+                                    >
+                                      {location.name}
+                                    </label>
+                                  </div>
+                                ))}
                               </div>
 
                               {/* Bank Details */}

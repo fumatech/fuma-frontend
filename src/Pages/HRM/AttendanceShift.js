@@ -8,6 +8,19 @@ const AttendanceShift = () => {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+  const [shiftDataList, setShiftDataList] = useState([]);
+
+  const fetchShifts = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/shift/getall`
+      );
+      const data = await response.json();
+      setShiftDataList(data); // save all shift info
+    } catch (error) {
+      console.error("Error fetching shifts:", error);
+    }
+  };
 
   // Fetch attendance data
   const fetchAttendanceData = async () => {
@@ -38,53 +51,50 @@ const AttendanceShift = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      await Promise.all([fetchAttendanceData(), fetchUserData()]);
+      await Promise.all([
+        fetchAttendanceData(),
+        fetchUserData(),
+        fetchShifts(),
+      ]);
       setLoading(false);
     };
     fetchData();
   }, [selectedDate]);
 
-  // Process data to get present/absent counts by shift
   const processShiftData = () => {
     const shiftsMap = {};
 
-    // Initialize shifts
+    // Step 1: Initialize shifts from attendance data
     attendanceData.forEach((attendance) => {
-      attendance.shift.forEach((shift, index) => {
-        if (!shiftsMap[shift]) {
-          shiftsMap[shift] = {
-            present: [],
-            absent: [],
-          };
-        }
-      });
+      const shiftId = attendance.shiftId;
+      if (!shiftsMap[shiftId]) {
+        shiftsMap[shiftId] = { present: [], absent: [] };
+      }
     });
 
-    // Process present employees (those with attendance records)
+    // Step 2: Add present employees
     attendanceData.forEach((attendance) => {
-      attendance.shift.forEach((shift, index) => {
-        const employeeId = attendance.employee[index];
-        const user = userData.find((u) => u.id === employeeId);
-        const attendanceDate = attendance.inTime[index]?.split("T")[0];
+      const shiftId = attendance.shiftId;
+      const employee = userData.find((u) => u.id === attendance.employeeId);
+      const attendanceDate = attendance.attendanceDate
+        ? attendance.attendanceDate.split("T")[0]
+        : new Date(attendance.inTime).toISOString().split("T")[0]; // fallback
 
-        if (attendanceDate === selectedDate) {
-          if (user) {
-            shiftsMap[shift].present.push({
-              id: user.id,
-              name: `${user.firstname} ${user.lastname}`,
-              inTime: attendance.inTime[index],
-              outTime: attendance.outTime[index],
-            });
-          }
-        }
-      });
+      if (attendanceDate === selectedDate && employee) {
+        shiftsMap[shiftId].present.push({
+          id: employee.id,
+          name: `${employee.firstname} ${employee.lastname}`,
+          inTime: attendance.inTime,
+          outTime: attendance.outTime,
+        });
+      }
     });
 
-    // Process absent employees (all users not marked present for each shift)
-    Object.keys(shiftsMap).forEach((shift) => {
-      const presentEmployeeIds = shiftsMap[shift].present.map((e) => e.id);
-      shiftsMap[shift].absent = userData
-        .filter((user) => !presentEmployeeIds.includes(user.id))
+    // Step 3: Add absent employees
+    Object.keys(shiftsMap).forEach((shiftId) => {
+      const presentIds = shiftsMap[shiftId].present.map((e) => e.id);
+      shiftsMap[shiftId].absent = userData
+        .filter((user) => !presentIds.includes(user.id))
         .map((user) => ({
           id: user.id,
           name: `${user.firstname} ${user.lastname}`,
@@ -95,8 +105,6 @@ const AttendanceShift = () => {
   };
 
   const shiftData = processShiftData();
-
-  if (loading) return <div>Loading data...</div>;
 
   return (
     <div className="content">
@@ -118,7 +126,11 @@ const AttendanceShift = () => {
 
             {Object.keys(shiftData).map((shift) => (
               <div key={shift} className="mb-4">
-                <h4>{shift.charAt(0).toUpperCase() + shift.slice(1)} Shift</h4>
+                <h4>
+                  Shift :
+                  {shiftDataList.find((s) => s.id === Number(shift))?.name ||
+                    `Shift ${shift}`}{" "}
+                </h4>
 
                 <div className="row">
                   <div className="col-md-6">
