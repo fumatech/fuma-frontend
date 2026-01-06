@@ -19,15 +19,27 @@ const Holiday = () => {
     Note: true,
     Action: true,
   });
+  const [businessLocations, setBusinessLocations] = useState([]);
 
   const [formData, setFormData] = useState({
     id: null,
     name: "",
     startDate: null,
     endDate: null,
-    businessLocation: "",
+    businessLocationId: 0, // DEFAULT = All
     note: "",
   });
+
+  const fetchBusinessLocations = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/business-locations/getall`
+      );
+      setBusinessLocations(res.data);
+    } catch (error) {
+      toast.error("Failed to load business locations");
+    }
+  };
 
   // Fetch holidays from API
   const fetchHolidays = async () => {
@@ -43,6 +55,7 @@ const Holiday = () => {
 
   useEffect(() => {
     fetchHolidays();
+    fetchBusinessLocations();
   }, []);
 
   const handleEntriesChange = (e) => {
@@ -83,7 +96,10 @@ const Holiday = () => {
         name: holiday.name,
         startDate: holiday.startDate ? new Date(holiday.startDate) : null,
         endDate: holiday.endDate ? new Date(holiday.endDate) : null,
-        businessLocation: holiday.businessLocation || "",
+        businessLocationId:
+          holiday.businessLocationId !== undefined
+            ? holiday.businessLocationId
+            : 0,
         note: holiday.note || "",
       });
       setEditMode(true);
@@ -93,7 +109,7 @@ const Holiday = () => {
         name: "",
         startDate: null,
         endDate: null,
-        businessLocation: "",
+        businessLocationId: 0, // ✅ DEFAULT ALL
         note: "",
       });
       setEditMode(false);
@@ -107,9 +123,11 @@ const Holiday = () => {
 
     try {
       const payload = {
-        ...formData,
+        name: formData.name,
         startDate: formData.startDate,
         endDate: formData.endDate,
+        businessLocationId: formData.businessLocationId,
+        note: formData.note,
       };
 
       if (editMode) {
@@ -138,6 +156,23 @@ const Holiday = () => {
       setIsLoading(false);
     }
   };
+  const calculateDays = (startDate, endDate) => {
+    if (!startDate || !endDate) return 0;
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    const diffTime = end - start;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+    return diffDays;
+  };
+
+  const getBusinessLocationName = (id) => {
+    if (id === 0) return "All";
+    const location = businessLocations.find((loc) => loc.id === id);
+    return location ? location.name : "-";
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this holiday?")) {
@@ -145,9 +180,12 @@ const Holiday = () => {
         await axios.delete(
           `${process.env.REACT_APP_BASE_URL}/holiday/delete/${id}`
         );
+
+        toast.success("Holiday deleted successfully!");
         fetchHolidays();
       } catch (error) {
         console.error("Error deleting holiday:", error);
+        toast.error("Failed to delete holiday. Please try again.");
       }
     }
   };
@@ -356,11 +394,25 @@ const Holiday = () => {
                                 <td>
                                   {formatDate(holiday.startDate)} -{" "}
                                   {formatDate(holiday.endDate)}
+                                  <br />
+                                  <small className="text-muted">
+                                    (
+                                    {calculateDays(
+                                      holiday.startDate,
+                                      holiday.endDate
+                                    )}{" "}
+                                    days)
+                                  </small>
                                 </td>
                               )}
                               {columnsVisibility.BusinessLocation && (
-                                <td>{holiday.businessLocation || "-"}</td>
+                                <td>
+                                  {getBusinessLocationName(
+                                    holiday.businessLocationId
+                                  )}
+                                </td>
                               )}
+
                               {columnsVisibility.Note && (
                                 <td>{holiday.note || "-"}</td>
                               )}
@@ -467,22 +519,25 @@ const Holiday = () => {
                         </span>
                       </div>
                     </div>
-
-                    <div className="form-group col-md-12">
-                      <label htmlFor="businessLocation">
-                        Business Location:
-                      </label>
-                      <select
-                        className="form-control"
-                        id="businessLocation"
-                        name="businessLocation"
-                        value={formData.businessLocation}
-                        onChange={handleInputChange}
-                      >
-                        <option value="">All</option>
-                        <option value="fuma">Fuma</option>
-                      </select>
-                    </div>
+                    <select
+                      className="form-control"
+                      id="businessLocationId"
+                      name="businessLocationId"
+                      value={formData.businessLocationId}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          businessLocationId: Number(e.target.value),
+                        }))
+                      }
+                    >
+                      <option value={0}>All</option>
+                      {businessLocations.map((loc) => (
+                        <option key={loc.id} value={loc.id}>
+                          {loc.name}
+                        </option>
+                      ))}
+                    </select>
 
                     <div className="form-group col-md-12">
                       <label htmlFor="note">Note:</label>

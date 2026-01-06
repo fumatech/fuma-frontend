@@ -27,6 +27,14 @@ const PayComponents = () => {
   // Mock data for dropdowns
   const [types] = useState(["Bonus", "Allowance", "Deduction", "Incentive"]);
   const [amountTypes] = useState(["Fixed", "Percentage", "Variable"]);
+  const [employees, setEmployees] = useState([]);
+  const [selectedEmployees, setSelectedEmployees] = useState([]);
+  useEffect(() => {
+    axios
+      .get(`${process.env.REACT_APP_BASE_URL}/user/getall`)
+      .then((res) => setEmployees(res.data))
+      .catch(() => toast.error("Failed to load employees"));
+  }, []);
 
   // Toggle column visibility
   const toggleColumn = (col) => {
@@ -88,37 +96,37 @@ const PayComponents = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (selectedEmployees.length === 0) {
+      toast.warning("Please select at least one employee");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Prepare the data for API
       const payload = {
-        ...formData,
-        amount: formData.amount ? parseInt(formData.amount) : 0,
+        description: formData.description,
+        type: formData.type,
+        amountType: formData.amountType,
+        amount: Number(formData.amount),
         applicableDate: formData.applicableDate
           ? new Date(formData.applicableDate).toISOString()
           : null,
+        employeeIds: selectedEmployees,
       };
 
-      if (formData.id) {
-        // Update existing pay component
-        await axios.put(
-          `${process.env.REACT_APP_BASE_URL}/pay-component/${formData.id}`,
-          payload
-        );
-      } else {
-        // Create new pay component
-        await axios.post(
-          `${process.env.REACT_APP_BASE_URL}/pay-component/add`,
-          payload
-        );
-      }
+      await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/pay-component/bulk`,
+        payload
+      );
 
-      // Refresh the data
-      await fetchPayComponents();
+      toast.success("Pay component saved successfully");
+      fetchPayComponents();
       setIsModalOpen(false);
-    } catch (error) {
-      console.error("Error saving pay component:", error);
+      setSelectedEmployees([]);
+    } catch (err) {
+      toast.error("Failed to save pay component");
     } finally {
       setIsLoading(false);
     }
@@ -249,6 +257,7 @@ const PayComponents = () => {
                       <span aria-hidden="true">&times;</span>
                     </button>
                   </div>
+
                   <div className="modal-body">
                     <div className="form-group">
                       <label htmlFor="description" className="font-weight-bold">
@@ -263,6 +272,33 @@ const PayComponents = () => {
                         onChange={handleInputChange}
                         required
                       />
+                    </div>
+                    <div className="form-group">
+                      <label className="font-weight-bold">
+                        Select Employees:*
+                      </label>
+                      <select
+                        className="form-control"
+                        multiple
+                        value={selectedEmployees}
+                        onChange={(e) =>
+                          setSelectedEmployees(
+                            Array.from(e.target.selectedOptions, (opt) =>
+                              Number(opt.value)
+                            )
+                          )
+                        }
+                        required
+                      >
+                        {employees.map((emp) => (
+                          <option key={emp.id} value={emp.id}>
+                            {emp.firstname} {emp.lastname}
+                          </option>
+                        ))}
+                      </select>
+                      <small className="text-muted">
+                        Hold Ctrl (Windows) / Cmd (Mac) to select multiple
+                      </small>
                     </div>
 
                     <div className="form-group">
@@ -309,7 +345,7 @@ const PayComponents = () => {
                             </option>
                           ))}
                         </select>
-                      </div>
+                      </div>{" "}
                       <div className="form-group col-md-6">
                         <label htmlFor="amount" className="font-weight-bold">
                           Amount:*
@@ -343,6 +379,7 @@ const PayComponents = () => {
                       />
                     </div>
                   </div>
+
                   <div className="modal-footer">
                     <button
                       type="button"

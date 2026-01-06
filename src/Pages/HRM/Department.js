@@ -33,6 +33,7 @@ const Department = () => {
       setDepartments(response.data);
     } catch (error) {
       console.error("Error fetching departments:", error);
+      toast.error("Error fetching departments");
     }
   };
 
@@ -106,32 +107,38 @@ const Department = () => {
           `${process.env.REACT_APP_BASE_URL}/department/update/${formData.id}`,
           payload
         );
+        toast.success("Department updated successfully");
       } else {
         await axios.post(
           `${process.env.REACT_APP_BASE_URL}/department/add`,
           payload
         );
+        toast.success("Department added successfully");
       }
 
       fetchDepartments();
       setIsModalOpen(false);
     } catch (error) {
       console.error("Error saving department:", error);
+      toast.error("Failed to save department");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this department?")) {
-      try {
-        await axios.delete(
-          `${process.env.REACT_APP_BASE_URL}/department/delete/${id}`
-        );
-        fetchDepartments();
-      } catch (error) {
-        console.error("Error deleting department:", error);
-      }
+    if (!window.confirm("Are you sure you want to delete this department?"))
+      return;
+
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_BASE_URL}/department/delete/${id}`
+      );
+      toast.success("Department deleted successfully");
+      fetchDepartments();
+    } catch (error) {
+      console.error("Error deleting department:", error);
+      toast.error("Failed to delete department");
     }
   };
 

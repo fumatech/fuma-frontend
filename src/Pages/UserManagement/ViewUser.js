@@ -89,6 +89,8 @@ const ViewUser = () => {
   const [locations, setLocations] = useState([]);
   const [selectedLocationIds, setSelectedLocationIds] = useState([]);
   const [allLocationsChecked, setAllLocationsChecked] = useState(false);
+  const [primaryWorkLocationId, setPrimaryWorkLocationId] = useState(null);
+
   useEffect(() => {
     fetch(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
       .then((res) => res.json())
@@ -202,6 +204,7 @@ const ViewUser = () => {
 
       // Payroll
       setPrimaryWorkLocation(userData.primaryWorkLocation || "");
+      setPrimaryWorkLocationId(userData.primaryWorkLocationId || null);
       setBasicSalary(userData.basicSalary || "");
       setSalaryIn(userData.salaryIn || "month");
       if (userData.payComponentId) {
@@ -684,6 +687,7 @@ const ViewUser = () => {
                             name="isActive"
                             checked={isActive}
                             onChange={handleChange}
+                            disabled
                           />
                           <label
                             className="form-check-label"
@@ -721,6 +725,7 @@ const ViewUser = () => {
                                   checked={allowLogin}
                                   onChange={handleChange}
                                   readOnly
+                                  disabled
                                 />
                                 <label
                                   className="form-check-label"
@@ -973,6 +978,7 @@ const ViewUser = () => {
                             checked={allowSelectedContacts}
                             onChange={handleChange}
                             readOnly
+                            disabled
                           />
                           <label
                             className="form-check-label"
@@ -1556,14 +1562,16 @@ const ViewUser = () => {
                             className="form-control"
                             id="primaryWorkLocation"
                             name="primaryWorkLocation"
-                            value={primaryWorkLocation}
+                            value={primaryWorkLocationId || ""}
                             onChange={handleChange}
-                            readOnly
                             disabled
                           >
                             <option value="">Select Location</option>
-                            <option value="location1">Location 1</option>
-                            <option value="location2">Location 2</option>
+                            {locations.map((loc) => (
+                              <option key={loc.id} value={loc.id}>
+                                {loc.name}
+                              </option>
+                            ))}
                           </select>
                         </div>
                       </div>
@@ -1578,9 +1586,8 @@ const ViewUser = () => {
                               name="basicSalary"
                               value={basicSalary}
                               onChange={handleChange}
-                              placeholder="Basic Salary"
-                              readOnly
                               disabled
+                              placeholder="Basic Salary"
                             />
                             <select
                               className="form-control w-50"
@@ -1588,7 +1595,6 @@ const ViewUser = () => {
                               name="salaryIn"
                               value={salaryIn}
                               onChange={handleChange}
-                              readOnly
                               disabled
                             >
                               <option value="month">Per Month</option>
@@ -1608,7 +1614,6 @@ const ViewUser = () => {
                             multiple
                             value={selectedPayComponents}
                             onChange={handleChange}
-                            readOnly
                             disabled
                           >
                             {payComponents.map((component) => (

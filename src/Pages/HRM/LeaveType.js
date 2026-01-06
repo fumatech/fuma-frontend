@@ -256,9 +256,9 @@ function LeaveType({ userRoles }) {
                                 {columnsVisibility.maxCount && (
                                   <th>Max Leave Count</th>
                                 )}
-                                {columnsVisibility.leaveInterval && (
+                                {/* {columnsVisibility.leaveInterval && (
                                   <th>Interval</th>
-                                )}
+                                )} */}
                                 <th>Action</th>
                               </tr>
                             </thead>
@@ -271,11 +271,11 @@ function LeaveType({ userRoles }) {
                                   {columnsVisibility.maxCount && (
                                     <td>{item.maxCount || "N/A"}</td>
                                   )}
-                                  {columnsVisibility.leaveInterval && (
+                                  {/* {columnsVisibility.leaveInterval && (
                                     <td>
                                       {getIntervalLabel(item.leaveInterval)}
                                     </td>
-                                  )}
+                                  )} */}
                                   <td>
                                     <button
                                       onClick={() => handleEdit(item)}

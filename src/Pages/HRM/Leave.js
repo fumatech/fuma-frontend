@@ -237,6 +237,7 @@ function Leave({ userRoles }) {
   };
   const updateLeaveStatus = async (id, status) => {
     const statusText = getStatusText(status);
+
     const confirmUpdate = window.confirm(
       `Are you sure you want to change the status to "${statusText}"?`
     );
@@ -247,16 +248,17 @@ function Leave({ userRoles }) {
         `${process.env.REACT_APP_BASE_URL}/add-leave/update-status/${id}?status=${status}`
       );
 
-      setLeaveData((prev) =>
-        prev.map((leave) =>
-          leave.id === id
-            ? {
-                ...leave,
-                status: response.data.status,
-                statusText: getStatusText(response.data.status),
-              }
-            : leave
-        )
+      setLeaveData((prevData) =>
+        prevData.map((leave) => {
+          if (leave.id === id) {
+            return {
+              ...leave,
+              status: response.data.status,
+              statusText: getStatusText(response.data.status),
+            };
+          }
+          return leave;
+        })
       );
 
       toast.success("Leave status updated successfully");

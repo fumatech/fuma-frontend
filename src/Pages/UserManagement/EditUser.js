@@ -75,7 +75,6 @@ const EditUser = () => {
   const [selectedDesignationId, setSelectedDesignationId] = useState("");
 
   // Payroll
-  const [primaryWorkLocation, setPrimaryWorkLocation] = useState("");
   const [basicSalary, setBasicSalary] = useState("");
   const [salaryIn, setSalaryIn] = useState("month");
   const [payComponents, setPayComponents] = useState([]);
@@ -90,6 +89,9 @@ const EditUser = () => {
   const [locations, setLocations] = useState([]);
   const [selectedLocationIds, setSelectedLocationIds] = useState([]);
   const [allLocationsChecked, setAllLocationsChecked] = useState(false);
+
+  const [primaryWorkLocation, setPrimaryWorkLocation] = useState("");
+  const [primaryWorkLocationId, setPrimaryWorkLocationId] = useState(null);
   useEffect(() => {
     fetch(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
       .then((res) => res.json())
@@ -205,6 +207,7 @@ const EditUser = () => {
 
       // Payroll
       setPrimaryWorkLocation(userData.primaryWorkLocation || "");
+      setPrimaryWorkLocationId(userData.primaryWorkLocationId || null);
       setBasicSalary(userData.basicSalary || "");
       setSalaryIn(userData.salaryIn || "month");
       if (userData.payComponentId) {
@@ -433,10 +436,15 @@ const EditUser = () => {
         setSelectedDesignationId(value);
         break;
 
-      // Payroll
-      case "primaryWorkLocation":
-        setPrimaryWorkLocation(value);
+      case "primaryWorkLocation": {
+        const selectedLocation = locations.find(
+          (loc) => loc.id === Number(value)
+        );
+
+        setPrimaryWorkLocationId(Number(value));
+        setPrimaryWorkLocation(selectedLocation?.name || "");
         break;
+      }
       case "basicSalary":
         setBasicSalary(value);
         break;
@@ -545,7 +553,9 @@ const EditUser = () => {
       taxPayerId,
       departmentId: selectedDepartmentId,
       designationId: selectedDesignationId,
+      // Payroll ✅
       primaryWorkLocation,
+      primaryWorkLocationId,
       basicSalary,
       salaryIn,
       payComponentId:
@@ -1514,12 +1524,15 @@ const EditUser = () => {
                             className="form-control"
                             id="primaryWorkLocation"
                             name="primaryWorkLocation"
-                            value={primaryWorkLocation}
+                            value={primaryWorkLocationId || ""}
                             onChange={handleChange}
                           >
                             <option value="">Select Location</option>
-                            <option value="location1">Location 1</option>
-                            <option value="location2">Location 2</option>
+                            {locations.map((loc) => (
+                              <option key={loc.id} value={loc.id}>
+                                {loc.name}
+                              </option>
+                            ))}
                           </select>
                         </div>
                       </div>

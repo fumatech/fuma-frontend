@@ -69,7 +69,7 @@ const Attendance = () => {
               </div>
 
               {/* Clock In button (centered, same level) */}
-              <div className="col-4 d-flex justify-content-center">
+              {/* <div className="col-4 d-flex justify-content-center">
                 <button
                   className="btn btn-info btn-lg rounded-circle d-flex align-items-center justify-content-center shadow"
                   style={{ width: "80px", height: "80px" }}
@@ -77,7 +77,7 @@ const Attendance = () => {
                 >
                   <FontAwesomeIcon icon={faClock} size="2x" />
                 </button>
-              </div>
+              </div> */}
 
               <div className="col-4"></div>
             </div>

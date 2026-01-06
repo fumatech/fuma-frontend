@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
@@ -6,31 +6,17 @@ import * as XLSX from "xlsx";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
-
+import axios from "axios";
 function Designations({ userRoles }) {
-  const [designations, setDesignations] = useState([
-    {
-      id: 1,
-      designation: "Software Engineer",
-      description: "Annual Leave for vacation",
-    },
-    {
-      id: 2,
-      designation: "Project Manager",
-      description: "Sick leave due to illness",
-    },
-    {
-      id: 3,
-      designation: "HR Specialist",
-      description: "Personal leave for family matter",
-    },
-  ]);
+  const [designations, setDesignations] = useState([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newDesignation, setNewDesignation] = useState({
     designation: "",
     description: "",
   });
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editId, setEditId] = useState(null);
 
   const [columnsVisibility, setColumnsVisibility] = useState({
     designation: true,
@@ -39,6 +25,28 @@ function Designations({ userRoles }) {
 
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  useEffect(() => {
+    fetchDesignations();
+  }, []);
+
+  const fetchDesignations = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/designation/getall`
+      );
+
+      // map backend -> frontend keys
+      const mapped = res.data.map((item) => ({
+        id: item.id,
+        designation: item.name,
+        description: item.description,
+      }));
+
+      setDesignations(mapped);
+    } catch (error) {
+      toast.error("Failed to load designations");
+    }
+  };
 
   // Handle entries per page change
   const handleEntriesChange = (e) => {
@@ -55,26 +63,44 @@ function Designations({ userRoles }) {
     }));
   };
 
-  // Handle adding new designation
-  const handleAddDesignation = (e) => {
+  const handleSubmitDesignation = async (e) => {
     e.preventDefault();
+
     if (!newDesignation.designation.trim()) {
       toast.warning("Designation is required");
       return;
     }
 
-    const newDesignationItem = {
-      id: designations.length + 1,
-      designation: newDesignation.designation,
+    const payload = {
+      name: newDesignation.designation,
       description: newDesignation.description,
     };
 
-    setDesignations([...designations, newDesignationItem]);
-    setIsModalOpen(false);
-    setNewDesignation({
-      designation: "",
-      description: "",
-    });
+    try {
+      if (isEditMode) {
+        // UPDATE
+        await axios.put(
+          `${process.env.REACT_APP_BASE_URL}/designation/update/${editId}`,
+          payload
+        );
+        toast.success("Designation updated successfully");
+      } else {
+        // ADD
+        await axios.post(
+          `${process.env.REACT_APP_BASE_URL}/designation/add`,
+          payload
+        );
+        toast.success("Designation added successfully");
+      }
+
+      setIsModalOpen(false);
+      setIsEditMode(false);
+      setEditId(null);
+      setNewDesignation({ designation: "", description: "" });
+      fetchDesignations();
+    } catch (error) {
+      toast.error("Operation failed");
+    }
   };
 
   // Export functions
@@ -135,10 +161,18 @@ function Designations({ userRoles }) {
     }));
   };
 
-  // Handle delete designation
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this designation?")) {
-      setDesignations(designations.filter((item) => item.id !== id));
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this designation?"))
+      return;
+
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_BASE_URL}/designation/delete/${id}`
+      );
+      toast.success("Designation deleted");
+      fetchDesignations();
+    } catch (error) {
+      toast.error("Failed to delete designation");
     }
   };
 
@@ -169,7 +203,12 @@ function Designations({ userRoles }) {
               <div className="text-right">
                 <button
                   className="btn btn-add"
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={() => {
+                    setIsEditMode(false);
+                    setEditId(null);
+                    setNewDesignation({ designation: "", description: "" });
+                    setIsModalOpen(true);
+                  }}
                 >
                   Add
                 </button>
@@ -283,13 +322,22 @@ function Designations({ userRoles }) {
                                     <td>{item.description}</td>
                                   )}
                                   <td>
-                                    <Link
-                                      to={`/EditCustomer/${item.id}`}
+                                    <button
                                       className="btn btn-edit"
+                                      onClick={() => {
+                                        setIsEditMode(true);
+                                        setEditId(item.id);
+                                        setNewDesignation({
+                                          designation: item.designation,
+                                          description: item.description,
+                                        });
+                                        setIsModalOpen(true);
+                                      }}
                                     >
                                       <i className="fas fa-edit btn-icon"></i>{" "}
                                       Edit
-                                    </Link>
+                                    </button>
+
                                     <button
                                       onClick={() => handleDelete(item.id)}
                                       className="btn btn-delete ml-2"
@@ -339,11 +387,12 @@ function Designations({ userRoles }) {
               role="document"
             >
               <div className="modal-content">
-                <form onSubmit={handleAddDesignation}>
+                <form onSubmit={handleSubmitDesignation}>
                   <div className="modal-header bg-primary text-white">
-                    <h5 className="modal-title" id="addDesignationModalTitle">
-                      Add Designation
+                    <h5 className="modal-title">
+                      {isEditMode ? "Edit Designation" : "Add Designation"}
                     </h5>
+
                     <button
                       type="button"
                       className="close text-white"
@@ -396,7 +445,7 @@ function Designations({ userRoles }) {
                       Close
                     </button>
                     <button type="submit" className="btn btn-primary">
-                      Save
+                      {isEditMode ? "Update" : "Save"}
                     </button>
                   </div>
                 </form>
