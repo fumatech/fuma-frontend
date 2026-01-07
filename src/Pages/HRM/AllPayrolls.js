@@ -15,6 +15,8 @@ const AllPayrolls = () => {
     actions: true,
   });
   const navigate = useNavigate();
+  const [departments, setDepartments] = useState([]);
+  const [designations, setDesignations] = useState([]);
 
   const [locations, setLocations] = useState([
     { id: "none", name: "None" },
@@ -128,8 +130,10 @@ const AllPayrolls = () => {
   const fetchPayrolls = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/payroll/getall`
+        `${process.env.REACT_APP_BASE_URL}/payroll/employee-wise`
       );
+      console.log(response);
+
       setPayrollData(response.data);
     } catch (error) {
       console.error("Error fetching payrolls:", error);
@@ -182,11 +186,34 @@ const AllPayrolls = () => {
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchEmployees();
     fetchPayrolls();
+    fetchDepartments();
+    fetchDesignations();
   }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await axios.get(
+        "https://fusionmastertech.com:8443/department/getall"
+      );
+      setDepartments(response.data);
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+    }
+  };
+
+  const fetchDesignations = async () => {
+    try {
+      const response = await axios.get(
+        "https://fusionmastertech.com:8443/designation/getall"
+      );
+      setDesignations(response.data);
+    } catch (error) {
+      console.error("Error fetching designations:", error);
+    }
+  };
 
   // Update select all state when employees or filtered list changes
   useEffect(() => {
@@ -204,6 +231,20 @@ const AllPayrolls = () => {
   const getEmployeeName = (id) => {
     const employee = allEmployees.find((emp) => emp.id === id);
     return employee ? `${employee.firstname} ${employee.lastname}` : "Unknown";
+  };
+  const getDepartmentName = (departmentId) => {
+    const dept = departments.find((d) => d.id === departmentId);
+    return dept ? dept.department : "-";
+  };
+
+  const getDesignationName = (designationId) => {
+    const desig = designations.find((d) => d.id === designationId);
+    return desig ? desig.name : "-";
+  };
+  const getReferenceNo = (payroll) => {
+    const month = String(payroll.month).padStart(2, "0");
+    const payrollId = String(payroll.payrollId).padStart(4, "0");
+    return `PR-${payroll.year}${month}${payrollId}`;
   };
 
   return (
@@ -320,67 +361,94 @@ const AllPayrolls = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {payrollData.map((payroll) => (
-                      <tr key={payroll.id} role="row">
-                        {columnsVisibility.employee && (
-                          <td>
-                            {payroll.employeePayrolls.length > 0
-                              ? payroll.employeePayrolls
-                                  .map((ep) => getEmployeeName(ep.employeeId))
-                                  .join(", ")
-                              : "No employees"}
-                          </td>
-                        )}
-                        {columnsVisibility.department && <td>-</td>}
-                        {columnsVisibility.designation && <td>-</td>}
-                        {columnsVisibility.monthYear && (
-                          <td>{payroll.monthYear}</td>
-                        )}
-                        {columnsVisibility.referenceNo && <td>{payroll.id}</td>}
-                        {columnsVisibility.totalAmount && (
-                          <td>
-                            {payroll.employeePayrolls
-                              .reduce((sum, ep) => {
-                                const earnings =
-                                  ep.earnings?.reduce(
-                                    (a, e) => a + e.amount,
-                                    0
-                                  ) || 0;
-                                const deductions =
-                                  ep.deductions?.reduce(
-                                    (a, d) => a + d.amount,
-                                    0
-                                  ) || 0;
-                                return sum + (earnings - deductions);
-                              }, 0)
-                              .toFixed(2)}
-                          </td>
-                        )}
-                        {columnsVisibility.paymentStatus && (
-                          <td>{payroll.status === 1 ? "Paid" : "Unpaid"}</td>
-                        )}
-                        {columnsVisibility.actions && (
-                          <td className="text-right">
-                            <div className="btn-group btn-group-sm btn-icon-only">
+                    {payrollData.length > 0 ? (
+                      payrollData.map((payroll, index) => (
+                        <tr key={`${payroll.payrollId}-${payroll.employeeId}`}>
+                          {columnsVisibility.employee && (
+                            <td>{getEmployeeName(payroll.employeeId)}</td>
+                          )}
+                          {columnsVisibility.department && (
+                            <td>
+                              {getDepartmentName(
+                                allEmployees.find(
+                                  (emp) => emp.id === payroll.employeeId
+                                )?.departmentId
+                              )}
+                            </td>
+                          )}
+                          {columnsVisibility.designation && (
+                            <td>
+                              {getDesignationName(
+                                allEmployees.find(
+                                  (emp) => emp.id === payroll.employeeId
+                                )?.designationId
+                              )}
+                            </td>
+                          )}
+
+                          {columnsVisibility.monthYear && (
+                            <td>
+                              {new Date(
+                                payroll.year,
+                                payroll.month - 1
+                              ).toLocaleString("default", {
+                                month: "long",
+                                year: "numeric",
+                              })}
+                            </td>
+                          )}
+                          {columnsVisibility.referenceNo && (
+                            <td>{getReferenceNo(payroll)}</td>
+                          )}
+
+                          {columnsVisibility.totalAmount && (
+                            <td>{payroll.total.toFixed(2)}</td>
+                          )}
+                          {columnsVisibility.paymentStatus && (
+                            <td>
+                              <span
+                                className={`badge ${
+                                  payroll.paymentStatus === 1
+                                    ? "bg-success"
+                                    : "bg-warning text-dark"
+                                }`}
+                              >
+                                {payroll.paymentStatus === 1 ? "Paid" : "Due"}
+                              </span>
+                            </td>
+                          )}
+                          {columnsVisibility.actions && (
+                            <td className="text-center">
                               <button
                                 type="button"
-                                className="btn-edit"
-                                onClick={() => openModal(payroll)}
+                                className="btn btn-sm btn-info"
+                                onClick={() =>
+                                  navigate("/payroll/view", {
+                                    state: {
+                                      payroll,
+                                      employee: allEmployees.find(
+                                        (emp) => emp.id === payroll.employeeId
+                                      ),
+                                    },
+                                  })
+                                }
                               >
-                                <i className="fas fa-edit btn-icon"></i> Edit
+                                View
                               </button>
-                              <button
-                                type="button"
-                                className="btn-delete"
-                                onClick={() => handleDelete(payroll.id)}
-                              >
-                                <i className="fas fa-trash btn-icon"></i> Delete
-                              </button>
-                            </div>
-                          </td>
-                        )}
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={Object.keys(columnsVisibility).length}
+                          className="text-center"
+                        >
+                          No payroll data found
+                        </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>

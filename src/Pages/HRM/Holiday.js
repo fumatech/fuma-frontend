@@ -519,26 +519,28 @@ const Holiday = () => {
                         </span>
                       </div>
                     </div>
-                    <select
-                      className="form-control"
-                      id="businessLocationId"
-                      name="businessLocationId"
-                      value={formData.businessLocationId}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          businessLocationId: Number(e.target.value),
-                        }))
-                      }
-                    >
-                      <option value={0}>All</option>
-                      {businessLocations.map((loc) => (
-                        <option key={loc.id} value={loc.id}>
-                          {loc.name}
-                        </option>
-                      ))}
-                    </select>
-
+                    <div className="form-group col-md-12">
+                      <label htmlFor="note">Business Location :</label>
+                      <select
+                        className="form-control"
+                        id="businessLocationId"
+                        name="businessLocationId"
+                        value={formData.businessLocationId}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            businessLocationId: Number(e.target.value),
+                          }))
+                        }
+                      >
+                        <option value={0}>All</option>
+                        {businessLocations.map((loc) => (
+                          <option key={loc.id} value={loc.id}>
+                            {loc.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                     <div className="form-group col-md-12">
                       <label htmlFor="note">Note:</label>
                       <textarea

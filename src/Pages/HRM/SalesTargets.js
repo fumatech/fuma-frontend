@@ -179,7 +179,14 @@ function SalesTargets({ userRoles }) {
 
   const getUserStatus = (userId) => {
     const user = users.find((u) => u.id === userId);
-    return user ? (user.isActive ? "Active" : "Inactive") : "";
+
+    if (!user) return null;
+
+    return (
+      <span className={`badge ${user.isActive ? "bg-success" : "bg-danger"}`}>
+        {user.isActive ? "Active" : "Inactive"}
+      </span>
+    );
   };
 
   const startIndex = (currentPage - 1) * entriesPerPage;

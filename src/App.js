@@ -32,6 +32,7 @@ import EditCustomer from "./Pages/Contacts/EditCustomer";
 import ViewCustomer from "./Pages/Contacts/ViewCustomer";
 import Permission from "./Pages/Extra/Permission";
 import ImageUpload from "./Pages/Extra/ImageUpload";
+import SignatureUpload from "./Pages/Extra/SignatureUpload";
 import AddProducts from "./Pages/Products/AddProducts";
 import ListProducts from "./Pages/Products/ListProducts";
 import OpeningStockPage from "./Pages/Products/OpeningStockPage";
@@ -156,6 +157,7 @@ import Holiday from "./Pages/HRM/Holiday";
 import Department from "./Pages/HRM/Department";
 import Attendance from "./Pages/HRM/Attendance";
 import Payroll from "./Pages/HRM/payroll";
+import ViewPayslip from "./Pages/HRM/ViewPayslip";
 import AllPayrolls from "./Pages/HRM/AllPayrolls";
 import AddPayroll from "./Pages/HRM/AddPayroll";
 import AllPayrollGroups from "./Pages/HRM/AllPayrollGroups";
@@ -426,6 +428,10 @@ const App = () => {
                   />
                   <Route path="/Permission" element={<Permission />} />
                   <Route path="/ImageUpload" element={<ImageUpload />} />
+                  <Route
+                    path="/SignatureUpload"
+                    element={<SignatureUpload />}
+                  />
                   <Route path="/ListProducts" element={<ListProducts />} />
                   <Route path="/AddProducts" element={<AddProducts />} />
                   <Route
@@ -723,6 +729,7 @@ const App = () => {
                   <Route path="/Attendance" element={<Attendance />} />
                   <Route path="/Payroll" element={<Payroll />} />
                   <Route path="/AllPayrolls" element={<AllPayrolls />} />
+                  <Route path="/payroll/view" element={<ViewPayslip />} />
                   <Route path="/AddPayroll" element={<AddPayroll />} />
                   <Route
                     path="/AllPayrollGroups"

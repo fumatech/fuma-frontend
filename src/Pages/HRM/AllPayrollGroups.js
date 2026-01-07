@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import axios from "axios";
 
 const AllPayrollGroups = () => {
   const [columnsVisibility, setColumnsVisibility] = useState({
@@ -30,6 +31,61 @@ const AllPayrollGroups = () => {
     totalAmount: "",
     paymentStatus: "",
   });
+  useEffect(() => {
+    fetchPayrolls();
+    fetchLocations();
+  }, []);
+
+  const fetchLocations = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/business-locations/getall`
+      );
+      setLocations(res.data || []);
+    } catch (error) {
+      toast.error("Failed to load locations");
+      console.error(error);
+    }
+  };
+  const getLocationName = (locationId) => {
+    const loc = locations.find((l) => l.id === Number(locationId));
+    return loc ? loc.name : "-";
+  };
+
+  const fetchPayrolls = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/payroll/all-full`
+      );
+
+      const formatted = res.data.map((p) => {
+        const totalGrossAmount = p.employees.reduce(
+          (sum, e) => sum + (e.total || 0),
+          0
+        );
+
+        return {
+          id: p.id,
+          name: p.payrollName,
+          referenceNo: `PAY-${p.id}-${p.month}${p.year}`,
+          month: p.month,
+          year: p.year,
+          status: p.status,
+          paymentStatus: p.paymentStatus === 1 ? "Paid" : "Due",
+          totalGrossAmount,
+          location: `${p.location}`,
+          addedBy: "",
+          createdAt: `${p.month}/${p.year}`,
+          raw: p, // keep full object if needed later
+        };
+      });
+
+      setPayrollData(formatted);
+    } catch (error) {
+      toast.error("Failed to fetch payrolls");
+      console.error(error);
+    }
+  };
 
   // Toggle column visibility
   const toggleColumn = (col) => {
@@ -106,18 +162,9 @@ const AllPayrollGroups = () => {
   // Fetch locations and employees (example with mock data)
   useEffect(() => {
     // In a real app, you would fetch these from an API
-    setLocations([
-      { id: 1, name: "New York Office" },
-      { id: 2, name: "London Office" },
-      { id: 3, name: "Tokyo Office" },
-    ]);
+    setLocations([]);
 
-    setAllEmployees([
-      { id: 1, name: "John Doe" },
-      { id: 2, name: "Jane Smith" },
-      { id: 3, name: "Robert Johnson" },
-      { id: 4, name: "Emily Davis" },
-    ]);
+    setAllEmployees([]);
   }, []);
 
   // Handle employee selection
@@ -254,20 +301,49 @@ const AllPayrollGroups = () => {
                   <tbody>
                     {payrollData.map((payroll) => (
                       <tr key={payroll.id} role="row">
-                        {columnsVisibility.name && <td>{payroll.name}</td>}
-                        {columnsVisibility.status && <td>{payroll.status}</td>}
+                        {columnsVisibility.name && (
+                          <td>
+                            <strong>{payroll.name}</strong>
+                            <br />
+                            <small className="text-muted">
+                              {payroll.referenceNo}
+                            </small>
+                          </td>
+                        )}
+                        {columnsVisibility.status && (
+                          <td>
+                            {payroll.status === 1 ? (
+                              <span className="badge bg-success">Final</span>
+                            ) : (
+                              <span className="badge bg-secondary">Draft</span>
+                            )}
+                          </td>
+                        )}
                         {columnsVisibility.paymentStatus && (
-                          <td>{payroll.paymentStatus}</td>
+                          <td>
+                            <span
+                              className={`badge ${
+                                payroll.paymentStatus === "Paid"
+                                  ? "bg-success"
+                                  : "bg-warning text-dark"
+                              }`}
+                            >
+                              {payroll.paymentStatus}
+                            </span>
+                          </td>
                         )}
+
                         {columnsVisibility.totalGrossAmount && (
-                          <td>{payroll.totalGrossAmount}</td>
+                          <td>₹{payroll.totalGrossAmount.toFixed(2)}</td>
                         )}
+
                         {columnsVisibility.addedBy && (
                           <td>{payroll.addedBy}</td>
                         )}
                         {columnsVisibility.location && (
-                          <td>{payroll.location}</td>
+                          <td>{getLocationName(payroll.location)}</td>
                         )}
+
                         {columnsVisibility.createdAt && (
                           <td>{payroll.createdAt}</td>
                         )}

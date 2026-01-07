@@ -47,7 +47,9 @@ const Menu = ({ userRoles }) => {
         path.startsWith("/Units")
     );
     setExtraOpen(
-      path.startsWith("/Permission") || path.startsWith("/ImageUpload")
+      path.startsWith("/Permission") ||
+        path.startsWith("/ImageUpload") ||
+        path.startsWith("/SignatureUpload")
     );
     setPurchaseOpen(
       path.startsWith("/PurchaseOrder") ||
@@ -138,7 +140,8 @@ const Menu = ({ userRoles }) => {
       setActiveMenu("product");
     } else if (
       path.startsWith("/Permission") ||
-      path.startsWith("/ImageUpload")
+      path.startsWith("/ImageUpload") ||
+      path.startsWith("/SignatureUpload")
     ) {
       setActiveMenu("extra");
     } else if (
@@ -246,6 +249,8 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("Permission");
     } else if (path === "/ImageUpload") {
       setActiveSubMenu("ImageUpload");
+    } else if (path === "/SignatureUpload") {
+      setActiveSubMenu("SignatureUpload");
     } else if (path === "/PurchaseOrder") {
       setActiveSubMenu("PurchaseOrder");
     } else if (path === "/ListPurchaseOrder") {
@@ -2451,6 +2456,25 @@ const Menu = ({ userRoles }) => {
                       }}
                     >
                       <p>Upload Image</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link
+                      to="/SignatureUpload"
+                      className={getSubMenuItemClass("SignatureUpload")}
+                      style={{
+                        color:
+                          activeSubMenu === "SignatureUpload"
+                            ? "#0040C1"
+                            : "#4b5565",
+                        backgroundColor:
+                          activeSubMenu === "SignatureUpload"
+                            ? "rgba(0, 64, 193, 0.08)"
+                            : "transparent",
+                        paddingLeft: "52px",
+                      }}
+                    >
+                      <p>Signature Upload</p>
                     </Link>
                   </li>
                 </ul>
