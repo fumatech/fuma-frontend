@@ -7,7 +7,6 @@ import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
 
 const AllAttendance = () => {
-  // State for columns visibility
   const [columnsVisibility, setColumnsVisibility] = useState({
     name: true,
     shiftType: true,
@@ -16,12 +15,9 @@ const AllAttendance = () => {
     holiday: true,
   });
 
-  // State to handle modal visibility
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentAttendanceId, setCurrentAttendanceId] = useState(null);
-
-  // State for data
   const [employees, setEmployees] = useState([]);
   const [shifts, setShifts] = useState([
     { id: "morning", name: "Morning Shift" },
@@ -46,7 +42,6 @@ const AllAttendance = () => {
     ],
   });
 
-  // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
       const [empRes, attRes, shiftRes] = await Promise.all([
@@ -108,7 +103,6 @@ const AllAttendance = () => {
     setIsModalOpen(true);
   };
 
-  // Function to close the modal
   const closeModal = () => {
     setIsModalOpen(false);
   };
@@ -148,7 +142,6 @@ const AllAttendance = () => {
   };
   const removeAttendanceRow = (index) => {
     setFormData((prev) => {
-      // prevent removing last row
       if (prev.records.length === 1) return prev;
 
       return {
@@ -176,7 +169,7 @@ const AllAttendance = () => {
           attendanceDate: formData.attendanceDate,
           records: formData.records.map((r) => ({
             employeeId: Number(r.employeeId),
-            shiftId: r.shiftId, // ensure this matches backend
+            shiftId: r.shiftId,
             inTime: r.inTime,
             outTime: r.outTime,
             ipAddress: r.ipAddress,
@@ -192,7 +185,6 @@ const AllAttendance = () => {
       }
       closeModal();
 
-      // Refresh data
       const response = await axios.get(
         `${process.env.REACT_APP_BASE_URL}/attendance/getall`
       );
@@ -203,17 +195,14 @@ const AllAttendance = () => {
     }
   };
 
-  // Delete attendance
   const deleteAttendance = async (id) => {
     try {
       await axios.delete(
         `${process.env.REACT_APP_BASE_URL}/attendance/delete/${id}`
       );
 
-      // Remove the deleted attendance from state
       setAttendances((prev) => prev.filter((att) => att.id !== id));
 
-      // Show toast
       toast.success("Attendance deleted successfully!");
     } catch (error) {
       console.error("Error deleting attendance:", error);
@@ -221,7 +210,6 @@ const AllAttendance = () => {
     }
   };
 
-  // Export functions
   const exportCSV = () => {
     const csvData = attendances.map((att) => ({
       ID: att.id,
@@ -278,7 +266,6 @@ const AllAttendance = () => {
     doc.save("attendances.pdf");
   };
 
-  // Helper function to get employee name by ID
   const getEmployeeName = (employeeId) => {
     const employee = employees.find((e) => e.id === employeeId);
     return employee
@@ -312,368 +299,367 @@ const AllAttendance = () => {
                     </select>
                     Entries
                   </div>
-                </div>
-                <div className="col d-flex flex-wrap align-items-center">
-                  <button
-                    className="btn Export-Btn mt-2 mb-2 mr-2"
-                    onClick={exportCSV}
-                  >
-                    <i className="fa fa-file-csv"></i> Export CSV
-                  </button>
-                  <button
-                    className="btn Export-Btn mt-2 mb-2 mr-2"
-                    onClick={exportExcel}
-                  >
-                    <i className="fa fa-file-excel"></i> Export Excel
-                  </button>
-                  <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                    <i className="fa fa-print"></i> Print
-                  </button>
-                  <button
-                    className="btn Export-Btn mt-2 mb-2 mr-2"
-                    onClick={exportPDF}
-                  >
-                    <i className="fa fa-file-pdf"></i> Export PDF
-                  </button>
-                  <div className="dropdown mt-lg-2 mb-lg-2">
+                  <div className="col d-flex flex-wrap align-items-center">
                     <button
-                      className="btn Export-Btn dropdown-toggle"
-                      type="button"
-                      id="dropdownMenuButton"
-                      data-toggle="dropdown"
-                      aria-haspopup="true"
-                      aria-expanded="false"
+                      className="btn Export-Btn mt-2 mb-2 mr-2"
+                      onClick={exportCSV}
                     >
-                      <i className="fa fa-columns"></i> Column Visibility
+                      <i className="fa fa-file-csv"></i> Export CSV
                     </button>
-                    <div
-                      className="dropdown-menu"
-                      aria-labelledby="dropdownMenuButton"
+                    <button
+                      className="btn Export-Btn mt-2 mb-2 mr-2"
+                      onClick={exportExcel}
                     >
-                      {Object.keys(columnsVisibility).map((col) => (
-                        <div
-                          key={col}
-                          className="dropdown-item d-flex align-items-center"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={columnsVisibility[col]}
-                            onChange={() => {
-                              setColumnsVisibility((prev) => ({
-                                ...prev,
-                                [col]: !prev[col],
-                              }));
-                            }}
-                            className="mr-2"
-                          />
-                          <span className="btn border-0 bg-transparent p-0 m-0">
-                            {col.replace(/([A-Z])/g, " $1").toUpperCase()}
-                          </span>
-                        </div>
-                      ))}
+                      <i className="fa fa-file-excel"></i> Export Excel
+                    </button>
+                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                      <i className="fa fa-print"></i> Print
+                    </button>
+                    <button
+                      className="btn Export-Btn mt-2 mb-2 mr-2"
+                      onClick={exportPDF}
+                    >
+                      <i className="fa fa-file-pdf"></i> Export PDF
+                    </button>
+                    <div className="dropdown mt-lg-2 mb-lg-2">
+                      <button
+                        className="btn Export-Btn dropdown-toggle"
+                        type="button"
+                        id="dropdownMenuButton"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                      >
+                        <i className="fa fa-columns"></i> Column Visibility
+                      </button>
+                      <div
+                        className="dropdown-menu"
+                        aria-labelledby="dropdownMenuButton"
+                      >
+                        {Object.keys(columnsVisibility).map((col) => (
+                          <div
+                            key={col}
+                            className="dropdown-item d-flex align-items-center"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={columnsVisibility[col]}
+                              onChange={() => {
+                                setColumnsVisibility((prev) => ({
+                                  ...prev,
+                                  [col]: !prev[col],
+                                }));
+                              }}
+                              className="mr-2"
+                            />
+                            <span className="btn border-0 bg-transparent p-0 m-0">
+                              {col.replace(/([A-Z])/g, " $1").toUpperCase()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div id="table-container" style={{ overflowX: "auto" }}>
-                <table
-                  className="table table-bordered table-hover"
-                  id="example1"
-                >
-                  <thead>
-                    <tr role="row">
-                      <th>ID</th>
-                      {columnsVisibility.name && <th>Employee</th>}
-                      {columnsVisibility.shiftType && <th>Shift Type</th>}
-                      {columnsVisibility.startTime && <th>Clock In </th>}
-                      {columnsVisibility.endTime && <th>Clock Out</th>}
-                      {columnsVisibility.holiday && <th>IP Address</th>}
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {attendances.map((attendance) => (
-                      <tr key={attendance.id}>
-                        <td>{attendance.id}</td>
-                        {columnsVisibility.name && (
-                          <td>{getEmployeeName(attendance.employeeId)}</td>
-                        )}
-                        {columnsVisibility.shiftType && (
-                          <td>{getShiftName(attendance.shiftId)}</td>
-                        )}
-                        {columnsVisibility.startTime && (
-                          <td>
-                            {attendance.inTime
-                              ? new Date(attendance.inTime).toLocaleString()
-                              : "-"}
-                          </td>
-                        )}
-                        {columnsVisibility.endTime && (
-                          <td>
-                            {attendance.outTime
-                              ? new Date(attendance.outTime).toLocaleString()
-                              : "-"}
-                          </td>
-                        )}
-                        {columnsVisibility.holiday && (
-                          <td>{attendance.ipAddress || "-"}</td>
-                        )}
-                        <td>
-                          <button
-                            className="btn btn-edit mr-2"
-                            onClick={() => openEditModal(attendance)}
-                          >
-                            <i className="fas fa-edit"></i> Edit
-                          </button>
-                          <button
-                            className="btn btn-danger"
-                            onClick={() => deleteAttendance(attendance.id)}
-                          >
-                            <i className="fas fa-trash"></i> Delete
-                          </button>
-                        </td>
+                <div id="table-container" style={{ overflowX: "auto" }}>
+                  <table
+                    className="table table-bordered table-hover"
+                    id="example1"
+                  >
+                    <thead>
+                      <tr role="row">
+                        <th>ID</th>
+                        {columnsVisibility.name && <th>Employee</th>}
+                        {columnsVisibility.shiftType && <th>Shift Type</th>}
+                        {columnsVisibility.startTime && <th>Clock In </th>}
+                        {columnsVisibility.endTime && <th>Clock Out</th>}
+                        {columnsVisibility.holiday && <th>IP Address</th>}
+                        <th>Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {attendances.map((attendance) => (
+                        <tr key={attendance.id}>
+                          <td>{attendance.id}</td>
+                          {columnsVisibility.name && (
+                            <td>{getEmployeeName(attendance.employeeId)}</td>
+                          )}
+                          {columnsVisibility.shiftType && (
+                            <td>{getShiftName(attendance.shiftId)}</td>
+                          )}
+                          {columnsVisibility.startTime && (
+                            <td>
+                              {attendance.inTime
+                                ? new Date(attendance.inTime).toLocaleString()
+                                : "-"}
+                            </td>
+                          )}
+                          {columnsVisibility.endTime && (
+                            <td>
+                              {attendance.outTime
+                                ? new Date(attendance.outTime).toLocaleString()
+                                : "-"}
+                            </td>
+                          )}
+                          {columnsVisibility.holiday && (
+                            <td>{attendance.ipAddress || "-"}</td>
+                          )}
+                          <td>
+                            <button
+                              className="btn btn-edit mr-2"
+                              onClick={() => openEditModal(attendance)}
+                            >
+                              <i className="fas fa-edit"></i> Edit
+                            </button>
+                            <button
+                              className="btn btn-danger"
+                              onClick={() => deleteAttendance(attendance.id)}
+                            >
+                              <i className="fas fa-trash"></i> Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Modal for Adding/Editing Attendance */}
-      {isModalOpen && (
-        <div
-          className="modal fade show"
-          style={{
-            display: "block",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 1050,
-            overflow: "auto",
-          }}
-          tabIndex="-1"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="attendanceModalTitle"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              closeModal();
-            }
-          }}
-        >
+        {isModalOpen && (
           <div
-            className="modal-dialog modal-xl"
-            role="document"
+            className="modal fade show"
             style={{
-              maxWidth: "1000px",
-              width: "90%",
-              margin: "30px auto",
+              display: "block",
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 1050,
+              overflow: "auto",
+            }}
+            tabIndex="-1"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="attendanceModalTitle"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                closeModal();
+              }
             }}
           >
-            <div className="modal-content">
-              <div
-                className="modal-header"
-                style={{
-                  backgroundColor: "#0c4166",
-                  color: "white",
-                  padding: "20px",
-                }}
-              >
-                <h5 className="modal-title" id="attendanceModalTitle">
-                  {isEditMode ? "Edit Attendance" : "Add New Attendance"}
-                </h5>
-                <button
-                  type="button"
-                  className="close text-white"
-                  aria-label="Close"
-                  onClick={closeModal}
+            <div
+              className="modal-dialog modal-xl"
+              role="document"
+              style={{
+                maxWidth: "1000px",
+                width: "90%",
+                margin: "30px auto",
+              }}
+            >
+              <div className="modal-content">
+                <div
+                  className="modal-header"
+                  style={{
+                    backgroundColor: "#0c4166",
+                    color: "white",
+                    padding: "20px",
+                  }}
                 >
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
+                  <h5 className="modal-title" id="attendanceModalTitle">
+                    {isEditMode ? "Edit Attendance" : "Add New Attendance"}
+                  </h5>
+                  <button
+                    type="button"
+                    className="close text-white"
+                    aria-label="Close"
+                    onClick={closeModal}
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
 
-              <div
-                className="modal-body"
-                style={{
-                  padding: "20px",
-                  maxHeight: "calc(100vh - 200px)",
-                  overflowY: "auto",
-                }}
-              >
-                {formData.records.map((record, index) => (
-                  <div key={index} className="card mb-3">
-                    <div className="card-header d-flex justify-content-between align-items-center">
-                      <h6 className="mb-0">Attendance Entry #{index + 1}</h6>
-                      {index > 0 && (
-                        <button
-                          type="button"
-                          className="btn btn-danger btn-sm"
-                          onClick={() => removeAttendanceRow(index)}
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                    <div className="card-body">
-                      <div className="form-group row">
-                        <label className="col-sm-3 col-form-label font-weight-bold">
-                          Employee:
-                        </label>
-                        <div className="col-sm-9">
-                          <select
-                            className="form-control"
-                            name="employeeId"
-                            value={record.employeeId}
-                            onChange={(e) => handleInputChange(index, e)}
+                <div
+                  className="modal-body"
+                  style={{
+                    padding: "20px",
+                    maxHeight: "calc(100vh - 200px)",
+                    overflowY: "auto",
+                  }}
+                >
+                  {formData.records.map((record, index) => (
+                    <div key={index} className="card mb-3">
+                      <div className="card-header d-flex justify-content-between align-items-center">
+                        <h6 className="mb-0">Attendance Entry #{index + 1}</h6>
+                        {index > 0 && (
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-sm"
+                            onClick={() => removeAttendanceRow(index)}
                           >
-                            <option value="">Select Employee</option>
-                            {employees.map((employee) => (
-                              <option key={employee.id} value={employee.id}>
-                                {employee.prefix} {employee.firstname}{" "}
-                                {employee.lastname}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                            Remove
+                          </button>
+                        )}
                       </div>
-
-                      <div className="form-group row">
-                        <label className="col-sm-3 col-form-label font-weight-bold">
-                          Clock In Time:
-                        </label>
-                        <div className="col-sm-9">
-                          <input
-                            type="datetime-local"
-                            className="form-control"
-                            name="inTime"
-                            value={record.inTime}
-                            onChange={(e) => handleInputChange(index, e)}
-                          />
+                      <div className="card-body">
+                        <div className="form-group row">
+                          <label className="col-sm-3 col-form-label font-weight-bold">
+                            Employee:
+                          </label>
+                          <div className="col-sm-9">
+                            <select
+                              className="form-control"
+                              name="employeeId"
+                              value={record.employeeId}
+                              onChange={(e) => handleInputChange(index, e)}
+                            >
+                              <option value="">Select Employee</option>
+                              {employees.map((employee) => (
+                                <option key={employee.id} value={employee.id}>
+                                  {employee.prefix} {employee.firstname}{" "}
+                                  {employee.lastname}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="form-group row">
-                        <label className="col-sm-3 col-form-label font-weight-bold">
-                          Clock Out Time:
-                        </label>
-                        <div className="col-sm-9">
-                          <input
-                            type="datetime-local"
-                            className="form-control"
-                            name="outTime"
-                            value={record.outTime}
-                            onChange={(e) => handleInputChange(index, e)}
-                          />
+                        <div className="form-group row">
+                          <label className="col-sm-3 col-form-label font-weight-bold">
+                            Clock In Time:
+                          </label>
+                          <div className="col-sm-9">
+                            <input
+                              type="datetime-local"
+                              className="form-control"
+                              name="inTime"
+                              value={record.inTime}
+                              onChange={(e) => handleInputChange(index, e)}
+                            />
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="form-group row">
-                        <label className="col-sm-3 col-form-label font-weight-bold">
-                          Shift:
-                        </label>
-                        <div className="col-sm-9">
-                          <select
-                            className="form-control"
-                            name="shiftId"
-                            value={record.shiftId}
-                            onChange={(e) => handleInputChange(index, e)}
-                          >
-                            <option value="">Select Shift</option>
-                            {shifts.map((shift) => (
-                              <option key={shift.id} value={shift.id}>
-                                {shift.name}
-                              </option>
-                            ))}
-                          </select>
+                        <div className="form-group row">
+                          <label className="col-sm-3 col-form-label font-weight-bold">
+                            Clock Out Time:
+                          </label>
+                          <div className="col-sm-9">
+                            <input
+                              type="datetime-local"
+                              className="form-control"
+                              name="outTime"
+                              value={record.outTime}
+                              onChange={(e) => handleInputChange(index, e)}
+                            />
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="form-group row">
-                        <label className="col-sm-3 col-form-label font-weight-bold">
-                          IP Address:
-                        </label>
-                        <div className="col-sm-9">
-                          <input
-                            type="text"
-                            className="form-control"
-                            name="ipAddress"
-                            value={record.ipAddress}
-                            onChange={(e) => handleInputChange(index, e)}
-                          />
+                        <div className="form-group row">
+                          <label className="col-sm-3 col-form-label font-weight-bold">
+                            Shift:
+                          </label>
+                          <div className="col-sm-9">
+                            <select
+                              className="form-control"
+                              name="shiftId"
+                              value={record.shiftId}
+                              onChange={(e) => handleInputChange(index, e)}
+                            >
+                              <option value="">Select Shift</option>
+                              {shifts.map((shift) => (
+                                <option key={shift.id} value={shift.id}>
+                                  {shift.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="form-group row">
-                        <label className="col-sm-3 col-form-label font-weight-bold">
-                          Clock In Note:
-                        </label>
-                        <div className="col-sm-9">
-                          <textarea
-                            className="form-control"
-                            rows="2"
-                            name="inNote"
-                            value={record.inNote}
-                            onChange={(e) => handleInputChange(index, e)}
-                          ></textarea>
+                        <div className="form-group row">
+                          <label className="col-sm-3 col-form-label font-weight-bold">
+                            IP Address:
+                          </label>
+                          <div className="col-sm-9">
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="ipAddress"
+                              value={record.ipAddress}
+                              onChange={(e) => handleInputChange(index, e)}
+                            />
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="form-group row">
-                        <label className="col-sm-3 col-form-label font-weight-bold">
-                          Clock Out Note:
-                        </label>
-                        <div className="col-sm-9">
-                          <textarea
-                            className="form-control"
-                            rows="2"
-                            name="outNote"
-                            value={record.outNote}
-                            onChange={(e) => handleInputChange(index, e)}
-                          ></textarea>
+                        <div className="form-group row">
+                          <label className="col-sm-3 col-form-label font-weight-bold">
+                            Clock In Note:
+                          </label>
+                          <div className="col-sm-9">
+                            <textarea
+                              className="form-control"
+                              rows="2"
+                              name="inNote"
+                              value={record.inNote}
+                              onChange={(e) => handleInputChange(index, e)}
+                            ></textarea>
+                          </div>
+                        </div>
+
+                        <div className="form-group row">
+                          <label className="col-sm-3 col-form-label font-weight-bold">
+                            Clock Out Note:
+                          </label>
+                          <div className="col-sm-9">
+                            <textarea
+                              className="form-control"
+                              rows="2"
+                              name="outNote"
+                              value={record.outNote}
+                              onChange={(e) => handleInputChange(index, e)}
+                            ></textarea>
+                          </div>
                         </div>
                       </div>
                     </div>
+                  ))}
+
+                  <div className="text-center mt-3">
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={addNewAttendanceRow}
+                    >
+                      <i className="fas fa-plus"></i> Add
+                    </button>
                   </div>
-                ))}
+                </div>
 
-                <div className="text-center mt-3">
+                <div className="modal-footer" style={{ padding: "20px" }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={closeModal}
+                  >
+                    <i className="fas fa-times mr-2"></i> Close
+                  </button>
                   <button
                     type="button"
                     className="btn btn-primary"
-                    onClick={addNewAttendanceRow}
+                    onClick={saveAttendance}
                   >
-                    <i className="fas fa-plus"></i> Add
+                    <i className="fas fa-save mr-2"></i> Save
                   </button>
                 </div>
               </div>
-
-              <div className="modal-footer" style={{ padding: "20px" }}>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={closeModal}
-                >
-                  <i className="fas fa-times mr-2"></i> Close
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={saveAttendance}
-                >
-                  <i className="fas fa-save mr-2"></i> Save
-                </button>
-              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

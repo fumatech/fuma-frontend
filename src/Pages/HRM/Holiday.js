@@ -245,198 +245,201 @@ const Holiday = () => {
                         </select>
                         Entries
                       </div>
-                    </div>
-                    <div className="col d-flex flex-wrap align-items-center">
-                      <button
-                        onClick={exportCSV}
-                        className="btn Export-Btn mt-2 mb-2 mr-2"
-                      >
-                        <i className="fa fa-file-csv"></i> Export CSV
-                      </button>
-                      <button
-                        onClick={exportExcel}
-                        className="btn Export-Btn mt-2 mb-2 mr-2"
-                      >
-                        <i className="fa fa-file-excel"></i> Export Excel
-                      </button>
-                      <button
-                        onClick={printData}
-                        className="btn Export-Btn mt-2 mb-2 mr-2"
-                      >
-                        <i className="fa fa-print"></i> Print
-                      </button>
-                      <button
-                        onClick={exportPDF}
-                        className="btn Export-Btn mt-2 mb-2 mr-2"
-                      >
-                        <i className="fa fa-file-pdf"></i> Export PDF
-                      </button>
-                      <div className="dropdown mt-lg-2 mb-lg-2">
+                      <div className="col d-flex flex-wrap align-items-center">
                         <button
-                          className="btn Export-Btn dropdown-toggle"
-                          type="button"
-                          id="dropdownMenuButton"
-                          data-toggle="dropdown"
-                          aria-haspopup="true"
-                          aria-expanded="false"
+                          onClick={exportCSV}
+                          className="btn Export-Btn mt-2 mb-2 mr-2"
                         >
-                          <i className="fa fa-columns"></i> Column Visibility
+                          <i className="fa fa-file-csv"></i> Export CSV
                         </button>
-                        <div
-                          className="dropdown-menu"
-                          aria-labelledby="dropdownMenuButton"
+                        <button
+                          onClick={exportExcel}
+                          className="btn Export-Btn mt-2 mb-2 mr-2"
                         >
-                          {Object.keys(columnsVisibility).map((col) => (
-                            <div
-                              key={col}
-                              className="dropdown-item d-flex align-items-center"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={columnsVisibility[col]}
-                                onChange={() => toggleColumn(col)}
-                                className="mr-2"
-                              />
-                              <span
-                                className="btn border-0 bg-transparent p-0 m-0"
-                                onClick={(e) => handleDropdownItemClick(col, e)}
+                          <i className="fa fa-file-excel"></i> Export Excel
+                        </button>
+                        <button
+                          onClick={printData}
+                          className="btn Export-Btn mt-2 mb-2 mr-2"
+                        >
+                          <i className="fa fa-print"></i> Print
+                        </button>
+                        <button
+                          onClick={exportPDF}
+                          className="btn Export-Btn mt-2 mb-2 mr-2"
+                        >
+                          <i className="fa fa-file-pdf"></i> Export PDF
+                        </button>
+                        <div className="dropdown mt-lg-2 mb-lg-2">
+                          <button
+                            className="btn Export-Btn dropdown-toggle"
+                            type="button"
+                            id="dropdownMenuButton"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                          >
+                            <i className="fa fa-columns"></i> Column Visibility
+                          </button>
+                          <div
+                            className="dropdown-menu"
+                            aria-labelledby="dropdownMenuButton"
+                          >
+                            {Object.keys(columnsVisibility).map((col) => (
+                              <div
+                                key={col}
+                                className="dropdown-item d-flex align-items-center"
                               >
-                                {col.replace(/([A-Z])/g, " $1").toUpperCase()}
-                              </span>
-                            </div>
-                          ))}
+                                <input
+                                  type="checkbox"
+                                  checked={columnsVisibility[col]}
+                                  onChange={() => toggleColumn(col)}
+                                  className="mr-2"
+                                />
+                                <span
+                                  className="btn border-0 bg-transparent p-0 m-0"
+                                  onClick={(e) =>
+                                    handleDropdownItemClick(col, e)
+                                  }
+                                >
+                                  {col.replace(/([A-Z])/g, " $1").toUpperCase()}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div id="table-container" style={{ overflowX: "auto" }}>
-                    <table
-                      className="table table-bordered table-hover"
-                      id="example1"
-                      style={{ minWidth: "1000px" }}
-                    >
-                      <thead>
-                        <tr role="row">
-                          {columnsVisibility.Name && (
-                            <th
-                              className="sorting_asc"
-                              tabIndex="0"
-                              aria-controls="holidays_table"
-                              style={{ width: "188.444px" }}
-                              aria-sort="ascending"
-                              aria-label="Name: activate to sort column descending"
-                            >
-                              Name
-                            </th>
-                          )}
-                          {columnsVisibility.Date && (
-                            <th
-                              className="sorting"
-                              tabIndex="0"
-                              aria-controls="holidays_table"
-                              style={{ width: "166.444px" }}
-                              aria-label="Date: activate to sort column ascending"
-                            >
-                              Date
-                            </th>
-                          )}
-                          {columnsVisibility.BusinessLocation && (
-                            <th
-                              className="sorting"
-                              tabIndex="0"
-                              aria-controls="holidays_table"
-                              aria-label="Business Location: activate to sort column ascending"
-                            >
-                              Business Location
-                            </th>
-                          )}
-                          {columnsVisibility.Note && (
-                            <th
-                              className="sorting"
-                              tabIndex="0"
-                              aria-controls="holidays_table"
-                              aria-label="Note: activate to sort column ascending"
-                            >
-                              Note
-                            </th>
-                          )}
-                          {columnsVisibility.Action && (
-                            <th
-                              className="sorting_disabled"
-                              aria-label="Action"
-                            >
-                              Action
-                            </th>
-                          )}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {holidays.length === 0 ? (
-                          <tr className="odd">
-                            <td
-                              valign="top"
-                              colSpan={
-                                Object.values(columnsVisibility).filter(Boolean)
-                                  .length
-                              }
-                              className="dataTables_empty"
-                            >
-                              No data available in table
-                            </td>
+                    <div id="table-container" style={{ overflowX: "auto" }}>
+                      <table
+                        className="table table-bordered table-hover"
+                        id="example1"
+                        style={{ minWidth: "1000px" }}
+                      >
+                        <thead>
+                          <tr role="row">
+                            {columnsVisibility.Name && (
+                              <th
+                                className="sorting_asc"
+                                tabIndex="0"
+                                aria-controls="holidays_table"
+                                style={{ width: "188.444px" }}
+                                aria-sort="ascending"
+                                aria-label="Name: activate to sort column descending"
+                              >
+                                Name
+                              </th>
+                            )}
+                            {columnsVisibility.Date && (
+                              <th
+                                className="sorting"
+                                tabIndex="0"
+                                aria-controls="holidays_table"
+                                style={{ width: "166.444px" }}
+                                aria-label="Date: activate to sort column ascending"
+                              >
+                                Date
+                              </th>
+                            )}
+                            {columnsVisibility.BusinessLocation && (
+                              <th
+                                className="sorting"
+                                tabIndex="0"
+                                aria-controls="holidays_table"
+                                aria-label="Business Location: activate to sort column ascending"
+                              >
+                                Business Location
+                              </th>
+                            )}
+                            {columnsVisibility.Note && (
+                              <th
+                                className="sorting"
+                                tabIndex="0"
+                                aria-controls="holidays_table"
+                                aria-label="Note: activate to sort column ascending"
+                              >
+                                Note
+                              </th>
+                            )}
+                            {columnsVisibility.Action && (
+                              <th
+                                className="sorting_disabled"
+                                aria-label="Action"
+                              >
+                                Action
+                              </th>
+                            )}
                           </tr>
-                        ) : (
-                          holidays.map((holiday) => (
-                            <tr key={holiday.id}>
-                              {columnsVisibility.Name && (
-                                <td>{holiday.name}</td>
-                              )}
-                              {columnsVisibility.Date && (
-                                <td>
-                                  {formatDate(holiday.startDate)} -{" "}
-                                  {formatDate(holiday.endDate)}
-                                  <br />
-                                  <small className="text-muted">
-                                    (
-                                    {calculateDays(
-                                      holiday.startDate,
-                                      holiday.endDate
-                                    )}{" "}
-                                    days)
-                                  </small>
-                                </td>
-                              )}
-                              {columnsVisibility.BusinessLocation && (
-                                <td>
-                                  {getBusinessLocationName(
-                                    holiday.businessLocationId
-                                  )}
-                                </td>
-                              )}
-
-                              {columnsVisibility.Note && (
-                                <td>{holiday.note || "-"}</td>
-                              )}
-                              {columnsVisibility.Action && (
-                                <td>
-                                  <button
-                                    className="btn btn-sm btn-primary"
-                                    onClick={() => openModal(holiday)}
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    className="btn btn-sm btn-danger ml-2"
-                                    onClick={() => handleDelete(holiday.id)}
-                                  >
-                                    Delete
-                                  </button>
-                                </td>
-                              )}
+                        </thead>
+                        <tbody>
+                          {holidays.length === 0 ? (
+                            <tr className="odd">
+                              <td
+                                valign="top"
+                                colSpan={
+                                  Object.values(columnsVisibility).filter(
+                                    Boolean
+                                  ).length
+                                }
+                                className="dataTables_empty"
+                              >
+                                No data available in table
+                              </td>
                             </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
+                          ) : (
+                            holidays.map((holiday) => (
+                              <tr key={holiday.id}>
+                                {columnsVisibility.Name && (
+                                  <td>{holiday.name}</td>
+                                )}
+                                {columnsVisibility.Date && (
+                                  <td>
+                                    {formatDate(holiday.startDate)} -{" "}
+                                    {formatDate(holiday.endDate)}
+                                    <br />
+                                    <small className="text-muted">
+                                      (
+                                      {calculateDays(
+                                        holiday.startDate,
+                                        holiday.endDate
+                                      )}{" "}
+                                      days)
+                                    </small>
+                                  </td>
+                                )}
+                                {columnsVisibility.BusinessLocation && (
+                                  <td>
+                                    {getBusinessLocationName(
+                                      holiday.businessLocationId
+                                    )}
+                                  </td>
+                                )}
+
+                                {columnsVisibility.Note && (
+                                  <td>{holiday.note || "-"}</td>
+                                )}
+                                {columnsVisibility.Action && (
+                                  <td>
+                                    <button
+                                      className="btn btn-sm btn-primary"
+                                      onClick={() => openModal(holiday)}
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      className="btn btn-sm btn-danger ml-2"
+                                      onClick={() => handleDelete(holiday.id)}
+                                    >
+                                      Delete
+                                    </button>
+                                  </td>
+                                )}
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>

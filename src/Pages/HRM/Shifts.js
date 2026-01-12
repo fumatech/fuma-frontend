@@ -218,143 +218,144 @@ const Shifts = () => {
                     </select>
                     Entries
                   </div>
-                </div>
-                <div className="col d-flex flex-wrap align-items-center">
-                  <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                    <i className="fa fa-file-csv"></i> Export CSV
-                  </button>
-                  <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                    <i className="fa fa-file-excel"></i> Export Excel
-                  </button>
-                  <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                    <i className="fa fa-print"></i> Print
-                  </button>
-                  <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                    <i className="fa fa-file-pdf"></i> Export PDF
-                  </button>
-                  <div className="dropdown mt-lg-2 mb-lg-2">
-                    <button
-                      className="btn Export-Btn dropdown-toggle"
-                      type="button"
-                      id="dropdownMenuButton"
-                      data-toggle="dropdown"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                    >
-                      <i className="fa fa-columns"></i> Column Visibility
+                  <div className="col d-flex flex-wrap align-items-center">
+                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                      <i className="fa fa-file-csv"></i> Export CSV
                     </button>
-                    <div
-                      className="dropdown-menu"
-                      aria-labelledby="dropdownMenuButton"
-                    >
-                      {Object.keys(columnsVisibility).map((col) => (
-                        <div
-                          key={col}
-                          className="dropdown-item d-flex align-items-center"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={columnsVisibility[col]}
-                            onChange={() => toggleColumn(col)}
-                            className="mr-2"
-                          />
-                          <span
-                            className="btn border-0 bg-transparent p-0 m-0"
-                            onClick={(e) => handleDropdownItemClick(col, e)}
+                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                      <i className="fa fa-file-excel"></i> Export Excel
+                    </button>
+                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                      <i className="fa fa-print"></i> Print
+                    </button>
+                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                      <i className="fa fa-file-pdf"></i> Export PDF
+                    </button>
+                    <div className="dropdown mt-lg-2 mb-lg-2">
+                      <button
+                        className="btn Export-Btn dropdown-toggle"
+                        type="button"
+                        id="dropdownMenuButton"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                      >
+                        <i className="fa fa-columns"></i> Column Visibility
+                      </button>
+                      <div
+                        className="dropdown-menu"
+                        aria-labelledby="dropdownMenuButton"
+                      >
+                        {Object.keys(columnsVisibility).map((col) => (
+                          <div
+                            key={col}
+                            className="dropdown-item d-flex align-items-center"
                           >
-                            {col.replace(/([A-Z])/g, " $1").toUpperCase()}
-                          </span>
-                        </div>
-                      ))}
+                            <input
+                              type="checkbox"
+                              checked={columnsVisibility[col]}
+                              onChange={() => toggleColumn(col)}
+                              className="mr-2"
+                            />
+                            <span
+                              className="btn border-0 bg-transparent p-0 m-0"
+                              onClick={(e) => handleDropdownItemClick(col, e)}
+                            >
+                              {col.replace(/([A-Z])/g, " $1").toUpperCase()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div id="table-container" style={{ overflowX: "auto" }}>
-                <table
-                  className="table table-bordered table-hover"
-                  id="example1"
-                >
-                  <thead>
-                    <tr role="row">
-                      {columnsVisibility.name && (
-                        <th className="sorting_asc">Name</th>
-                      )}
-                      {columnsVisibility.shiftType && (
-                        <th className="sorting">Shift Type</th>
-                      )}
-                      {columnsVisibility.startTime && (
-                        <th className="sorting">Start time</th>
-                      )}
-                      {columnsVisibility.endTime && (
-                        <th className="sorting">End time</th>
-                      )}
-                      {columnsVisibility.autoClockOutTime && (
-                        <th className="sorting">autoClockOutTime</th>
-                      )}
-                      {columnsVisibility.holiday && (
-                        <th className="sorting_disabled">Holiday</th>
-                      )}
-                      {columnsVisibility.actions && (
-                        <th className="sorting">Action</th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {shiftData.map((shift) => (
-                      <tr key={shift.id} role="row">
-                        {columnsVisibility.name && <td>{shift.name}</td>}
+                <div id="table-container" style={{ overflowX: "auto" }}>
+                  <table
+                    className="table table-bordered table-hover"
+                    id="example1"
+                  >
+                    <thead>
+                      <tr role="row">
+                        {columnsVisibility.name && (
+                          <th className="sorting_asc">Name</th>
+                        )}
                         {columnsVisibility.shiftType && (
-                          <td>{formatShiftType(shift.shiftType)}</td>
+                          <th className="sorting">Shift Type</th>
                         )}
                         {columnsVisibility.startTime && (
-                          <td>{formatTime(shift.startTime)}</td>
+                          <th className="sorting">Start time</th>
                         )}
                         {columnsVisibility.endTime && (
-                          <td>{formatTime(shift.endTime)}</td>
+                          <th className="sorting">End time</th>
                         )}
                         {columnsVisibility.autoClockOutTime && (
-                          <td>{formatTime(shift.autoClockOutTime)}</td>
+                          <th className="sorting">autoClockOutTime</th>
                         )}
                         {columnsVisibility.holiday && (
-                          <td>
-                            {shift.holiday && shift.holiday.length > 0
-                              ? shift.holiday.join(", ")
-                              : "None"}
-                          </td>
+                          <th className="sorting_disabled">Holiday</th>
                         )}
                         {columnsVisibility.actions && (
-                          <td className="text-right">
-                            <div className="btn-group btn-group-sm btn-icon-only">
-                              <button
-                                type="button"
-                                className="btn-edit"
-                                onClick={() => openModal(shift)}
-                              >
-                                <i className="fas fa-edit btn-icon"></i> Edit
-                              </button>
-                              {/* <button
+                          <th className="sorting">Action</th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {shiftData.map((shift) => (
+                        <tr key={shift.id} role="row">
+                          {columnsVisibility.name && <td>{shift.name}</td>}
+                          {columnsVisibility.shiftType && (
+                            <td>{formatShiftType(shift.shiftType)}</td>
+                          )}
+                          {columnsVisibility.startTime && (
+                            <td>{formatTime(shift.startTime)}</td>
+                          )}
+                          {columnsVisibility.endTime && (
+                            <td>{formatTime(shift.endTime)}</td>
+                          )}
+                          {columnsVisibility.autoClockOutTime && (
+                            <td>{formatTime(shift.autoClockOutTime)}</td>
+                          )}
+                          {columnsVisibility.holiday && (
+                            <td>
+                              {shift.holiday && shift.holiday.length > 0
+                                ? shift.holiday.join(", ")
+                                : "None"}
+                            </td>
+                          )}
+                          {columnsVisibility.actions && (
+                            <td className="text-right">
+                              <div className="btn-group btn-group-sm btn-icon-only">
+                                <button
+                                  type="button"
+                                  className="btn-edit"
+                                  onClick={() => openModal(shift)}
+                                >
+                                  <i className="fas fa-edit btn-icon"></i> Edit
+                                </button>
+                                {/* <button
                                 type="button"
                                 className="btn-view"
                                 onClick={() => openModal(shift)}
                               >
                                 <i className="fas fa-eye btn-icon"></i> View
                               </button> */}
-                              <button
-                                type="button"
-                                className="btn-delete"
-                                onClick={() => handleDelete(shift.id)}
-                              >
-                                <i className="fas fa-trash btn-icon"></i> Delete
-                              </button>
-                            </div>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                                <button
+                                  type="button"
+                                  className="btn-delete"
+                                  onClick={() => handleDelete(shift.id)}
+                                >
+                                  <i className="fas fa-trash btn-icon"></i>{" "}
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>

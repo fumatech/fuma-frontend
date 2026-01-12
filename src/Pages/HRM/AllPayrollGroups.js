@@ -13,14 +13,12 @@ const AllPayrollGroups = () => {
     createdAt: true,
     actions: true,
   });
-
-  // Add new states for location and employee selection
   const [locations, setLocations] = useState([]);
   const [allEmployees, setAllEmployees] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [selectAllEmployees, setSelectAllEmployees] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [payrollData, setPayrollData] = useState([]); // Changed from shiftData to payrollData
+  const [payrollData, setPayrollData] = useState([]);
   const [formData, setFormData] = useState({
     id: null,
     employeeName: "",
@@ -87,7 +85,6 @@ const AllPayrollGroups = () => {
     }
   };
 
-  // Toggle column visibility
   const toggleColumn = (col) => {
     setColumnsVisibility((prev) => ({
       ...prev,
@@ -100,15 +97,13 @@ const AllPayrollGroups = () => {
     toggleColumn(col);
   };
 
-  // Handle modal open/close
   const handleModalToggle = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Open modal with data (edit or add new)
   const openModal = (payroll = null) => {
     if (payroll) {
-      setFormData(payroll); // Edit existing payroll
+      setFormData(payroll);
     } else {
       setFormData({
         id: null,
@@ -119,12 +114,11 @@ const AllPayrollGroups = () => {
         referenceNo: "",
         totalAmount: "",
         paymentStatus: "",
-      }); // Add new payroll
+      });
     }
     setIsModalOpen(true);
   };
 
-  // Handle form field changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -133,22 +127,16 @@ const AllPayrollGroups = () => {
     }));
   };
 
-  // Handle form submission (save payroll)
   const handleSubmit = (e) => {
     e.preventDefault();
     if (formData.id) {
-      // Edit payroll
       setPayrollData((prev) =>
         prev.map((payroll) =>
           payroll.id === formData.id ? { ...payroll, ...formData } : payroll
         )
       );
     } else {
-      // Add new payroll
-      setPayrollData((prev) => [
-        ...prev,
-        { ...formData, id: Date.now() }, // Using timestamp as a unique ID
-      ]);
+      setPayrollData((prev) => [...prev, { ...formData, id: Date.now() }]);
     }
     setIsModalOpen(false);
   };
@@ -163,7 +151,6 @@ const AllPayrollGroups = () => {
     try {
       await axios.delete(`${process.env.REACT_APP_BASE_URL}/payroll/${id}`);
 
-      // Remove from UI after success
       setPayrollData((prev) => prev.filter((payroll) => payroll.id !== id));
 
       toast.success("Payroll deleted successfully");
@@ -173,15 +160,12 @@ const AllPayrollGroups = () => {
     }
   };
 
-  // Fetch locations and employees (example with mock data)
   useEffect(() => {
-    // In a real app, you would fetch these from an API
     setLocations([]);
 
     setAllEmployees([]);
   }, []);
 
-  // Handle employee selection
   const handleEmployeeSelect = (employeeId) => {
     setSelectedEmployees((prev) =>
       prev.includes(employeeId)
@@ -190,7 +174,6 @@ const AllPayrollGroups = () => {
     );
   };
 
-  // Toggle select all employees
   const toggleSelectAllEmployees = () => {
     if (selectAllEmployees) {
       setSelectedEmployees([]);
@@ -200,8 +183,6 @@ const AllPayrollGroups = () => {
     setSelectAllEmployees(!selectAllEmployees);
   };
 
-  // ... (keep all existing code until the modal part)
-
   return (
     <>
       <section className="content">
@@ -209,7 +190,6 @@ const AllPayrollGroups = () => {
           <div className="card cardHover rounded-4 border-0">
             <div className="text-right p-3">
               <div className="card-body">
-                {/* Table */}
                 <div className="row mb-3 d-flex align-items-center">
                   <div className="col-12 col-md-auto form-group mb-2 d-flex align-items-center text-bold mt-2 mb-2 mr-2">
                     <label htmlFor="entriesPerPage" className="mb-0 mr-2">
@@ -226,180 +206,182 @@ const AllPayrollGroups = () => {
                     </select>
                     Entries
                   </div>
-                </div>
-                <div className="col d-flex flex-wrap align-items-center">
-                  <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                    <i className="fa fa-file-csv"></i> Export CSV
-                  </button>
-                  <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                    <i className="fa fa-file-excel"></i> Export Excel
-                  </button>
-                  <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                    <i className="fa fa-print"></i> Print
-                  </button>
-                  <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                    <i className="fa fa-file-pdf"></i> Export PDF
-                  </button>
-                  <div className="dropdown mt-lg-2 mb-lg-2">
-                    <button
-                      className="btn Export-Btn dropdown-toggle"
-                      type="button"
-                      id="dropdownMenuButton"
-                      data-toggle="dropdown"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                    >
-                      <i className="fa fa-columns"></i> Column Visibility
+
+                  <div className="col d-flex flex-wrap align-items-center">
+                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                      <i className="fa fa-file-csv"></i> Export CSV
                     </button>
-                    <div
-                      className="dropdown-menu"
-                      aria-labelledby="dropdownMenuButton"
-                    >
-                      {Object.keys(columnsVisibility).map((col) => (
-                        <div
-                          key={col}
-                          className="dropdown-item d-flex align-items-center"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={columnsVisibility[col]}
-                            onChange={() => toggleColumn(col)}
-                            className="mr-2"
-                          />
-                          <span
-                            className="btn border-0 bg-transparent p-0 m-0"
-                            onClick={(e) => handleDropdownItemClick(col, e)}
+                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                      <i className="fa fa-file-excel"></i> Export Excel
+                    </button>
+                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                      <i className="fa fa-print"></i> Print
+                    </button>
+                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                      <i className="fa fa-file-pdf"></i> Export PDF
+                    </button>
+                    <div className="dropdown mt-lg-2 mb-lg-2">
+                      <button
+                        className="btn Export-Btn dropdown-toggle"
+                        type="button"
+                        id="dropdownMenuButton"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                      >
+                        <i className="fa fa-columns"></i> Column Visibility
+                      </button>
+                      <div
+                        className="dropdown-menu"
+                        aria-labelledby="dropdownMenuButton"
+                      >
+                        {Object.keys(columnsVisibility).map((col) => (
+                          <div
+                            key={col}
+                            className="dropdown-item d-flex align-items-center"
                           >
-                            {col.replace(/([A-Z])/g, " $1").toUpperCase()}
-                          </span>
-                        </div>
-                      ))}
+                            <input
+                              type="checkbox"
+                              checked={columnsVisibility[col]}
+                              onChange={() => toggleColumn(col)}
+                              className="mr-2"
+                            />
+                            <span
+                              className="btn border-0 bg-transparent p-0 m-0"
+                              onClick={(e) => handleDropdownItemClick(col, e)}
+                            >
+                              {col.replace(/([A-Z])/g, " $1").toUpperCase()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div id="table-container" style={{ overflowX: "auto" }}>
-                <table
-                  className="table table-bordered table-hover"
-                  id="example1"
-                >
-                  <thead>
-                    <tr role="row">
-                      {columnsVisibility.name && (
-                        <th className="sorting_asc">Name</th>
-                      )}
-                      {columnsVisibility.status && (
-                        <th className="sorting">Status</th>
-                      )}
-                      {columnsVisibility.paymentStatus && (
-                        <th className="sorting">Payment Status</th>
-                      )}
-                      {columnsVisibility.totalGrossAmount && (
-                        <th className="sorting">Total Gross Amount</th>
-                      )}
-                      {columnsVisibility.addedBy && (
-                        <th className="sorting">Added By</th>
-                      )}
-                      {columnsVisibility.location && (
-                        <th className="sorting">Location</th>
-                      )}
-                      {columnsVisibility.createdAt && (
-                        <th className="sorting">Created At</th>
-                      )}
-                      {columnsVisibility.actions && (
-                        <th className="sorting">Action</th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {payrollData.map((payroll) => (
-                      <tr key={payroll.id} role="row">
+                <div id="table-container" style={{ overflowX: "auto" }}>
+                  <table
+                    className="table table-bordered table-hover"
+                    id="example1"
+                  >
+                    <thead>
+                      <tr role="row">
                         {columnsVisibility.name && (
-                          <td>
-                            <strong>{payroll.name}</strong>
-                            <br />
-                            <small className="text-muted">
-                              {payroll.referenceNo}
-                            </small>
-                          </td>
+                          <th className="sorting_asc">Name</th>
                         )}
                         {columnsVisibility.status && (
-                          <td>
-                            {payroll.status === 1 ? (
-                              <span className="badge bg-success">Final</span>
-                            ) : (
-                              <span className="badge bg-secondary">Draft</span>
-                            )}
-                          </td>
+                          <th className="sorting">Status</th>
                         )}
                         {columnsVisibility.paymentStatus && (
-                          <td>
-                            <span
-                              className={`badge ${
-                                payroll.paymentStatus === "Paid"
-                                  ? "bg-success"
-                                  : "bg-warning text-dark"
-                              }`}
-                            >
-                              {payroll.paymentStatus}
-                            </span>
-                          </td>
+                          <th className="sorting">Payment Status</th>
                         )}
-
                         {columnsVisibility.totalGrossAmount && (
-                          <td>₹{payroll.totalGrossAmount.toFixed(2)}</td>
+                          <th className="sorting">Total Gross Amount</th>
                         )}
-
                         {columnsVisibility.addedBy && (
-                          <td>{payroll.addedBy}</td>
+                          <th className="sorting">Added By</th>
                         )}
                         {columnsVisibility.location && (
-                          <td>{getLocationName(payroll.location)}</td>
+                          <th className="sorting">Location</th>
                         )}
-
                         {columnsVisibility.createdAt && (
-                          <td>{payroll.createdAt}</td>
+                          <th className="sorting">Created At</th>
                         )}
                         {columnsVisibility.actions && (
-                          <td className="text-right">
-                            <div className="btn-group btn-group-sm btn-icon-only">
-                              <button
-                                type="button"
-                                className="btn-edit"
-                                onClick={() => openModal(payroll)}
-                              >
-                                <i className="fas fa-edit btn-icon"></i> Edit
-                              </button>
-                              <button
-                                type="button"
-                                className="btn-view"
-                                onClick={() => openModal(payroll)}
-                              >
-                                <i className="fas fa-eye btn-icon"></i> View
-                              </button>
-                              <button
-                                type="button"
-                                className="btn-delete"
-                                onClick={() => handleDelete(payroll.id)}
-                              >
-                                <i className="fas fa-trash btn-icon"></i> Delete
-                              </button>
-                            </div>
-                          </td>
+                          <th className="sorting">Action</th>
                         )}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {payrollData.map((payroll) => (
+                        <tr key={payroll.id} role="row">
+                          {columnsVisibility.name && (
+                            <td>
+                              <strong>{payroll.name}</strong>
+                              <br />
+                              <small className="text-muted">
+                                {payroll.referenceNo}
+                              </small>
+                            </td>
+                          )}
+                          {columnsVisibility.status && (
+                            <td>
+                              {payroll.status === 1 ? (
+                                <span className="badge bg-success">Final</span>
+                              ) : (
+                                <span className="badge bg-secondary">
+                                  Draft
+                                </span>
+                              )}
+                            </td>
+                          )}
+                          {columnsVisibility.paymentStatus && (
+                            <td>
+                              <span
+                                className={`badge ${
+                                  payroll.paymentStatus === "Paid"
+                                    ? "bg-success"
+                                    : "bg-warning text-dark"
+                                }`}
+                              >
+                                {payroll.paymentStatus}
+                              </span>
+                            </td>
+                          )}
+
+                          {columnsVisibility.totalGrossAmount && (
+                            <td>₹{payroll.totalGrossAmount.toFixed(2)}</td>
+                          )}
+
+                          {columnsVisibility.addedBy && (
+                            <td>{payroll.addedBy}</td>
+                          )}
+                          {columnsVisibility.location && (
+                            <td>{getLocationName(payroll.location)}</td>
+                          )}
+
+                          {columnsVisibility.createdAt && (
+                            <td>{payroll.createdAt}</td>
+                          )}
+                          {columnsVisibility.actions && (
+                            <td className="text-right">
+                              <div className="btn-group btn-group-sm btn-icon-only">
+                                <button
+                                  type="button"
+                                  className="btn-edit"
+                                  onClick={() => openModal(payroll)}
+                                >
+                                  <i className="fas fa-edit btn-icon"></i> Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn-view"
+                                  onClick={() => openModal(payroll)}
+                                >
+                                  <i className="fas fa-eye btn-icon"></i> View
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn-delete"
+                                  onClick={() => handleDelete(payroll.id)}
+                                >
+                                  <i className="fas fa-trash btn-icon"></i>{" "}
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Modal */}
-      {/* Modal */}
       {isModalOpen && (
         <>
           <div
@@ -440,7 +422,6 @@ const AllPayrollGroups = () => {
                     </button>
                   </div>
                   <div className="modal-body">
-                    {/* Location Dropdown */}
                     <div className="form-group">
                       <label htmlFor="location" className="font-weight-bold">
                         Location:*
@@ -462,7 +443,6 @@ const AllPayrollGroups = () => {
                       </select>
                     </div>
 
-                    {/* Employee Selection */}
                     <div className="form-group">
                       <div className="d-flex justify-content-between align-items-center mb-2">
                         <label className="font-weight-bold mb-0">
@@ -500,7 +480,6 @@ const AllPayrollGroups = () => {
                       </div>
                     </div>
 
-                    {/* Month/Year Selection */}
                     <div className="form-group">
                       <label htmlFor="monthYear" className="font-weight-bold">
                         Month/Year:*
@@ -516,7 +495,6 @@ const AllPayrollGroups = () => {
                       />
                     </div>
 
-                    {/* Generate Button */}
                     <div className="text-center mt-4">
                       <button
                         type="submit"

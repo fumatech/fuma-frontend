@@ -33,7 +33,6 @@ const AllPayrolls = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Toggle column visibility
   const toggleColumn = (col) => {
     setColumnsVisibility((prev) => ({
       ...prev,
@@ -46,12 +45,10 @@ const AllPayrolls = () => {
     toggleColumn(col);
   };
 
-  // Handle modal open/close
   const handleModalToggle = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Open modal with data (edit or add new)
   const openModal = (payroll = null) => {
     if (payroll) {
       setFormData({
@@ -73,7 +70,6 @@ const AllPayrolls = () => {
     setIsModalOpen(true);
   };
 
-  // Handle form field changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -82,17 +78,14 @@ const AllPayrolls = () => {
     }));
   };
 
-  // Handle search term change
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value.toLowerCase());
   };
 
-  // Filter employees based on search term
   const filteredEmployees = allEmployees.filter((emp) =>
     `${emp.firstname} ${emp.lastname}`.toLowerCase().includes(searchTerm)
   );
 
-  // Handle employee selection
   const handleEmployeeSelect = (employeeId) => {
     setSelectedEmployees((prev) =>
       prev.includes(employeeId)
@@ -101,7 +94,6 @@ const AllPayrolls = () => {
     );
   };
 
-  // Toggle select all employees
   const toggleSelectAllEmployees = () => {
     if (selectAllEmployees) {
       setSelectedEmployees([]);
@@ -111,7 +103,6 @@ const AllPayrolls = () => {
     setSelectAllEmployees(!selectAllEmployees);
   };
 
-  // Fetch all employees from API
   const fetchEmployees = async () => {
     try {
       const response = await axios.get(
@@ -123,7 +114,6 @@ const AllPayrolls = () => {
     }
   };
 
-  // Fetch all payrolls from API
   const fetchPayrolls = async () => {
     try {
       const response = await axios.get(
@@ -162,8 +152,8 @@ const AllPayrolls = () => {
     );
 
     const payrollPayload = {
-      locationId: formData.location, // ✅ numeric ID (1)
-      locationName: selectedLocation?.name, // ✅ "Thergaon"
+      locationId: formData.location,
+      locationName: selectedLocation?.name,
       monthYear: formData.monthYear,
       payrollGroupName: `Payroll for ${new Date(
         formData.monthYear
@@ -177,7 +167,6 @@ const AllPayrolls = () => {
     navigate("/AddPayroll", { state: payrollPayload });
   };
 
-  // Handle delete payroll
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this payroll?")) {
       try {
@@ -231,7 +220,6 @@ const AllPayrolls = () => {
     }
   };
 
-  // Update select all state when employees or filtered list changes
   useEffect(() => {
     if (
       filteredEmployees.length > 0 &&
@@ -243,7 +231,6 @@ const AllPayrolls = () => {
     }
   }, [selectedEmployees, filteredEmployees]);
 
-  // Get employee name by ID
   const getEmployeeName = (id) => {
     const employee = allEmployees.find((emp) => emp.id === id);
     return employee ? `${employee.firstname} ${employee.lastname}` : "Unknown";
@@ -290,190 +277,192 @@ const AllPayrolls = () => {
                     </select>
                     Entries
                   </div>
-                </div>
-                <div className="col d-flex flex-wrap align-items-center">
-                  <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                    <i className="fa fa-file-csv"></i> Export CSV
-                  </button>
-                  <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                    <i className="fa fa-file-excel"></i> Export Excel
-                  </button>
-                  <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                    <i className="fa fa-print"></i> Print
-                  </button>
-                  <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                    <i className="fa fa-file-pdf"></i> Export PDF
-                  </button>
-                  <div className="dropdown mt-lg-2 mb-lg-2">
-                    <button
-                      className="btn Export-Btn dropdown-toggle"
-                      type="button"
-                      id="dropdownMenuButton"
-                      data-toggle="dropdown"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                    >
-                      <i className="fa fa-columns"></i> Column Visibility
+
+                  <div className="col d-flex flex-wrap align-items-center">
+                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                      <i className="fa fa-file-csv"></i> Export CSV
                     </button>
-                    <div
-                      className="dropdown-menu"
-                      aria-labelledby="dropdownMenuButton"
-                    >
-                      {Object.keys(columnsVisibility).map((col) => (
-                        <div
-                          key={col}
-                          className="dropdown-item d-flex align-items-center"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={columnsVisibility[col]}
-                            onChange={() => toggleColumn(col)}
-                            className="mr-2"
-                          />
-                          <span
-                            className="btn border-0 bg-transparent p-0 m-0"
-                            onClick={(e) => handleDropdownItemClick(col, e)}
+                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                      <i className="fa fa-file-excel"></i> Export Excel
+                    </button>
+                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                      <i className="fa fa-print"></i> Print
+                    </button>
+                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                      <i className="fa fa-file-pdf"></i> Export PDF
+                    </button>
+                    <div className="dropdown mt-lg-2 mb-lg-2">
+                      <button
+                        className="btn Export-Btn dropdown-toggle"
+                        type="button"
+                        id="dropdownMenuButton"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                      >
+                        <i className="fa fa-columns"></i> Column Visibility
+                      </button>
+                      <div
+                        className="dropdown-menu"
+                        aria-labelledby="dropdownMenuButton"
+                      >
+                        {Object.keys(columnsVisibility).map((col) => (
+                          <div
+                            key={col}
+                            className="dropdown-item d-flex align-items-center"
                           >
-                            {col.replace(/([A-Z])/g, " $1").toUpperCase()}
-                          </span>
-                        </div>
-                      ))}
+                            <input
+                              type="checkbox"
+                              checked={columnsVisibility[col]}
+                              onChange={() => toggleColumn(col)}
+                              className="mr-2"
+                            />
+                            <span
+                              className="btn border-0 bg-transparent p-0 m-0"
+                              onClick={(e) => handleDropdownItemClick(col, e)}
+                            >
+                              {col.replace(/([A-Z])/g, " $1").toUpperCase()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div id="table-container" style={{ overflowX: "auto" }}>
-                <table
-                  className="table table-bordered table-hover"
-                  id="example1"
-                >
-                  <thead>
-                    <tr role="row">
-                      {columnsVisibility.employee && (
-                        <th className="sorting_asc">Employee</th>
-                      )}
-                      {columnsVisibility.department && (
-                        <th className="sorting">Department</th>
-                      )}
-                      {columnsVisibility.designation && (
-                        <th className="sorting">Designation</th>
-                      )}
-                      {columnsVisibility.monthYear && (
-                        <th className="sorting">Month/Year</th>
-                      )}
-                      {columnsVisibility.referenceNo && (
-                        <th className="sorting">Reference No</th>
-                      )}
-                      {columnsVisibility.totalAmount && (
-                        <th className="sorting">Total Amount</th>
-                      )}
-                      {columnsVisibility.paymentStatus && (
-                        <th className="sorting_disabled">Payment Status</th>
-                      )}
-                      {columnsVisibility.actions && (
-                        <th className="sorting">Action</th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {payrollData.length > 0 ? (
-                      payrollData.map((payroll, index) => (
-                        <tr key={`${payroll.payrollId}-${payroll.employeeId}`}>
-                          {columnsVisibility.employee && (
-                            <td>{getEmployeeName(payroll.employeeId)}</td>
-                          )}
-                          {columnsVisibility.department && (
-                            <td>
-                              {getDepartmentName(
-                                allEmployees.find(
-                                  (emp) => emp.id === payroll.employeeId
-                                )?.departmentId
-                              )}
-                            </td>
-                          )}
-                          {columnsVisibility.designation && (
-                            <td>
-                              {getDesignationName(
-                                allEmployees.find(
-                                  (emp) => emp.id === payroll.employeeId
-                                )?.designationId
-                              )}
-                            </td>
-                          )}
-
-                          {columnsVisibility.monthYear && (
-                            <td>
-                              {new Date(
-                                payroll.year,
-                                payroll.month - 1
-                              ).toLocaleString("default", {
-                                month: "long",
-                                year: "numeric",
-                              })}
-                            </td>
-                          )}
-                          {columnsVisibility.referenceNo && (
-                            <td>{getReferenceNo(payroll)}</td>
-                          )}
-
-                          {columnsVisibility.totalAmount && (
-                            <td>{payroll.total.toFixed(2)}</td>
-                          )}
-                          {columnsVisibility.paymentStatus && (
-                            <td>
-                              <span
-                                className={`badge ${
-                                  payroll.paymentStatus === 1
-                                    ? "bg-success"
-                                    : "bg-warning text-dark"
-                                }`}
-                              >
-                                {payroll.paymentStatus === 1 ? "Paid" : "Due"}
-                              </span>
-                            </td>
-                          )}
-                          {columnsVisibility.actions && (
-                            <td className="text-center">
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-info"
-                                onClick={() =>
-                                  navigate("/payroll/view", {
-                                    state: {
-                                      payroll,
-                                      employee: allEmployees.find(
-                                        (emp) => emp.id === payroll.employeeId
-                                      ),
-                                    },
-                                  })
-                                }
-                              >
-                                View
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={Object.keys(columnsVisibility).length}
-                          className="text-center"
-                        >
-                          No payroll data found
-                        </td>
+                <div id="table-container" style={{ overflowX: "auto" }}>
+                  <table
+                    className="table table-bordered table-hover"
+                    id="example1"
+                  >
+                    <thead>
+                      <tr role="row">
+                        {columnsVisibility.employee && (
+                          <th className="sorting_asc">Employee</th>
+                        )}
+                        {columnsVisibility.department && (
+                          <th className="sorting">Department</th>
+                        )}
+                        {columnsVisibility.designation && (
+                          <th className="sorting">Designation</th>
+                        )}
+                        {columnsVisibility.monthYear && (
+                          <th className="sorting">Month/Year</th>
+                        )}
+                        {columnsVisibility.referenceNo && (
+                          <th className="sorting">Reference No</th>
+                        )}
+                        {columnsVisibility.totalAmount && (
+                          <th className="sorting">Total Amount</th>
+                        )}
+                        {columnsVisibility.paymentStatus && (
+                          <th className="sorting_disabled">Payment Status</th>
+                        )}
+                        {columnsVisibility.actions && (
+                          <th className="sorting">Action</th>
+                        )}
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {payrollData.length > 0 ? (
+                        payrollData.map((payroll, index) => (
+                          <tr
+                            key={`${payroll.payrollId}-${payroll.employeeId}`}
+                          >
+                            {columnsVisibility.employee && (
+                              <td>{getEmployeeName(payroll.employeeId)}</td>
+                            )}
+                            {columnsVisibility.department && (
+                              <td>
+                                {getDepartmentName(
+                                  allEmployees.find(
+                                    (emp) => emp.id === payroll.employeeId
+                                  )?.departmentId
+                                )}
+                              </td>
+                            )}
+                            {columnsVisibility.designation && (
+                              <td>
+                                {getDesignationName(
+                                  allEmployees.find(
+                                    (emp) => emp.id === payroll.employeeId
+                                  )?.designationId
+                                )}
+                              </td>
+                            )}
+
+                            {columnsVisibility.monthYear && (
+                              <td>
+                                {new Date(
+                                  payroll.year,
+                                  payroll.month - 1
+                                ).toLocaleString("default", {
+                                  month: "long",
+                                  year: "numeric",
+                                })}
+                              </td>
+                            )}
+                            {columnsVisibility.referenceNo && (
+                              <td>{getReferenceNo(payroll)}</td>
+                            )}
+
+                            {columnsVisibility.totalAmount && (
+                              <td>{payroll.total.toFixed(2)}</td>
+                            )}
+                            {columnsVisibility.paymentStatus && (
+                              <td>
+                                <span
+                                  className={`badge ${
+                                    payroll.paymentStatus === 1
+                                      ? "bg-success"
+                                      : "bg-warning text-dark"
+                                  }`}
+                                >
+                                  {payroll.paymentStatus === 1 ? "Paid" : "Due"}
+                                </span>
+                              </td>
+                            )}
+                            {columnsVisibility.actions && (
+                              <td className="text-center">
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-info"
+                                  onClick={() =>
+                                    navigate("/payroll/view", {
+                                      state: {
+                                        payroll,
+                                        employee: allEmployees.find(
+                                          (emp) => emp.id === payroll.employeeId
+                                        ),
+                                      },
+                                    })
+                                  }
+                                >
+                                  View
+                                </button>
+                              </td>
+                            )}
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={Object.keys(columnsVisibility).length}
+                            className="text-center"
+                          >
+                            No payroll data found
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Modal */}
       {isModalOpen && (
         <>
           <div

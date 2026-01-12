@@ -44,6 +44,7 @@ const Menu = ({ userRoles }) => {
         path.startsWith("/Categories") ||
         path.startsWith("/Brands") ||
         path.startsWith("/Variation") ||
+        path.startsWith("/PrintLabel") ||
         path.startsWith("/Units")
     );
     setExtraOpen(
@@ -135,6 +136,7 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/Categories") ||
       path.startsWith("/Brands") ||
       path.startsWith("/Variation") ||
+      path.startsWith("/PrintLabel") ||
       path.startsWith("/Units")
     ) {
       setActiveMenu("product");
@@ -815,14 +817,14 @@ const Menu = ({ userRoles }) => {
                       <li className="nav-item">
                         <Link
                           to="/PrintLabel"
-                          className={getSubMenuItemClass("Categories")}
+                          className={getSubMenuItemClass("PrintLabel")}
                           style={{
                             color:
-                              activeSubMenu === "Categories"
+                              activeSubMenu === "PrintLabel"
                                 ? "#0040C1"
                                 : "#4b5565",
                             backgroundColor:
-                              activeSubMenu === "Categories"
+                              activeSubMenu === "PrintLabel"
                                 ? "rgba(0, 64, 193, 0.08)"
                                 : "transparent",
                             paddingLeft: "52px",

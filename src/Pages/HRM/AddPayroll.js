@@ -25,18 +25,14 @@ const AddPayroll = () => {
     monthYear: state?.monthYear || "",
     payrolls: {},
   });
-  //console.log("STATE RECEIVED IN ADD PAYROLL:", state);
   useEffect(() => {
     const email = sessionStorage.getItem("userEmail");
-    //console.log(email);
-
     if (email) {
       fetch(`${process.env.REACT_APP_BASE_URL}/user/username?email=${email}`)
         .then((response) => response.json())
         .then((data) => setUserName(data))
         .catch((error) => console.error("Error fetching username:", error));
     }
-    //console.log(userName);
   }, []);
 
   useEffect(() => {
@@ -266,8 +262,8 @@ const AddPayroll = () => {
       const formatMonthYearForBackend = (monthYear) => {
         if (!monthYear) return "";
 
-        const [year, month] = monthYear.split("-"); // "2026-01"
-        return `${month}/${year}`; // "01/2026"
+        const [year, month] = monthYear.split("-");
+        return `${month}/${year}`;
       };
 
       const payload = {
@@ -921,7 +917,6 @@ const AddPayroll = () => {
                       </div>
                     </div>
                   </div>
-                  {/* Add save button at the bottom */}
                   <div className="card-footer text-center">
                     {error && (
                       <div className="alert alert-danger mb-3">{error}</div>
