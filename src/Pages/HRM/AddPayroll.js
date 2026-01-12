@@ -15,20 +15,30 @@ const AddPayroll = () => {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
-
+  const [userName, setUserName] = useState("");
   const { state } = location;
-
-  // Initialize with data passed from AllPayrolls
   const [payrollData, setPayrollData] = useState({
     payroll_group_name: state?.payrollGroupName || "Payroll",
     payroll_group_status: "",
-    location_id: state?.location || "",
+    location_id: state?.locationId || "",
     location_name: state?.locationName || "",
     monthYear: state?.monthYear || "",
     payrolls: {},
   });
+  //console.log("STATE RECEIVED IN ADD PAYROLL:", state);
+  useEffect(() => {
+    const email = sessionStorage.getItem("userEmail");
+    //console.log(email);
 
-  // Initialize payrolls for each employee
+    if (email) {
+      fetch(`${process.env.REACT_APP_BASE_URL}/user/username?email=${email}`)
+        .then((response) => response.json())
+        .then((data) => setUserName(data))
+        .catch((error) => console.error("Error fetching username:", error));
+    }
+    //console.log(userName);
+  }, []);
+
   useEffect(() => {
     if (state?.employees) {
       const initialPayrolls = {};
@@ -221,49 +231,62 @@ const AddPayroll = () => {
     setError(null);
 
     try {
-      // Prepare employee payrolls for backend
-      const employeePayrolls = Object.values(payrollData.payrolls).map(
-        (payroll) => ({
+      const employeePayrolls = Object.entries(payrollData.payrolls).map(
+        ([id, payroll]) => ({
           employeeId: payroll.employeeId,
-          workDuration: parseFloat(payroll.essentials_duration || 0),
-          unit: 1.0, // Assuming monthly payroll
-          amountPerUnit: parseFloat(
+          workDuration: Number(payroll.essentials_duration || 0),
+          unit: 1,
+          amountPerUnit: Number(
             payroll.essentials_amount_per_unit_duration || 0
           ),
-          total: parseFloat(payroll.total || 0),
-          earnings: payroll.allowances
-            .filter((allowance) => allowance.name) // Only include allowances with names
-            .map((allowance) => ({
-              description: allowance.name,
-              amountType: allowance.type,
-              amount: parseFloat(allowance.amount || 0),
-            })),
-          deductions: payroll.deductions
-            .filter((deduction) => deduction.name) // Only include deductions with names
-            .map((deduction) => ({
-              description: deduction.name,
-              amountType: deduction.type,
-              amount: parseFloat(deduction.amount || 0),
-            })),
+          basic: Number(payroll.total || 0),
+          // ✅ Gross Amount
+          total: Number(calculateGrossAmount(id)),
+
           note: payroll.staff_note || "",
+
+          earnings: payroll.allowances
+            .filter((a) => a.name && Number(a.amount) > 0)
+            .map((a) => ({
+              description: a.name,
+              amountType: a.type === "fixed" ? "Fixed" : "Percentage",
+              amount: Number(a.amount),
+            })),
+
+          deductions: payroll.deductions
+            .filter((d) => d.name && Number(d.amount) > 0)
+            .map((d) => ({
+              description: d.name,
+              amountType: d.type === "fixed" ? "Fixed" : "Percentage",
+              amount: Number(d.amount),
+            })),
         })
       );
 
-      // Prepare the payload for backend
-      const payload = {
-        location: payrollData.location_name,
-        monthYear: payrollData.monthYear,
-        status: payrollData.payroll_group_status === "final" ? 1 : 0, // 1 for final, 0 for draft
-        employeePayrolls: employeePayrolls,
+      const formatMonthYearForBackend = (monthYear) => {
+        if (!monthYear) return "";
+
+        const [year, month] = monthYear.split("-"); // "2026-01"
+        return `${month}/${year}`; // "01/2026"
       };
 
-      // Send to backend
-      const response = await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/payroll/add`,
+      const payload = {
+        location: String(payrollData.location_id),
+        monthYear: formatMonthYearForBackend(payrollData.monthYear),
+        status: payrollData.payroll_group_status === "final" ? 1 : 0,
+        addedBy: userName,
+        createdAt: new Date().toISOString(),
+        employeePayrolls,
+      };
+
+      console.log("PAYROLL PAYLOAD 👉", payload);
+
+      await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/payroll/save`,
         payload
       );
 
-      // Navigate back with success message
+      toast.success("Payroll saved successfully!");
       navigate("/AllPayrolls", {
         state: { success: "Payroll saved successfully!" },
       });
@@ -313,7 +336,9 @@ const AddPayroll = () => {
                                 </strong>
                               </h3>
                               <small>
-                                <b>Location</b>: {payrollData.location_name}
+                                <small>
+                                  <b>Location</b>: {payrollData.location_name}
+                                </small>
                                 <input
                                   name="location_id"
                                   type="hidden"
@@ -354,12 +379,12 @@ const AddPayroll = () => {
                                   name="payroll_group_status"
                                   value={payrollData.payroll_group_status}
                                   onChange={handleInputChange}
-                                  id="payroll_group_status"
                                 >
                                   <option value="">Please Select</option>
                                   <option value="draft">Draft</option>
                                   <option value="final">Final</option>
                                 </select>
+
                                 <small className="text-muted">
                                   Payroll can not be deleted if status is final
                                 </small>
@@ -896,35 +921,35 @@ const AddPayroll = () => {
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-              {/* Add save button at the bottom */}
-              <div className="card-footer text-right">
-                {error && (
-                  <div className="alert alert-danger mb-3">{error}</div>
-                )}
+                  {/* Add save button at the bottom */}
+                  <div className="card-footer text-center">
+                    {error && (
+                      <div className="alert alert-danger mb-3">{error}</div>
+                    )}
 
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={isSaving}
-                >
-                  {isSaving ? (
-                    <>
-                      <span
-                        className="spinner-border spinner-border-sm mr-2"
-                        role="status"
-                        aria-hidden="true"
-                      ></span>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <FaSave className="mr-2" />
-                      Save Payroll
-                    </>
-                  )}
-                </button>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={isSaving}
+                    >
+                      {isSaving ? (
+                        <>
+                          <span
+                            className="spinner-border spinner-border-sm mr-2"
+                            role="status"
+                            aria-hidden="true"
+                          ></span>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <FaSave className="mr-2" />
+                          Save Payroll
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             </form>
           </div>

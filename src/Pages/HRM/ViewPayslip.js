@@ -111,7 +111,7 @@ const ViewPayslip = () => {
   );
 
   const totalEarnings = payroll.earnings.reduce((sum, e) => sum + e.amount, 0);
-
+  const netpay = payroll.total;
   const totalDeductions = payroll.deductions.reduce(
     (sum, d) => sum + d.amount,
     0
@@ -232,6 +232,10 @@ const ViewPayslip = () => {
                       <td className="fw-bold">Designation</td>
                       <td>{getDesignationName(employee.designationId)}</td>
                     </tr>
+                    <tr>
+                      <td className="fw-bold">Basic</td>
+                      <td>{payroll.basic}</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -246,6 +250,10 @@ const ViewPayslip = () => {
                     <tr>
                       <td className="fw-bold">Account No</td>
                       <td>{employee.accountNumber || "-"}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">IFSC Code</td>
+                      <td>{employee.ifsc || "-"}</td>
                     </tr>
                     <tr>
                       <td className="fw-bold">Tax ID</td>
@@ -309,7 +317,7 @@ const ViewPayslip = () => {
 
             {/* NET PAY */}
             <div className="alert alert-primary text-center fw-bold fs-5 mt-3">
-              Net Pay: ₹{(totalEarnings - totalDeductions).toFixed(2)}
+              Net Pay: ₹{netpay.toFixed(2)}
             </div>
 
             {/* NOTE */}

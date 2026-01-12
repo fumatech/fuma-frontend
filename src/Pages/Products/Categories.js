@@ -567,7 +567,7 @@ const Categories = () => {
                               <tr key={cat.id}>
                                 {columnsVisibility.CategoryName && (
                                   <td
-                                    className="text-start"
+                                    className="text-center"
                                     style={{
                                       paddingLeft: `${
                                         (cat.categoryName.split("/").length -
@@ -587,7 +587,7 @@ const Categories = () => {
                                 )}
                                 {columnsVisibility.ParentCategory && (
                                   <td
-                                    className="text-start"
+                                    className="text-center"
                                     style={{
                                       paddingLeft: `${
                                         (cat.categoryName.split("/").length -

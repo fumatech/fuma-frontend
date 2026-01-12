@@ -6,7 +6,6 @@ import AllPayrollGroups from "./AllPayrollGroups";
 import PayComponents from "./PayComponents";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { toast } from "react-toastify";
-
 import {
   faSquare,
   faSquareCheck,

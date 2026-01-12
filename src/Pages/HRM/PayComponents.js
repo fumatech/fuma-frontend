@@ -60,19 +60,22 @@ const PayComponents = () => {
       console.error("Error fetching pay components:", error);
     }
   };
-
-  // Handle modal open/close
   const openModal = (component = null) => {
     if (component) {
-      // Convert applicableDate from LocalDateTime to date string format
       const date = component.applicableDate
         ? new Date(component.applicableDate).toISOString().split("T")[0]
         : "";
 
       setFormData({
-        ...component,
+        id: component.id,
+        description: component.description,
+        type: component.type,
+        amountType: component.amountType,
+        amount: component.amount,
         applicableDate: date,
       });
+
+      setSelectedEmployees(component.employeeId || []);
     } else {
       setFormData({
         id: null,
@@ -82,7 +85,9 @@ const PayComponents = () => {
         amount: "",
         applicableDate: "",
       });
+      setSelectedEmployees([]);
     }
+
     setIsModalOpen(true);
   };
 
@@ -97,6 +102,7 @@ const PayComponents = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // validation
     if (selectedEmployees.length === 0) {
       toast.warning("Please select at least one employee");
       return;
@@ -113,19 +119,30 @@ const PayComponents = () => {
         applicableDate: formData.applicableDate
           ? new Date(formData.applicableDate).toISOString()
           : null,
-        employeeIds: selectedEmployees,
+        employeeId: selectedEmployees,
       };
 
-      await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/pay-component/bulk`,
-        payload
-      );
+      if (formData.id) {
+        // ✅ UPDATE
+        await axios.put(
+          `${process.env.REACT_APP_BASE_URL}/pay-component/${formData.id}`,
+          payload
+        );
+        toast.success("Pay component updated successfully");
+      } else {
+        // ✅ ADD
+        await axios.post(
+          `${process.env.REACT_APP_BASE_URL}/pay-component/add`,
+          payload
+        );
+        toast.success("Pay component saved successfully");
+      }
 
-      toast.success("Pay component saved successfully");
       fetchPayComponents();
       setIsModalOpen(false);
       setSelectedEmployees([]);
-    } catch (err) {
+    } catch (error) {
+      console.error("Error saving pay component:", error);
       toast.error("Failed to save pay component");
     } finally {
       setIsLoading(false);
@@ -156,6 +173,13 @@ const PayComponents = () => {
   useEffect(() => {
     fetchPayComponents();
   }, []);
+  const employeeMap = React.useMemo(() => {
+    const map = {};
+    employees.forEach((emp) => {
+      map[emp.id] = `${emp.firstname} ${emp.lastname}`;
+    });
+    return map;
+  }, [employees]);
 
   return (
     <>
@@ -175,7 +199,10 @@ const PayComponents = () => {
                         {columnsVisibility.description && <th>Description</th>}
                         {columnsVisibility.type && <th>Type</th>}
                         {columnsVisibility.amount && <th>Amount</th>}
-                        {columnsVisibility.applicableDate && <th>Date</th>}
+                        {columnsVisibility.applicableDate && (
+                          <th>Applicable Date</th>
+                        )}
+                        {columnsVisibility.employee && <th>Employee</th>}
                         {columnsVisibility.actions && <th>Action</th>}
                       </tr>
                     </thead>
@@ -190,6 +217,14 @@ const PayComponents = () => {
                           {columnsVisibility.applicableDate && (
                             <td>{formatDate(comp.applicableDate)}</td>
                           )}
+                          <td>
+                            {comp.employeeId && comp.employeeId.length > 0
+                              ? comp.employeeId
+                                  .map((id) => employeeMap[id] || "")
+                                  .join(", ")
+                              : "All"}
+                          </td>
+
                           {columnsVisibility.actions && (
                             <td>
                               <button

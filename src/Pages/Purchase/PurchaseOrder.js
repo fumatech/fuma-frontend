@@ -263,6 +263,22 @@ function PurchaseOrder() {
       )
     );
   };
+  const resetForm = () => {
+    setVendor("");
+    setVendorSearchTerm("");
+    setReferenceNumber("");
+    setOrderDate(new Date());
+    setDeliveryDate(new Date());
+    setLocation("");
+    setAdditionalNotes("");
+    setSearchTerm("");
+    setSearchResults([]);
+    setSelectedProducts([]);
+    setSelectedVariations({});
+    setCurrentStocks({});
+    setTotalUnits(0);
+    setFocusedIndex(-1);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -302,21 +318,34 @@ function PurchaseOrder() {
       if (file && file instanceof File) {
         formData.append("file", file);
       }
-
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/purchaseorder/save`,
         {
           method: "POST",
-          body: formData, // ❗ no headers
+          body: formData,
         }
       );
 
       if (response.ok) {
-        toast.success("Purchase Order created successfully");
-        navigate("/ListPurchaseOrder");
+        const savedPO = await response.json();
+        resetForm();
+        toast.success(
+          <div>
+            Purchase Order created successfully
+            <br />
+            <button
+              className="btn btn-link p-0"
+              style={{ color: "#0d6efd", fontWeight: "bold" }}
+              onClick={() => navigate(`/ViewPurchaseOrder/${savedPO.id}`)}
+            >
+              View Purchase Order
+            </button>
+          </div>,
+          {
+            autoClose: false, // optional (keeps toast open)
+          }
+        );
       } else {
-        // const err = await response.text();
-        // console.error(err);
         toast.error("Failed to save Purchase Order");
       }
     } catch (error) {

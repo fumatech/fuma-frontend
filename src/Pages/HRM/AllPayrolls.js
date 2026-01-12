@@ -18,10 +18,7 @@ const AllPayrolls = () => {
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
 
-  const [locations, setLocations] = useState([
-    { id: "none", name: "None" },
-    { id: "fuma", name: "FUMA" },
-  ]);
+  const [locations, setLocations] = useState([]);
   const [allEmployees, setAllEmployees] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [selectAllEmployees, setSelectAllEmployees] = useState(false);
@@ -29,7 +26,7 @@ const AllPayrolls = () => {
   const [payrollData, setPayrollData] = useState([]);
   const [formData, setFormData] = useState({
     id: null,
-    location: "none",
+    location: "",
     monthYear: "",
     employee: [],
   });
@@ -143,19 +140,30 @@ const AllPayrolls = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Get the selected employees' details
+    if (selectedEmployees.length === 0) {
+      toast.warning("Please select at least one employee");
+      return;
+    }
+    if (!formData.location) {
+      toast.warning("Please select a location");
+      return;
+    }
     const selectedEmployeesDetails = allEmployees
       .filter((emp) => selectedEmployees.includes(emp.id))
       .map((emp) => ({
         id: emp.id,
         name: `${emp.firstname} ${emp.lastname}`,
-        // Add any other employee details you need
+        departmentId: emp.departmentId,
+        designationId: emp.designationId,
       }));
 
-    // Prepare the data to pass to AddPayroll
-    const payrollData = {
-      location: formData.location,
-      employees: selectedEmployeesDetails, // Now includes employee details
+    const selectedLocation = locations.find(
+      (loc) => loc.id === Number(formData.location)
+    );
+
+    const payrollPayload = {
+      locationId: formData.location, // ✅ numeric ID (1)
+      locationName: selectedLocation?.name, // ✅ "Thergaon"
       monthYear: formData.monthYear,
       payrollGroupName: `Payroll for ${new Date(
         formData.monthYear
@@ -163,13 +171,10 @@ const AllPayrolls = () => {
         month: "long",
         year: "numeric",
       })}`,
-      locationName:
-        locations.find((loc) => loc.id === formData.location)?.name ||
-        "Unknown",
+      employees: selectedEmployeesDetails,
     };
 
-    // Navigate to AddPayroll with state
-    navigate("/AddPayroll", { state: payrollData });
+    navigate("/AddPayroll", { state: payrollPayload });
   };
 
   // Handle delete payroll
@@ -191,8 +196,19 @@ const AllPayrolls = () => {
     fetchPayrolls();
     fetchDepartments();
     fetchDesignations();
+    fetchBusinessLocations();
   }, []);
 
+  const fetchBusinessLocations = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/business-locations/getall`
+      );
+      setLocations(res.data);
+    } catch (error) {
+      toast.error("Failed to load business locations");
+    }
+  };
   const fetchDepartments = async () => {
     try {
       const response = await axios.get(
@@ -511,6 +527,7 @@ const AllPayrolls = () => {
                         onChange={handleInputChange}
                         required
                       >
+                        <option value="">-- Select Location --</option>
                         {locations.map((location) => (
                           <option key={location.id} value={location.id}>
                             {location.name}

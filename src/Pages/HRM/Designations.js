@@ -9,7 +9,6 @@ import { toast } from "react-toastify";
 import axios from "axios";
 function Designations({ userRoles }) {
   const [designations, setDesignations] = useState([]);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newDesignation, setNewDesignation] = useState({
     designation: "",
@@ -17,7 +16,6 @@ function Designations({ userRoles }) {
   });
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
-
   const [columnsVisibility, setColumnsVisibility] = useState({
     designation: true,
     description: true,

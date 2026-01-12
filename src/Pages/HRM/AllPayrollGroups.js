@@ -74,9 +74,9 @@ const AllPayrollGroups = () => {
           paymentStatus: p.paymentStatus === 1 ? "Paid" : "Due",
           totalGrossAmount,
           location: `${p.location}`,
-          addedBy: "",
-          createdAt: `${p.month}/${p.year}`,
-          raw: p, // keep full object if needed later
+          addedBy: p.addedBy,
+          createdAt: p.createdAt,
+          raw: p,
         };
       });
 
@@ -153,10 +153,24 @@ const AllPayrollGroups = () => {
     setIsModalOpen(false);
   };
 
-  // Handle delete payroll
-  const handleDelete = (id) => {
-    const updatedPayrolls = payrollData.filter((payroll) => payroll.id !== id);
-    setPayrollData(updatedPayrolls);
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this payroll?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await axios.delete(`${process.env.REACT_APP_BASE_URL}/payroll/${id}`);
+
+      // Remove from UI after success
+      setPayrollData((prev) => prev.filter((payroll) => payroll.id !== id));
+
+      toast.success("Payroll deleted successfully");
+    } catch (error) {
+      console.error("Delete failed:", error);
+      toast.error("Failed to delete payroll");
+    }
   };
 
   // Fetch locations and employees (example with mock data)
