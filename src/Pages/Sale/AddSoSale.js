@@ -902,7 +902,7 @@ function AddSoSale() {
             <div className="container-fluid">
               <div className="row mb-2">
                 <div className="col-sm-12 d-flex align-items-center flex-wrap gap-2">
-                  <h1 className="all-heading mb-0 me-3">Add So Sale</h1>
+                  <h1 className="all-heading mb-0 me-3">Create Sales</h1>
                   <span>
                     <strong>Franchise Name:</strong> {franchiseDetails.name}
                   </span>

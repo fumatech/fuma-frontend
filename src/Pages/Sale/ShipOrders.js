@@ -586,11 +586,7 @@ const ShipOrders = () => {
                         {columnsVisibility.vendorAction && (
                           <th>Vendor Action</th>
                         )}{" "}
-                        {columnsVisibility.orderDate && (
-                          <th>
-                            &nbsp;&nbsp;Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                          </th>
-                        )}
+                        {columnsVisibility.orderDate && <th>Ordered Date</th>}
                         {columnsVisibility.orderId && <th>Order ID</th>}
                         {columnsVisibility.referenceNumber && (
                           <th>Reference Number</th>
@@ -598,7 +594,7 @@ const ShipOrders = () => {
                         {columnsVisibility.location && <th>Location</th>}
                         {columnsVisibility.customer && <th>Customer</th>}
                         {columnsVisibility.totalItems && (
-                          <th>ordered Quantity</th>
+                          <th>Ordered Quantity</th>
                         )}
                         {columnsVisibility.updatedItems && (
                           <th>Shipped Quantity</th>

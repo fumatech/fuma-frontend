@@ -67,7 +67,7 @@ const SignatureUpload = () => {
         <thead className="table-dark">
           <tr>
             <th>#</th>
-            <th>File Name</th>
+            <th>Uploaded File Name</th>
             <th>Preview</th>
             <th>Download</th>
           </tr>

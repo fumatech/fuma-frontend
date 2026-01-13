@@ -56,15 +56,64 @@ function ListProducts({ userRoles }) {
   const [categoriesMap, setCategoriesMap] = useState({});
   const [brandsMap, setBrandsMap] = useState({});
   const [activeTab, setActiveTab] = useState("active");
+  const [brands, setBrands] = useState([]);
+  const [taxes, setTaxes] = useState([]);
+  const [unitMap, setUnitMap] = useState({});
+  const [brandMap, setBrandMap] = useState({});
+  const [taxMap, setTaxMap] = useState({});
+
   const [filterValues, setFilterValues] = useState({
     productType: "",
     category: "",
     unit: "",
+    brand: "",
+    tax: "",
     businessLocation: "",
+    status: "",
   });
+
   const [categories, setCategories] = useState([]);
   const [units, setUnits] = useState([]);
   const [businessLocations, setBusinessLocations] = useState([]);
+  useEffect(() => {
+    const uMap = {};
+    units.forEach((u) => {
+      uMap[u.id] = `${u.name} (${u.shortName})`;
+    });
+    setUnitMap(uMap);
+
+    const bMap = {};
+    brands.forEach((b) => {
+      bMap[b.id] = b.brandName;
+    });
+    setBrandMap(bMap);
+
+    const tMap = {};
+    taxes.forEach((t) => {
+      tMap[t.id] = `${t.taxName} (${t.taxValue}%)`;
+    });
+    setTaxMap(tMap);
+  }, [units, brands, taxes]);
+
+  useEffect(() => {
+    const fetchMasterData = async () => {
+      try {
+        const [brandRes, unitRes, taxRes] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BASE_URL}/brands/getall`),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/units/getall`),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/tax/getall`),
+        ]);
+
+        setBrands(brandRes.data || []);
+        setUnits(unitRes.data || []); // overwrite earlier unit logic
+        setTaxes(taxRes.data || []);
+      } catch (error) {
+        console.error("Error fetching master data", error);
+      }
+    };
+
+    fetchMasterData();
+  }, []);
 
   useEffect(() => {
     applyFilters();
@@ -81,14 +130,30 @@ function ListProducts({ userRoles }) {
         product.category == filterValues.category;
 
       const matchesUnit =
-        filterValues.unit === "" || product.unit === filterValues.unit;
+        filterValues.unit === "" ||
+        String(product.unit) === String(filterValues.unit);
+
+      const matchesBrand =
+        filterValues.brand === "" || product.brand == filterValues.brand;
+
+      const matchesTax =
+        filterValues.tax === "" || product.applicableTax == filterValues.tax;
 
       const matchesLocation =
         filterValues.businessLocation === "" ||
         product.businessLocation === filterValues.businessLocation;
 
+      const matchesStatus =
+        filterValues.status === "" || product.status == filterValues.status;
+
       return (
-        matchesProductType && matchesCategory && matchesUnit && matchesLocation
+        matchesProductType &&
+        matchesCategory &&
+        matchesUnit &&
+        matchesBrand &&
+        matchesTax &&
+        matchesLocation &&
+        matchesStatus
       );
     });
 
@@ -171,14 +236,11 @@ function ListProducts({ userRoles }) {
         setListProduct(updatedProducts);
 
         // Extract unique units and locations
-        const uniqueUnits = [
-          ...new Set(updatedProducts.map((p) => p.unit)),
-        ].filter(Boolean);
+
         const uniqueLocations = [
           ...new Set(updatedProducts.map((p) => p.businessLocation)),
         ].filter(Boolean);
 
-        setUnits(uniqueUnits);
         setBusinessLocations(uniqueLocations);
       }
     } catch (error) {
@@ -619,32 +681,83 @@ function ListProducts({ userRoles }) {
                             </div>
                           </div>
                         </div>
+
                         <div className="col-md-3">
-                          <div className="dropdown">
-                            <div className="">
-                              <label className="me-2 d-md-inline">Unit:</label>
-                              <div className="d-flex align-items-center">
-                                <select
-                                  className="form-select me-2"
-                                  name="unit"
-                                  value={filterValues.unit}
-                                  onChange={(e) =>
-                                    setFilterValues({
-                                      ...filterValues,
-                                      unit: e.target.value,
-                                    })
-                                  }
-                                >
-                                  <option value="">All</option>
-                                  {units.map((unit, index) => (
-                                    <option key={index} value={unit}>
-                                      {unit}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-                          </div>
+                          <label>Brand:</label>
+                          <select
+                            className="form-select"
+                            value={filterValues.brand}
+                            onChange={(e) =>
+                              setFilterValues({
+                                ...filterValues,
+                                brand: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="">All</option>
+                            {brands.map((b) => (
+                              <option key={b.id} value={b.id}>
+                                {b.brandName}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-md-3">
+                          <label>Unit:</label>
+                          <select
+                            className="form-select"
+                            value={filterValues.unit}
+                            onChange={(e) =>
+                              setFilterValues({
+                                ...filterValues,
+                                unit: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="">All</option>
+                            {units.map((u) => (
+                              <option key={u.id} value={String(u.id)}>
+                                {u.name} ({u.shortName})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-md-3">
+                          <label>Tax:</label>
+                          <select
+                            className="form-select"
+                            value={filterValues.tax}
+                            onChange={(e) =>
+                              setFilterValues({
+                                ...filterValues,
+                                tax: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="">All</option>
+                            {taxes.map((t) => (
+                              <option key={t.id} value={t.id}>
+                                {t.taxName} ({t.taxValue}%)
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-md-3">
+                          <label>Status:</label>
+                          <select
+                            className="form-select"
+                            value={filterValues.status}
+                            onChange={(e) =>
+                              setFilterValues({
+                                ...filterValues,
+                                status: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="">All</option>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                          </select>
                         </div>
                         <div className="col-md-3">
                           <div className="dropdown">
@@ -685,7 +798,10 @@ function ListProducts({ userRoles }) {
                                 productType: "",
                                 category: "",
                                 unit: "",
+                                brand: "",
+                                tax: "",
                                 businessLocation: "",
+                                status: "",
                               })
                             }
                           >
@@ -1018,9 +1134,7 @@ function ListProducts({ userRoles }) {
                                   </td>
                                 )}
                                 {columnsVisibility.Brand && (
-                                  <td>
-                                    {brandsMap[product.brand] || product.brand}
-                                  </td>
+                                  <td>{brandMap[product.brand] || "-"}</td>
                                 )}
                                 {columnsVisibility.sku && (
                                   <td>{product.sku}</td>

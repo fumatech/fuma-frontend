@@ -409,7 +409,7 @@ const ViewOrders = () => {
                           <th>Reference Number</th>
                         )}
                         {columnsVisibility.deliveryDate && (
-                          <th>Exp Delivery Date</th>
+                          <th>Expected Delivery Date</th>
                         )}
                         {columnsVisibility.totalItems && (
                           <th>Total Quantity</th>

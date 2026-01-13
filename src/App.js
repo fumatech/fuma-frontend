@@ -52,7 +52,6 @@ import ViewPoPurchaseOrder from "./Pages/Purchase/ViewPoPurchaseOrder";
 import EditPoPurchaseOrder from "./Pages/Purchase/EditPoPurchaseOrder";
 import AddPoPurchase from "./Pages/Purchase/AddPoPurchase";
 import AddDIPurchase from "./Pages/Purchase/AddDIPurchase";
-
 import PurchaseOrder from "./Pages/Purchase/PurchaseOrder";
 import AddPoPurchaseOrder from "./Pages/Purchase/AddPoPurchase";
 import AddDIPurchaseOrder from "./Pages/Purchase/AddDIPurchase";
@@ -64,7 +63,6 @@ import ViewDIPurchase from "./Pages/Purchase/ViewDIPurchase";
 import ViewPurchaseOrder from "./Pages/Purchase/ViewPurchaseOrder";
 import ViewPurchaseReturn from "./Pages/Purchase/ViewPurchaseReturn";
 import EditPurchaseReturn from "./Pages/Purchase/EditPurchaseReturn";
-
 import EditDIPurchase from "./Pages/Purchase/EditDIPurchase";
 import AllSale from "./Pages/Sale/AllSale";
 import AddSoSale from "./Pages/Sale/AddSoSale";
@@ -136,7 +134,6 @@ import AccountTypes from "./Pages/Payment/AccountTypes";
 import PaymentMethod from "./Pages/Payment/PaymentMethod";
 import ListPaymentMethod from "./Pages/Payment/ListPaymentMethod";
 import AddNewItem from "./Pages/Purchase/AddNewItem";
-
 import SoldOrders from "./Pages/Sale/SoldOrders";
 import OrderList from "./Pages/Sale/OrderList";
 import AcceptedOrders from "./Pages/Sale/AcceptedOrders";
@@ -147,7 +144,6 @@ import ViewOd from "./Pages/Sale/ViewOd";
 import EditOd from "./Pages/Sale/EditOd";
 import EditAcceptedOrder from "./Pages/Sale/EditAcceptedOrder";
 import ViewShipOrders from "./Pages/Sale/ViewShipOrders";
-
 import HRMDashboard from "./Pages/HRM/HRMDashboard";
 import LeaveType from "./Pages/HRM/LeaveType";
 import Leave from "./Pages/HRM/Leave";
@@ -160,10 +156,10 @@ import Payroll from "./Pages/HRM/payroll";
 import ViewPayslip from "./Pages/HRM/ViewPayslip";
 import AllPayrolls from "./Pages/HRM/AllPayrolls";
 import AddPayroll from "./Pages/HRM/AddPayroll";
+import EditPayroll from "./Pages/HRM/EditPayroll";
 import AllPayrollGroups from "./Pages/HRM/AllPayrollGroups";
 import PayComponents from "./Pages/HRM/PayComponents";
 import HRMSettings from "./Pages/HRM/HRMSettings";
-
 import CRMDashboard from "./Pages/CRM/CRMDashboard";
 import Campaigns from "./Pages/CRM/Campaigns";
 import ContactLogin from "./Pages/CRM/ContactLogin";
@@ -731,6 +727,7 @@ const App = () => {
                   <Route path="/AllPayrolls" element={<AllPayrolls />} />
                   <Route path="/payroll/view" element={<ViewPayslip />} />
                   <Route path="/AddPayroll" element={<AddPayroll />} />
+                  <Route path="/EditPayroll/:id" element={<EditPayroll />} />
                   <Route
                     path="/AllPayrollGroups"
                     element={<AllPayrollGroups />}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const AllPayrollGroups = () => {
+  const navigate = useNavigate();
   const [columnsVisibility, setColumnsVisibility] = useState({
     name: true,
     status: true,
@@ -159,7 +161,9 @@ const AllPayrollGroups = () => {
       toast.error("Failed to delete payroll");
     }
   };
-
+  const EditPayroll = (payroll) => {
+    navigate(`/EditPayroll/${payroll.id}`);
+  };
   useEffect(() => {
     setLocations([]);
 
@@ -349,10 +353,11 @@ const AllPayrollGroups = () => {
                                 <button
                                   type="button"
                                   className="btn-edit"
-                                  onClick={() => openModal(payroll)}
+                                  onClick={() => EditPayroll(payroll)}
                                 >
                                   <i className="fas fa-edit btn-icon"></i> Edit
                                 </button>
+
                                 <button
                                   type="button"
                                   className="btn-view"
@@ -382,7 +387,7 @@ const AllPayrollGroups = () => {
         </div>
       </section>
 
-      {isModalOpen && (
+      {/* {isModalOpen && (
         <>
           <div
             className="modal fade show"
@@ -510,7 +515,7 @@ const AllPayrollGroups = () => {
             </div>
           </div>
         </>
-      )}
+      )} */}
     </>
   );
 };

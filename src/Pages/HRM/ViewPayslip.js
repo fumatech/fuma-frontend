@@ -11,7 +11,8 @@ const ViewPayslip = () => {
   const [designations, setDesignations] = useState([]);
   const [companyLogo, setCompanyLogo] = useState(null);
   const [signatureImage, setSignatureImage] = useState(null);
-
+  const { payroll, employee } = state;
+  //console.log(payroll, employee);
   useEffect(() => {
     fetchDepartments();
     fetchDesignations();
@@ -100,7 +101,6 @@ const ViewPayslip = () => {
     const desig = designations.find((d) => d.id === designationId);
     return desig ? desig.name : "-";
   };
-  const { payroll, employee } = state;
 
   const monthYear = new Date(payroll.year, payroll.month - 1).toLocaleString(
     "default",
