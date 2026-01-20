@@ -347,7 +347,8 @@ function ViewPurchaseOrder() {
                       <div className="col-md-4">
                         <div className="form-group">
                           <label>
-                            Delivery Date <span className="text-danger">*</span>
+                            Expected Delivery Date{" "}
+                            <span className="text-danger">*</span>
                           </label>
                           <DatePicker
                             selected={deliveryDate}

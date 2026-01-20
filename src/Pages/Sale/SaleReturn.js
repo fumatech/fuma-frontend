@@ -5,19 +5,17 @@ import "../../assets/plugins/fontawesome-free/css/all.min.css";
 import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
 import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
 import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
-import { Collapse } from "react-bootstrap";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 const SaleReturn = () => {
   const [viewOrders, setViewOrders] = useState([]);
   const [userEmail, setUserEmail] = useState(null);
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Initialize navigate
   const [columnsVisibility, setColumnsVisibility] = useState({
     vendorAction: true,
     action: true,
@@ -30,10 +28,10 @@ const SaleReturn = () => {
     additionalNotes: true,
     orderedBy: true,
   });
-  const [modalType, setModalType] = useState(null);
-  const [currentOrder, setCurrentOrder] = useState(null);
+  const [modalType, setModalType] = useState(null); // "accept", "reject", "view"
+  const [currentOrder, setCurrentOrder] = useState(null); // For viewing/editing
   const [currentPage, setCurrentPage] = useState(1);
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [entriesPerPage, setEntriesPerPage] = useState(25);
   const [formData, setFormData] = useState({
     orderId: "",
     orderDate: "",
@@ -44,24 +42,6 @@ const SaleReturn = () => {
     custom1: "",
   });
 
-  // Filter states
-  const [filterValues, setFilterValues] = useState({
-    franchiseNames: [],
-    locations: [],
-    addedBy: [],
-  });
-
-  const [activeFilters, setActiveFilters] = useState({
-    startDate: "",
-    endDate: "",
-    franchiseName: "",
-    location: "",
-    addedBy: "",
-  });
-
-  const [filteredViewOrders, setFilteredViewOrders] = useState([]);
-  const [filterOpen, setFilterOpen] = useState(false);
-
   useEffect(() => {
     const email = sessionStorage.getItem("userEmail");
     if (email) {
@@ -69,7 +49,6 @@ const SaleReturn = () => {
     }
     fetchPendingOrders();
   }, []);
-
   const fetchPendingOrders = async () => {
     try {
       const response = await fetch(
@@ -79,115 +58,31 @@ const SaleReturn = () => {
 
       const data = await response.json();
       if (Array.isArray(data)) {
-        setViewOrders(data);
-        setFilteredViewOrders(data);
+        setViewOrders(data); // Only pending orders will be shown in this view
       } else {
         console.error("Fetched data is not an array");
         setViewOrders([]);
-        setFilteredViewOrders([]);
       }
     } catch (error) {
       console.error("Error fetching pending orders:", error);
       setViewOrders([]);
-      setFilteredViewOrders([]);
     }
 
+    // Add external script directly without setTimeout
     const script = document.createElement("script");
     script.src = "js/JqueryContent.js";
     script.async = true;
+
     document.body.appendChild(script);
 
+    // Cleanup function to remove the script element when the component is unmounted
     return () => {
       document.body.removeChild(script);
     };
   };
 
-  // Extract filter values when viewOrders data changes
-  useEffect(() => {
-    if (viewOrders.length > 0) {
-      const franchiseNames = [
-        ...new Set(viewOrders.map((item) => item.franchiseId)),
-      ].filter(Boolean);
-      const locations = [
-        ...new Set(viewOrders.map((item) => item.location)),
-      ].filter(Boolean);
-      const addedBy = [
-        ...new Set(viewOrders.map((item) => item.addedBy)),
-      ].filter(Boolean);
-
-      setFilterValues({
-        franchiseNames,
-        locations,
-        addedBy,
-      });
-    }
-  }, [viewOrders]);
-
-  // Apply filters whenever activeFilters or viewOrders changes
-  useEffect(() => {
-    const filteredData = viewOrders.filter((order) => {
-      const orderDate = new Date(order.orderDate);
-
-      // Date range filter
-      let dateMatch = true;
-      if (activeFilters.startDate && activeFilters.endDate) {
-        const startDate = new Date(activeFilters.startDate);
-        const endDate = new Date(activeFilters.endDate);
-        endDate.setHours(23, 59, 59, 999);
-
-        dateMatch = orderDate >= startDate && orderDate <= endDate;
-      } else if (activeFilters.startDate) {
-        const startDate = new Date(activeFilters.startDate);
-        dateMatch = orderDate >= startDate;
-      } else if (activeFilters.endDate) {
-        const endDate = new Date(activeFilters.endDate);
-        endDate.setHours(23, 59, 59, 999);
-        dateMatch = orderDate <= endDate;
-      }
-
-      // Franchise Name filter
-      const franchiseNameMatch =
-        activeFilters.franchiseName === "" ||
-        order.franchiseId === activeFilters.franchiseName;
-
-      // Location filter
-      const locationMatch =
-        activeFilters.location === "" ||
-        order.location === activeFilters.location;
-
-      // Added By filter
-      const addedByMatch =
-        activeFilters.addedBy === "" || order.addedBy === activeFilters.addedBy;
-
-      return dateMatch && franchiseNameMatch && locationMatch && addedByMatch;
-    });
-
-    setFilteredViewOrders(filteredData);
-  }, [activeFilters, viewOrders]);
-
-  // Filter change handler
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setActiveFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setCurrentPage(1);
-  };
-
-  // Reset filters function
-  const resetFilters = () => {
-    setActiveFilters({
-      startDate: "",
-      endDate: "",
-      franchiseName: "",
-      location: "",
-      addedBy: "",
-    });
-  };
-
   const exportCSV = () => {
-    const csvData = filteredViewOrders.map((order) => ({
+    const csvData = viewOrders.map((order) => ({
       "Vendor Action": order.vendorAction,
       Action: order.action,
       "Order ID": order.orderId,
@@ -222,7 +117,7 @@ const SaleReturn = () => {
 
   const exportExcel = () => {
     const ws = XLSX.utils.json_to_sheet(
-      filteredViewOrders.map((order) => ({
+      viewOrders.map((order) => ({
         "Vendor Action": order.vendorAction,
         Action: order.action,
         "Order ID": order.orderId,
@@ -255,7 +150,7 @@ const SaleReturn = () => {
           "Ordered By",
         ],
       ],
-      body: filteredViewOrders.map((order) => [
+      body: viewOrders.map((order) => [
         order.vendorAction,
         order.action,
         order.orderId,
@@ -310,22 +205,24 @@ const SaleReturn = () => {
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value));
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to the first page when entries per page changes
   };
 
   const startIndex = (currentPage - 1) * entriesPerPage;
   const endIndex = startIndex + entriesPerPage;
 
   const handleDropdownItemClick = (col, e) => {
-    e.stopPropagation();
-    toggleColumn(col);
+    e.stopPropagation(); // Prevent the event from bubbling up and affecting the dropdown toggle
+    toggleColumn(col); // Toggle column visibility
   };
 
   const handleVendorAction = async (action, order) => {
     if (action === "view") {
+      // For the "view" action, open the modal and set the current order
       setModalType("view");
-      setCurrentOrder(order);
+      setCurrentOrder(order); // Set the current order to be viewed
     } else if (action === "reject") {
+      // Handle the reject action
       const userConfirmed = window.confirm(
         "Are you sure you want to reject this order?"
       );
@@ -342,23 +239,26 @@ const SaleReturn = () => {
             }
           );
           if (response.ok) {
-            toast.success("Sale Return rejected successfully.");
+            // Refetch the orders to reflect the changes
+            alert("Sale Return rejected successfully.");
             fetchPendingOrders();
           } else {
-            toast.error("Failed to update the order status.");
+            alert("Failed to update the order status.");
           }
         } catch (error) {
-          // console.error("Error updating order status:", error);
-          toast.error("An error occurred while rejecting the order.");
+          console.error("Error updating order status:", error);
+          alert("An error occurred while rejecting the order.");
         }
       } else {
-        toast.error("Return rejection was canceled.");
+        alert("Return rejection was canceled.");
       }
     } else if (action === "accept") {
+      // Handle the accept action
       const userConfirmed = window.confirm(
         "Are you sure you want to accept this Return?"
       );
       if (userConfirmed) {
+        // Navigate to EditSaleReturnOrder with the order ID
         navigate(`/EditSaleReturnOrder/${order.id}`);
       } else {
         alert("Return acceptance was canceled.");
@@ -387,133 +287,6 @@ const SaleReturn = () => {
         </section>
         <section className="content">
           <div className="container-fluid">
-            {/* Filter Card */}
-            <div className="card card-default rounded-4 border-0 cardHover mb-3">
-              <div
-                className="my- p-3 d-flex align-items-center"
-                style={{
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
-                onClick={() => setFilterOpen(!filterOpen)}
-              >
-                <i className={`fa fa-filter me-3`}></i>
-                <span>Filter</span>
-              </div>
-
-              <Collapse in={filterOpen}>
-                <div className="border-top">
-                  <div className="card-body">
-                    <div className="row py-2 g-2">
-                      {/* Start Date Picker */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Start Date:</label>
-                          <input
-                            type="date"
-                            className="form-control"
-                            name="startDate"
-                            value={activeFilters.startDate}
-                            onChange={handleFilterChange}
-                          />
-                        </div>
-                      </div>
-
-                      {/* End Date Picker */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">End Date:</label>
-                          <input
-                            type="date"
-                            className="form-control"
-                            name="endDate"
-                            value={activeFilters.endDate}
-                            onChange={handleFilterChange}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Franchise Name Dropdown */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Franchise Name:</label>
-                          <select
-                            className="form-select"
-                            name="franchiseName"
-                            value={activeFilters.franchiseName}
-                            onChange={handleFilterChange}
-                          >
-                            <option value="">All Franchises</option>
-                            {filterValues.franchiseNames.map(
-                              (franchiseName, index) => (
-                                <option
-                                  key={`franchise-${index}`}
-                                  value={franchiseName}
-                                >
-                                  {franchiseName}
-                                </option>
-                              )
-                            )}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Location Dropdown */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Location:</label>
-                          <select
-                            className="form-select"
-                            name="location"
-                            value={activeFilters.location}
-                            onChange={handleFilterChange}
-                          >
-                            <option value="">All Locations</option>
-                            {filterValues.locations.map((location, index) => (
-                              <option key={`loc-${index}`} value={location}>
-                                {location}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Added By Dropdown */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Added By:</label>
-                          <select
-                            className="form-select"
-                            name="addedBy"
-                            value={activeFilters.addedBy}
-                            onChange={handleFilterChange}
-                          >
-                            <option value="">All Users</option>
-                            {filterValues.addedBy.map((user, index) => (
-                              <option key={`user-${index}`} value={user}>
-                                {user}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Reset Button */}
-                      <div className="col-md-12 d-flex align-items-end">
-                        <button
-                          className="btn btn-sm btn-outline-secondary"
-                          onClick={resetFilters}
-                          disabled={!Object.values(activeFilters).some(Boolean)}
-                        >
-                          <i className="fa fa-times me-1"></i> Reset All Filters
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Collapse>
-            </div>
-
             <div className="card cardHover rounded-4 border-0">
               <div className="card-body">
                 <div className="row mb-3 d-flex align-items-center">
@@ -527,7 +300,6 @@ const SaleReturn = () => {
                       value={entriesPerPage}
                       onChange={handleEntriesChange}
                     >
-                      <option value={10}>10</option>
                       <option value={25}>25</option>
                       <option value={50}>50</option>
                       <option value={75}>75</option>
@@ -584,12 +356,12 @@ const SaleReturn = () => {
                             <input
                               type="checkbox"
                               checked={columnsVisibility[col]}
-                              onChange={() => toggleColumn(col)}
+                              onChange={() => toggleColumn(col)} // Toggle column visibility on checkbox change
                               className="mr-2"
                             />
                             <span
                               className="btn border-0 bg-transparent p-0 m-0"
-                              onClick={(e) => handleDropdownItemClick(col, e)}
+                              onClick={(e) => handleDropdownItemClick(col, e)} // Handle click on dropdown item
                             >
                               {col.replace(/([A-Z])/g, " $1").toUpperCase()}
                             </span>
@@ -606,34 +378,31 @@ const SaleReturn = () => {
                   >
                     <thead>
                       <tr>
-                        {columnsVisibility.vendorAction && (
-                          <th>Action&nbsp;&nbsp;&nbsp;&nbsp;</th>
-                        )}
+                        {columnsVisibility.vendorAction && <th>Action</th>}
                         {columnsVisibility.action && <th>View</th>}
-                        {columnsVisibility.orderDate && (
-                          <th>
-                            &nbsp;&nbsp;Return
-                            Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                          </th>
-                        )}
-                        {columnsVisibility.orderId && <th>Order ID</th>}
+                        {columnsVisibility.orderDate && <th>Return Date</th>}
+                        {columnsVisibility.orderId && <th>Return No</th>}
                         {columnsVisibility.referenceNumber && (
-                          <th>Reference Number</th>
+                          <th>Invoice Number</th>
                         )}
                         {columnsVisibility.customer && <th>Franchise Name</th>}
                         {columnsVisibility.totalItems && <th>Total Items</th>}
-                        {columnsVisibility.additionalNotes && (
-                          <th>Additional Notes</th>
+                        {columnsVisibility.totalItems && <th>Total Amount</th>}
+                        {columnsVisibility.totalItems && (
+                          <th>Payment Status</th>
                         )}
+                        {columnsVisibility.totalItems && <th>Amount Due</th>}
+
+                        {columnsVisibility.additionalNotes && <th>Notes</th>}
                         {columnsVisibility.orderedBy && <th>Added By</th>}
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredViewOrders
+                      {viewOrders
                         .sort(
                           (a, b) =>
                             new Date(b.orderDate) - new Date(a.orderDate)
-                        )
+                        ) // Sort by date (latest first)
                         .slice(startIndex, endIndex)
                         .map((order) => (
                           <tr key={order.orderId}>
@@ -654,7 +423,7 @@ const SaleReturn = () => {
                             {columnsVisibility.action && (
                               <td>
                                 <button
-                                  onClick={() => handleViewClick(order.id)}
+                                  onClick={() => handleViewClick(order.id)} // Opens the view modal
                                   className="btn btn-sm btn-primary"
                                 >
                                   View
@@ -668,16 +437,25 @@ const SaleReturn = () => {
                               <td>{order.franchisePurchaseReturnId}</td>
                             )}
                             {columnsVisibility.referenceNumber && (
-                              <td>{order.referenceNumber}</td>
+                              <td>{order.invoiceNumber}</td>
                             )}
-                            {columnsVisibility.location && (
-                              <td>{order.location}</td>
-                            )}
+
                             {columnsVisibility.customer && (
-                              <td>{order.franchiseId}</td>
+                              <td>
+                                {order.franchiseId?.replace(/^fuma_/, "")}
+                              </td>
                             )}
                             {columnsVisibility.totalItems && (
                               <td>{order.totalItems}</td>
+                            )}
+                            {columnsVisibility.totalItems && (
+                              <td>{order.netTotalAmount}</td>
+                            )}
+                            {columnsVisibility.totalItems && (
+                              <td>{"Pending"}</td>
+                            )}
+                            {columnsVisibility.totalItems && (
+                              <td>{order.netTotalAmount}</td>
                             )}
                             {columnsVisibility.additionalNotes && (
                               <td>{order.additionalNotes}</td>
@@ -717,6 +495,7 @@ const SaleReturn = () => {
                   </button>
                 </div>
                 <div className="modal-body">
+                  {/* Content for viewing or confirming accept/reject */}
                   {modalType === "view" && (
                     <div>
                       <h5>Order Details:</h5>

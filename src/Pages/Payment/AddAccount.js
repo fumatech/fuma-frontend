@@ -73,7 +73,7 @@ const AddAccount = () => {
               paymentMethod: formData.paymentMethod,
               addedBy: formData.addedBy,
               note: formData.note,
-              date: formData.date,
+              date: new Date().toISOString(),
             },
           ],
         }

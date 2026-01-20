@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Table, Form, Button } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 const OpeningStockPage = () => {
   const { productId } = useParams(); // Fetch the product ID from URL params
@@ -10,41 +9,55 @@ const OpeningStockPage = () => {
   const [selectedProduct, setSelectedProduct] = useState([]);
 
   useEffect(() => {
-    // Fetch product details by product ID
     const fetchProductDetails = async () => {
       try {
+        // Fetch product details
         const response = await fetch(
           `${process.env.REACT_APP_BASE_URL}/product/get/${productId}`
         );
-        const productData = await response.json();
 
-        if (
-          productData.productType === "SINGLE" ||
-          productData.productType === "VARIABLE"
-        ) {
-          setSelectedProduct(
-            productData.productVariations.map((variation) => ({
-              ...variation,
-              productName: productData.productName,
-              productId: productData.id,
-              variationId: variation.id,
-              totalStock: "",
-              date: "", // Initialize date for each row
-              note: "", // Initialize note for each row
-            }))
-          );
-        } else if (productData.productType === "COMBO") {
-          setSelectedProduct(
-            productData.productVariations.map((combo) => ({
-              ...combo,
-              productName: productData.productName,
-              productId: productData.id,
-              totalStock: "",
-              date: "",
-              note: "",
-            }))
-          );
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
+
+        const text = await response.text();
+        if (!text) throw new Error("Empty product response");
+        const productData = JSON.parse(text);
+
+        // Fetch existing stock transactions
+        const stockRes = await fetch(
+          `${process.env.REACT_APP_BASE_URL}/stock-transactions/by-product/${productId}`
+        );
+
+        let stockTransactions = [];
+        if (stockRes.ok) {
+          const stockText = await stockRes.text();
+          stockTransactions = stockText ? JSON.parse(stockText) : [];
+        }
+
+        // Prepare rows for SINGLE, VARIABLE, or COMBO
+        const rows = productData.productVariations.map((variation) => {
+          const existingTx = stockTransactions.find(
+            (tx) =>
+              tx.variationId === variation.id &&
+              tx.transactionType === "open_stock"
+          );
+
+          return {
+            ...variation,
+            productName: productData.productName,
+            productId: productData.id,
+            variationId: variation.id,
+            id: existingTx?.id || null,
+            totalStock: existingTx ? existingTx.quantity : "", // empty if not present
+            date: existingTx ? existingTx.date : "",
+            note: existingTx ? existingTx.note : "",
+            defaultPurchasePriceExcTax:
+              variation.defaultPurchasePriceExcTax || 0, // always show product price
+          };
+        });
+
+        setSelectedProduct(rows);
       } catch (error) {
         console.error("Error fetching product data:", error);
       }
@@ -55,49 +68,56 @@ const OpeningStockPage = () => {
 
   const handleSave = async () => {
     if (!selectedProduct || selectedProduct.length === 0) {
-      toast.warning("No product data to save.");
+      alert("No product data to save.");
       return;
     }
 
-    const payload = selectedProduct.map((product) => ({
-      productId: product.productId,
-      variationId: product.variationId,
-      quantity: Number(product.totalStock) || 0,
-      transactionType: "open_stock",
-      date: product.date || new Date().toISOString().split("T")[0], // Use row-specific date
-      note: product.note || "Stock updated after opening stock", // Use row-specific note
-    }));
-
-    // console.log(payload); // Log the payload to see the structure before sending
-
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/stock-transactions/add`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      for (const product of selectedProduct) {
+        const payload = {
+          productId: product.productId,
+          variationId: product.variationId,
+          quantity: Number(product.totalStock) || 0,
+          transactionType: "open_stock",
+          date: product.date || new Date().toISOString().split("T")[0],
+          note: product.note || "Stock updated after opening stock",
+        };
 
-      if (response.ok) {
-        toast.success("Open Stock Added successfully!");
-        navigate(-1); // Navigate back to the previous page
-      } else {
-        toast.error("Failed to save stock.");
+        if (product.id) {
+          // Update existing transaction
+          await fetch(
+            `${process.env.REACT_APP_BASE_URL}/stock-transactions/update/${product.id}`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            }
+          );
+        } else {
+          // Create new transaction
+          await fetch(
+            `${process.env.REACT_APP_BASE_URL}/stock-transactions/add`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify([payload]), // API expects array
+            }
+          );
+        }
       }
+
+      alert("Open Stock saved successfully!");
+      navigate(-1);
     } catch (error) {
-      // console.error("Error saving data:", error);
-      toast.error("An error occurred.");
+      console.error("Error saving data:", error);
+      alert("An error occurred while saving.");
     }
   };
 
   return (
     <div className="wrapper">
       <div className="content-wrapper">
-        <section className="content ">
+        <section className="content">
           <div className="container-fluid">
             <h1>Add or Edit Opening Stock</h1>
             {selectedProduct.length > 0 ? (
@@ -138,9 +158,15 @@ const OpeningStockPage = () => {
                           <td>
                             <Form.Control
                               type="number"
-                              placeholder="Unit Cost"
+                              placeholder="Enter Unit Cost"
                               value={product.defaultPurchasePriceExcTax || ""}
-                              readOnly
+                              onChange={(e) => {
+                                const updatedProducts = [...selectedProduct];
+                                updatedProducts[
+                                  index
+                                ].defaultPurchasePriceExcTax = e.target.value;
+                                setSelectedProduct(updatedProducts);
+                              }}
                             />
                           </td>
                           <td>

@@ -1429,7 +1429,7 @@ const Menu = ({ userRoles }) => {
                               paddingLeft: "52px",
                             }}
                           >
-                            <p>List Shipped Sale Return</p>
+                            <p>List Rejected Sale Return</p>
                           </Link>
                         </li>
                       </>

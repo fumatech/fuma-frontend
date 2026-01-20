@@ -760,7 +760,7 @@ function ViewPurchaseReturn() {
                                   <td>{product.variationValue || "N/A"}</td>
                                   <td>{product.stock || 0}</td>
                                   <td>
-                                    $
+                                    ₹
                                     {(product.defaultSellingPrice || 0).toFixed(
                                       2
                                     )}
@@ -782,7 +782,7 @@ function ViewPurchaseReturn() {
                                       }
                                     />
                                   </td>
-                                  <td>${productSubTotal.toFixed(2)}</td>
+                                  <td>₹{productSubTotal.toFixed(2)}</td>
                                   <td>
                                     <button
                                       type="button"
@@ -808,7 +808,7 @@ function ViewPurchaseReturn() {
                                 <strong>Sub Total:</strong>
                               </td>
                               <td>
-                                <strong>${subTotal.toFixed(2)}</strong>
+                                <strong>₹{subTotal.toFixed(2)}</strong>
                               </td>
                               <td colSpan="2"></td>
                             </tr>
@@ -818,7 +818,7 @@ function ViewPurchaseReturn() {
                               </td>
                               <td>
                                 <strong>
-                                  ${((subTotal * taxAmount) / 100).toFixed(2)}
+                                  ₹{((subTotal * taxAmount) / 100).toFixed(2)}
                                 </strong>
                               </td>
                               <td colSpan="2"></td>
@@ -828,7 +828,7 @@ function ViewPurchaseReturn() {
                                 <strong>Total Amount:</strong>
                               </td>
                               <td>
-                                <strong>${totalAmount.toFixed(2)}</strong>
+                                <strong>₹{totalAmount.toFixed(2)}</strong>
                               </td>
                               <td colSpan="2"></td>
                             </tr>

@@ -162,8 +162,15 @@ const AllPayrollGroups = () => {
     }
   };
   const EditPayroll = (payroll) => {
-    navigate(`/EditPayroll/${payroll.id}`);
+    navigate(`/EditPayrolls/${payroll.id}`);
   };
+  const ViewPayroll = (payroll) => {
+    navigate(`/ViewPayrollGroups/${payroll.id}`);
+  };
+  const AddPayment = (payroll) => {
+    navigate(`/AddPayment/${payroll.id}`);
+  };
+
   useEffect(() => {
     setLocations([]);
 
@@ -361,17 +368,16 @@ const AllPayrollGroups = () => {
                                 <button
                                   type="button"
                                   className="btn-view"
-                                  onClick={() => openModal(payroll)}
+                                  onClick={() => ViewPayroll(payroll)}
                                 >
                                   <i className="fas fa-eye btn-icon"></i> View
                                 </button>
                                 <button
                                   type="button"
-                                  className="btn-delete"
-                                  onClick={() => handleDelete(payroll.id)}
+                                  className="btn-payment"
+                                  onClick={() => AddPayment(payroll)}
                                 >
-                                  <i className="fas fa-trash btn-icon"></i>{" "}
-                                  Delete
+                                  <i class="fas fa-money-check"></i> Add Payment
                                 </button>
                               </div>
                             </td>

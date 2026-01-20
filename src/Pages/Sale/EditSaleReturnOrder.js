@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { Link, useNavigate } from "react-router-dom";
+
 import "react-datepicker/dist/react-datepicker.css";
-import { toast } from "react-toastify";
 
 function EditSaleReturnOrder() {
   const { id } = useParams();
@@ -11,6 +11,7 @@ function EditSaleReturnOrder() {
 
   const [vendor, setVendor] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
+  const [invoiceNumber, setInvoiceNumber] = useState("");
   const [addedBy, setAddedBy] = useState("");
   const [orderDate, setOrderDate] = useState();
   const [location, setLocation] = useState("");
@@ -27,6 +28,8 @@ function EditSaleReturnOrder() {
   const [initialQuantities, setInitialQuantities] = useState({});
   const [updatedTotalUnits, setUpdatedTotalUnits] = useState(0);
   const [franchiseId, setFranchiseId] = useState();
+  const [netTotalAmount, setNetTotalAmount] = useState();
+
   useEffect(() => {
     const fetchPurchaseData = async () => {
       try {
@@ -47,6 +50,8 @@ function EditSaleReturnOrder() {
         setOrderDate(new Date(purchase.orderDate));
         setLocation(purchase.location);
         setAdditionalNotes(purchase.additionalNotes);
+        setNetTotalAmount(purchase.netTotalAmount);
+        setInvoiceNumber(purchase.invoiceNumber);
         setFranchiseId(purchase.franchiseId);
         const selectedProducts = purchase.franchisePurchaseReturnItems.map(
           (item) => ({
@@ -57,6 +62,9 @@ function EditSaleReturnOrder() {
             updatedQuantity: item.quantity, // Default shipping quantity
             variationValue: item.productVariationName,
             productId: item.productId,
+            tax: item.tax,
+            subTotal: item.subTotal,
+            unitPrice: item.unitPrice,
             productVariationId: item.productVariationId,
           })
         );
@@ -137,9 +145,7 @@ function EditSaleReturnOrder() {
   const searchProducts = async (query) => {
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
-        }/product/search/active?query=${encodeURIComponent(query)}`
+        `${process.env.REACT_APP_BASE_URL}/product/search?query=${query}`
       );
       const data = await response.json();
       setSearchResults(data); // Set the search results
@@ -158,7 +164,7 @@ function EditSaleReturnOrder() {
     );
 
     if (variationsToAdd.length === 0) {
-      toast.warning("Please select at least one variation to add.");
+      alert("Please select at least one variation to add.");
       return;
     }
     const newProducts = variationsToAdd
@@ -209,6 +215,9 @@ function EditSaleReturnOrder() {
       productId: product.productId,
       productVariationName: product.variationValue,
       quantity: product.quantity, // This is the order quantity
+      tax: product.tax,
+      unitPrice: product.unitPrice,
+      subTotal: product.subTotal,
       updatedQuantity: product.updatedQuantity, // Shipping quantity (editable)
     }));
 
@@ -225,18 +234,21 @@ function EditSaleReturnOrder() {
       id,
       vendor,
       status: 1,
+      paymentStatus: 0,
       referenceNumber,
+      invoiceNumber,
       addedBy,
       franchiseId,
       orderDate: orderDate ? orderDate.toISOString().split("T")[0] : null,
       location,
       totalItems: totalUnits,
+      netTotalAmount,
       totalShippedItems: updatedTotalUnits,
       additionalNotes,
       franchisePurchaseReturnItems,
     };
 
-    // console.log(payload);
+    console.log(payload);
 
     try {
       const response = await fetch(
@@ -251,9 +263,9 @@ function EditSaleReturnOrder() {
       );
 
       if (!response.ok) {
-        // const errorText = await response.text();
-        // console.error("Error updating purchase:", errorText);
-        toast.error("Failed to update order. Please check your inputs.");
+        const errorText = await response.text();
+        console.error("Error updating purchase:", errorText);
+        alert("Failed to update order. Please check your inputs.");
       } else {
         const stockTransactions = productStocks;
 
@@ -304,20 +316,20 @@ function EditSaleReturnOrder() {
             }
           );
           if (saveresponse.ok) {
-            toast.success("Sales Return Accepted successfully");
+            alert("Sales Return Accepted successfully");
             navigate(`/SaleReturn`);
           } else {
-            toast.error("Error updating");
+            alert("Error updating");
           }
         } else {
-          // const errorText = await statusResponse.text();
-          // console.error("Error updating purchase status:", errorText);
-          toast.error("Error updating status. Check logs.");
+          const errorText = await statusResponse.text();
+          console.error("Error updating purchase status:", errorText);
+          alert("Error updating status. Check logs.");
         }
       }
     } catch (error) {
-      // console.error("Error:", error);
-      toast.error("An unexpected error occurred.");
+      console.error("Error:", error);
+      alert("An unexpected error occurred.");
     }
   };
 

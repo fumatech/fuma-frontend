@@ -5,13 +5,12 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css";
 import axios from "axios";
-import { toast } from "react-toastify";
 
 function ViewSaleReturn() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [vendor, setVendor] = useState("");
+  const [franchise, setFranchise] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
   const [addedBy, setAddedBy] = useState("");
   const [orderDate, setOrderDate] = useState();
@@ -46,19 +45,46 @@ function ViewSaleReturn() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // 1️⃣ Fetch purchase return details
         const response = await fetch(
           `https://fusionmastertech.com:8443/franchise-purchase-return/get/${id}`
         );
-        if (!response.ok) throw new Error("Failed to fetch data");
+        if (!response.ok)
+          throw new Error("Failed to fetch purchase return data");
 
         const purchase = await response.json();
-        setVendor(purchase.vendor);
+
+        // 2️⃣ Extract franchise ID properly (remove "fuma_" prefix)
+        if (purchase.franchiseId) {
+          // Remove "fuma_" only if it exists at the start
+          const cleanFranchiseId = purchase.franchiseId.replace(/^fuma_/, "");
+
+          // Fetch franchise details using cleaned ID
+          const franchiseResponse = await fetch(
+            `https://fusionmastertech.com:8443/customer/franchise/${cleanFranchiseId}`
+          );
+
+          if (franchiseResponse.ok) {
+            const franchiseData = await franchiseResponse.json();
+            setFranchise(franchiseData.franchiseName); // ✅ Set franchise name
+          } else {
+            console.warn("Failed to fetch franchise details");
+            setFranchise("N/A");
+          }
+        } else {
+          console.warn("No franchiseId found in purchase data");
+          setFranchise("N/A");
+        }
+
+        // 3️⃣ Set purchase return fields
         setReferenceNumber(purchase.referenceNumber);
         setAddedBy(purchase.addedBy);
         setOrderDate(new Date(purchase.orderDate));
         setLocation(purchase.location);
         setAdditionalNotes(purchase.additionalNotes);
         setNetTotalAmount(purchase.netTotalAmount);
+
+        // 4️⃣ Map purchase items with tax rates
         const selected = purchase.franchisePurchaseReturnItems.map((item) => {
           const matchedTax = taxRates.find((rate) => rate.id === item.tax);
           const taxRate = matchedTax ? matchedTax.taxValue : 0;
@@ -96,6 +122,7 @@ function ViewSaleReturn() {
         console.error("Error fetching purchase data:", error);
       }
     };
+
     fetchData();
   }, [id, taxRates]);
 
@@ -194,11 +221,11 @@ function ViewSaleReturn() {
                 <div className="row">
                   <div className="col-md-4">
                     <label>
-                      Franchise<span className="text-danger">*</span>
+                      franchise<span className="text-danger">*</span>
                     </label>
                     <input
                       className="form-control rounded"
-                      value={vendor}
+                      value={franchise}
                       readOnly
                     />
                   </div>

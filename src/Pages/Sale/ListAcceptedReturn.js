@@ -5,19 +5,17 @@ import "../../assets/plugins/fontawesome-free/css/all.min.css";
 import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
 import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
 import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
-import { Collapse } from "react-bootstrap";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 const ListAcceptedReturn = () => {
   const [viewOrders, setViewOrders] = useState([]);
   const [userEmail, setUserEmail] = useState(null);
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Initialize navigate
   const [columnsVisibility, setColumnsVisibility] = useState({
     vendorAction: true,
     action: true,
@@ -31,152 +29,65 @@ const ListAcceptedReturn = () => {
     additionalNotes: true,
     orderedBy: true,
   });
-  const [modalType, setModalType] = useState(null);
-  const [currentOrder, setCurrentOrder] = useState(null);
+  const [modalType, setModalType] = useState(null); // "accept", "reject", "view", "payment"
+  const [currentOrder, setCurrentOrder] = useState(null); // For viewing/editing
   const [currentPage, setCurrentPage] = useState(1);
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [formData, setFormData] = useState({
-    orderId: "",
-    orderDate: "",
-    customerName: "",
-    totalQuantityOrdered: "",
-    customerAddress: "",
-    contactInformation: "",
-    custom1: "",
-  });
+  const [entriesPerPage, setEntriesPerPage] = useState(25);
 
-  // Filter states
-  const [filterValues, setFilterValues] = useState({
-    locations: [],
-    addedBy: [],
+  // payment form state
+  const [paymentForm, setPaymentForm] = useState({
+    type: "refund", // refund | credit_note
+    amount: "",
+    date: "",
+    method: "",
+    account: "",
+    note: "",
   });
-
-  const [activeFilters, setActiveFilters] = useState({
-    startDate: "",
-    endDate: "",
-    location: "",
-    addedBy: "",
-  });
-
-  const [filteredViewOrders, setFilteredViewOrders] = useState([]);
-  const [filterOpen, setFilterOpen] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [paymentAccounts, setPaymentAccounts] = useState([]);
 
   useEffect(() => {
     const email = sessionStorage.getItem("userEmail");
     if (email) {
       setUserEmail(email);
     }
+
     fetchAcceptedOrders();
+    fetchPaymentOptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchAcceptedOrders = async () => {
+  // Try to fetch payment methods/accounts if your API supports it.
+  // If endpoints differ, change the URLs or remove these calls.
+  const fetchPaymentOptions = async () => {
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/franchise-purchase-return/getAcceptedReturns`
+      // Example endpoints — change to actual ones if different
+      const methodsResp = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/payment-method/active-names`
       );
-      if (!response.ok) throw new Error("Network response was not ok");
-
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        setViewOrders(data);
-        setFilteredViewOrders(data);
-      } else {
-        console.error("Fetched data is not an array");
-        setViewOrders([]);
-        setFilteredViewOrders([]);
+      if (methodsResp.ok) {
+        const methods = await methodsResp.json();
+        setPaymentMethods(Array.isArray(methods) ? methods : []);
       }
-    } catch (error) {
-      console.error("Error fetching accepted orders:", error);
-      setViewOrders([]);
-      setFilteredViewOrders([]);
+    } catch (err) {
+      // ignore errors — optional: console.warn(err)
     }
 
-    const script = document.createElement("script");
-    script.src = "js/JqueryContent.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  };
-
-  // Extract filter values when viewOrders data changes
-  useEffect(() => {
-    if (viewOrders.length > 0) {
-      const locations = [
-        ...new Set(viewOrders.map((item) => item.location)),
-      ].filter(Boolean);
-      const addedBy = [
-        ...new Set(viewOrders.map((item) => item.addedBy)),
-      ].filter(Boolean);
-
-      setFilterValues({
-        locations,
-        addedBy,
-      });
-    }
-  }, [viewOrders]);
-
-  // Apply filters whenever activeFilters or viewOrders changes
-  useEffect(() => {
-    const filteredData = viewOrders.filter((order) => {
-      const orderDate = new Date(order.orderDate);
-
-      // Date range filter
-      let dateMatch = true;
-      if (activeFilters.startDate && activeFilters.endDate) {
-        const startDate = new Date(activeFilters.startDate);
-        const endDate = new Date(activeFilters.endDate);
-        endDate.setHours(23, 59, 59, 999);
-
-        dateMatch = orderDate >= startDate && orderDate <= endDate;
-      } else if (activeFilters.startDate) {
-        const startDate = new Date(activeFilters.startDate);
-        dateMatch = orderDate >= startDate;
-      } else if (activeFilters.endDate) {
-        const endDate = new Date(activeFilters.endDate);
-        endDate.setHours(23, 59, 59, 999);
-        dateMatch = orderDate <= endDate;
+    try {
+      const accountsResp = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/payment-account/getall`
+      );
+      if (accountsResp.ok) {
+        const accounts = await accountsResp.json();
+        setPaymentAccounts(Array.isArray(accounts) ? accounts : []);
       }
-
-      // Location filter
-      const locationMatch =
-        activeFilters.location === "" ||
-        order.location === activeFilters.location;
-
-      // Added By filter
-      const addedByMatch =
-        activeFilters.addedBy === "" || order.addedBy === activeFilters.addedBy;
-
-      return dateMatch && locationMatch && addedByMatch;
-    });
-
-    setFilteredViewOrders(filteredData);
-  }, [activeFilters, viewOrders]);
-
-  // Filter change handler
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setActiveFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setCurrentPage(1);
-  };
-
-  // Reset filters function
-  const resetFilters = () => {
-    setActiveFilters({
-      startDate: "",
-      endDate: "",
-      location: "",
-      addedBy: "",
-    });
+    } catch (err) {
+      // ignore errors
+    }
   };
 
   const exportCSV = () => {
-    const csvData = filteredViewOrders.map((order) => ({
+    const csvData = viewOrders.map((order) => ({
       "Vendor Action": order.vendorAction,
       Action: order.action,
       "Order ID": order.orderId,
@@ -212,7 +123,7 @@ const ListAcceptedReturn = () => {
 
   const exportExcel = () => {
     const ws = XLSX.utils.json_to_sheet(
-      filteredViewOrders.map((order) => ({
+      viewOrders.map((order) => ({
         "Vendor Action": order.vendorAction,
         Action: order.action,
         "Order ID": order.orderId,
@@ -246,7 +157,7 @@ const ListAcceptedReturn = () => {
           "Ordered By",
         ],
       ],
-      body: filteredViewOrders.map((order) => [
+      body: viewOrders.map((order) => [
         order.vendorAction,
         order.action,
         order.orderId,
@@ -294,36 +205,42 @@ const ListAcceptedReturn = () => {
 
   const handleFormChange = (e) => {
     const { id, value } = e.target;
-    setFormData((prev) => ({
+    setPaymentForm((prev) => ({
       ...prev,
       [id]: value,
     }));
   };
 
+  const handlePaymentFormChange = (field, value) => {
+    setPaymentForm((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value));
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to the first page when entries per page changes
   };
 
   const startIndex = (currentPage - 1) * entriesPerPage;
   const endIndex = startIndex + entriesPerPage;
 
   const handleDropdownItemClick = (col, e) => {
-    e.stopPropagation();
-    toggleColumn(col);
+    e.stopPropagation(); // Prevent the event from bubbling up and affecting the dropdown toggle
+    toggleColumn(col); // Toggle column visibility
   };
 
   const handleVendorAction = async (action, order) => {
     if (action === "view") {
+      // For the "view" action, just open the modal and set the current order
       setModalType("view");
-      setCurrentOrder(order);
-    } else {
+      setCurrentOrder(order); // Set the current order to be viewed
+    } else if (action === "reject") {
       const confirmationMessage = `Are you sure you want to ${action} this order?`;
 
+      // Show a confirmation dialog before proceeding
       const userConfirmed = window.confirm(confirmationMessage);
 
       if (userConfirmed) {
-        const status = action === "ship" ? 3 : 4;
+        const status = 2; // 2 for reject based on your earlier mapping
         try {
           const response = await fetch(
             `${process.env.REACT_APP_BASE_URL}/franchise-purchase-return/updateStatus/${order.id}`,
@@ -336,23 +253,107 @@ const ListAcceptedReturn = () => {
             }
           );
           if (response.ok) {
-            toast.success(`Order ${action}ed successfully.`);
+            alert(`Order ${action}ed successfully.`);
             fetchAcceptedOrders();
           } else {
-            toast.error("Failed to update the order status.");
+            alert("Failed to update the order status.");
           }
         } catch (error) {
-          // console.error("Error updating order status:", error);
-          toast.error("An error occurred while updating the order status.");
+          console.error("Error updating order status:", error);
+          alert("An error occurred while updating the order status.");
         }
       } else {
-        toast.error("Order action was canceled.");
+        // If user cancels the action
+        alert("Order action was canceled.");
       }
+    }
+  };
+
+  const fetchAcceptedOrders = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/franchise-purchase-return/getAcceptedReturns`
+      );
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setViewOrders(data); // Update state with fetched data
+      } else {
+        console.error("Fetched data is not an array");
+        setViewOrders([]); // Reset if data is not an array
+      }
+    } catch (error) {
+      console.error("Error fetching accepted orders:", error);
+      setViewOrders([]); // Reset state in case of error
     }
   };
 
   const handleViewClick = (id) => {
     navigate(`/ViewSaleReturn/${id}`);
+  };
+
+  // NEW: When user selects Refund/Credit Note from dropdown in list
+  const handlePaymentAction = (action, order) => {
+    // action is "refund" or "credit_note"
+    setCurrentOrder(order);
+    setPaymentForm({
+      type: action,
+      amount: order?.netTotalAmount || "", // default amount - change as per real field
+      date: new Date().toISOString().split("T")[0], // today's date default
+      method: "",
+      account: "",
+      note: "",
+    });
+    setModalType("payment");
+  };
+
+  const handleSavePayment = async () => {
+    if (!currentOrder) return alert("No order selected");
+    if (!paymentForm.amount || Number(paymentForm.amount) <= 0)
+      return alert("Please enter a valid amount");
+    if (!paymentForm.account) return alert("Please select a payment account");
+
+    // Use selected date but add current time
+    const now = new Date();
+    const timeString = now.toTimeString().split(" ")[0]; // HH:mm:ss
+    const dateString = paymentForm.date + "T" + timeString;
+
+    const payload = {
+      paymentMethod: paymentForm.method,
+      amount: Number(paymentForm.amount),
+      transactionType: paymentForm.type === "refund" ? "Refund" : "credit note",
+      note: paymentForm.note,
+      date: dateString, // ✅ date with current time
+      vendor: currentOrder.vendor || "",
+      addedBy: userEmail,
+      franchiseName: currentOrder.customer || "",
+    };
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/payment-account/transaction/${paymentForm.account}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (response.ok) {
+        alert("Payment details saved successfully");
+        setModalType(null);
+        setCurrentOrder(null);
+        fetchAcceptedOrders();
+      } else {
+        const text = await response.text();
+        console.error("Save payment failed:", text);
+        alert("Failed to save payment details");
+      }
+    } catch (error) {
+      console.error("Error saving payment details:", error);
+      alert("Error while saving payment details");
+    }
   };
 
   return (
@@ -362,7 +363,7 @@ const ListAcceptedReturn = () => {
           <div className="container-fluid">
             <div className="row mb-2">
               <div className="col-12 col-md-6">
-                <h1 className="all-heading">List Accepted Sale Returns</h1>
+                <h1 className="all-heading">List Accpeted Sale Returns</h1>
                 <span className="d-inline d-md-block sub-heading">
                   Manage Sale Returns
                 </span>
@@ -372,108 +373,6 @@ const ListAcceptedReturn = () => {
         </section>
         <section className="content">
           <div className="container-fluid">
-            {/* Filter Card */}
-            <div className="card card-default rounded-4 border-0 cardHover mb-3">
-              <div
-                className="my- p-3 d-flex align-items-center"
-                style={{
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
-                onClick={() => setFilterOpen(!filterOpen)}
-              >
-                <i className={`fa fa-filter me-3`}></i>
-                <span>Filter</span>
-              </div>
-
-              <Collapse in={filterOpen}>
-                <div className="border-top">
-                  <div className="card-body">
-                    <div className="row py-2 g-2">
-                      {/* Start Date Picker */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Start Date:</label>
-                          <input
-                            type="date"
-                            className="form-control"
-                            name="startDate"
-                            value={activeFilters.startDate}
-                            onChange={handleFilterChange}
-                          />
-                        </div>
-                      </div>
-
-                      {/* End Date Picker */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">End Date:</label>
-                          <input
-                            type="date"
-                            className="form-control"
-                            name="endDate"
-                            value={activeFilters.endDate}
-                            onChange={handleFilterChange}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Location Dropdown */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Location:</label>
-                          <select
-                            className="form-select"
-                            name="location"
-                            value={activeFilters.location}
-                            onChange={handleFilterChange}
-                          >
-                            <option value="">All Locations</option>
-                            {filterValues.locations.map((location, index) => (
-                              <option key={`loc-${index}`} value={location}>
-                                {location}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Added By Dropdown */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label className="me-2">Added By:</label>
-                          <select
-                            className="form-select"
-                            name="addedBy"
-                            value={activeFilters.addedBy}
-                            onChange={handleFilterChange}
-                          >
-                            <option value="">All Users</option>
-                            {filterValues.addedBy.map((user, index) => (
-                              <option key={`user-${index}`} value={user}>
-                                {user}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Reset Button */}
-                      <div className="col-md-12 d-flex align-items-end">
-                        <button
-                          className="btn btn-sm btn-outline-secondary"
-                          onClick={resetFilters}
-                          disabled={!Object.values(activeFilters).some(Boolean)}
-                        >
-                          <i className="fa fa-times me-1"></i> Reset All Filters
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Collapse>
-            </div>
-
             <div className="card cardHover rounded-4 border-0">
               <div className="card-body">
                 <div className="row mb-3 d-flex align-items-center">
@@ -487,7 +386,6 @@ const ListAcceptedReturn = () => {
                       value={entriesPerPage}
                       onChange={handleEntriesChange}
                     >
-                      <option value={10}>10</option>
                       <option value={25}>25</option>
                       <option value={50}>50</option>
                       <option value={75}>75</option>
@@ -544,12 +442,12 @@ const ListAcceptedReturn = () => {
                             <input
                               type="checkbox"
                               checked={columnsVisibility[col]}
-                              onChange={() => toggleColumn(col)}
+                              onChange={() => toggleColumn(col)} // Toggle column visibility on checkbox change
                               className="mr-2"
                             />
                             <span
                               className="btn border-0 bg-transparent p-0 m-0"
-                              onClick={(e) => handleDropdownItemClick(col, e)}
+                              onClick={(e) => handleDropdownItemClick(col, e)} // Handle click on dropdown item
                             >
                               {col.replace(/([A-Z])/g, " $1").toUpperCase()}
                             </span>
@@ -566,38 +464,34 @@ const ListAcceptedReturn = () => {
                   >
                     <thead>
                       <tr>
-                        {columnsVisibility.vendorAction && (
-                          <th>Action&nbsp;&nbsp;&nbsp;&nbsp;</th>
-                        )}
+                        {columnsVisibility.vendorAction && <th>Action</th>}
                         {columnsVisibility.action && <th>View</th>}
-                        {columnsVisibility.orderDate && (
-                          <th>
-                            &nbsp;&nbsp;Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                          </th>
-                        )}
+                        {columnsVisibility.orderDate && <th>Return Date</th>}
+                        {columnsVisibility.orderId && <th>Return No</th>}
                         {columnsVisibility.referenceNumber && (
-                          <th>Reference Number</th>
+                          <th>Invoice Number</th>
                         )}
-                        {columnsVisibility.location && <th>Location</th>}
+                        {columnsVisibility.customer && <th>Franchise Name</th>}
                         {columnsVisibility.totalItems && <th>Total Items</th>}
-                        {columnsVisibility.totalShippedItems && (
-                          <th>Total Shipped Items</th>
+                        {columnsVisibility.totalItems && <th>Total Amount</th>}
+                        {columnsVisibility.totalItems && (
+                          <th>Payment Status</th>
                         )}
-                        {columnsVisibility.additionalNotes && (
-                          <th>Additional Notes</th>
-                        )}
-                        {columnsVisibility.orderedBy && <th>Ordered By</th>}
+                        {columnsVisibility.totalItems && <th>Amount Due</th>}
+
+                        {columnsVisibility.additionalNotes && <th>Notes</th>}
+                        {columnsVisibility.orderedBy && <th>Added By</th>}
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredViewOrders
+                      {viewOrders
                         .sort(
                           (a, b) =>
                             new Date(b.orderDate) - new Date(a.orderDate)
-                        )
+                        ) // Sort by date (latest first)
                         .slice(startIndex, endIndex)
                         .map((order) => (
-                          <tr key={order.orderId}>
+                          <tr key={order.orderId || order.id}>
                             {columnsVisibility.vendorAction && (
                               <td>
                                 <select
@@ -607,14 +501,14 @@ const ListAcceptedReturn = () => {
                                   }
                                 >
                                   <option value="">Select Action</option>
-                                  <option value="ship">Ship Return</option>
+                                  <option value="reject">Reject</option>
                                 </select>
                               </td>
                             )}
                             {columnsVisibility.action && (
                               <td>
                                 <button
-                                  onClick={() => handleViewClick(order.id)}
+                                  onClick={() => handleViewClick(order.id)} // Opens the view modal
                                   className="btn btn-sm btn-primary"
                                 >
                                   View
@@ -624,20 +518,110 @@ const ListAcceptedReturn = () => {
                             {columnsVisibility.orderDate && (
                               <td>{order.orderDate}</td>
                             )}
-
+                            {columnsVisibility.orderId && (
+                              <td>{order.franchisePurchaseReturnId}</td>
+                            )}
                             {columnsVisibility.referenceNumber && (
-                              <td>{order.referenceNumber}</td>
-                            )}
-                            {columnsVisibility.location && (
-                              <td>{order.location}</td>
+                              <td>{order.invoiceNumber}</td>
                             )}
 
+                            {columnsVisibility.customer && (
+                              <td>
+                                {order.franchiseId?.replace(/^fuma_/, "")}
+                              </td>
+                            )}
                             {columnsVisibility.totalItems && (
                               <td>{order.totalItems}</td>
                             )}
-                            {columnsVisibility.totalShippedItems && (
-                              <td>{order.totalShippedItems}</td>
+
+                            {/* Total Amount column - you can change the field name if different */}
+                            {columnsVisibility.totalItems && (
+                              <td>
+                                {order.netTotalAmount != null
+                                  ? order.netTotalAmount
+                                  : ""}
+                              </td>
                             )}
+
+                            {columnsVisibility.totalItems && (
+                              <td>
+                                {(() => {
+                                  if (order.paymentStatus === 0) {
+                                    // Pending → allow selecting Refund or Credit Note
+                                    return (
+                                      <select
+                                        className="form-control form-control-sm"
+                                        onChange={(e) =>
+                                          handlePaymentAction(
+                                            e.target.value,
+                                            order
+                                          )
+                                        }
+                                        defaultValue=""
+                                      >
+                                        <option value="">Pending</option>
+                                        <option value="1">Refund</option>
+                                        <option value="2">Credit Note</option>
+                                      </select>
+                                    );
+                                  } else if (order.paymentStatus === 1) {
+                                    // Refund → fixed, disable select
+                                    return (
+                                      <select
+                                        className="form-control form-control-sm"
+                                        disabled
+                                      >
+                                        <option value="1" selected>
+                                          Refund
+                                        </option>
+                                      </select>
+                                    );
+                                  } else if (order.paymentStatus === 2) {
+                                    // Credit Note → fixed, disable select
+                                    return (
+                                      <select
+                                        className="form-control form-control-sm"
+                                        disabled
+                                      >
+                                        <option value="2" selected>
+                                          Credit Note
+                                        </option>
+                                      </select>
+                                    );
+                                  } else {
+                                    // If paymentStatus is null or unknown → default Pending
+                                    return (
+                                      <select
+                                        className="form-control form-control-sm"
+                                        onChange={(e) =>
+                                          handlePaymentAction(
+                                            e.target.value,
+                                            order
+                                          )
+                                        }
+                                        defaultValue=""
+                                      >
+                                        <option value="">Pending</option>
+                                        <option value="1">Refund</option>
+                                        <option value="2">Credit Note</option>
+                                      </select>
+                                    );
+                                  }
+                                })()}
+                              </td>
+                            )}
+
+                            {columnsVisibility.totalItems && (
+                              <td>
+                                {order.paymentStatus === 0
+                                  ? order.netTotalAmount
+                                  : order.paymentStatus === 1 ||
+                                    order.paymentStatus === 2
+                                  ? 0
+                                  : ""}
+                              </td>
+                            )}
+
                             {columnsVisibility.additionalNotes && (
                               <td>{order.additionalNotes}</td>
                             )}
@@ -665,17 +649,23 @@ const ListAcceptedReturn = () => {
                       ? "View Order"
                       : modalType === "accept"
                       ? "Accept Order"
+                      : modalType === "payment"
+                      ? "Payment Details"
                       : "Reject Order"}
                   </h5>
                   <button
                     type="button"
                     className="close"
-                    onClick={() => setModalType(null)}
+                    onClick={() => {
+                      setModalType(null);
+                      setCurrentOrder(null);
+                    }}
                   >
                     <span>&times;</span>
                   </button>
                 </div>
                 <div className="modal-body">
+                  {/* View modal content */}
                   {modalType === "view" && (
                     <div>
                       <h5>Order Details:</h5>
@@ -692,21 +682,172 @@ const ListAcceptedReturn = () => {
                       <p>Additional Notes: {currentOrder?.additionalNotes}</p>
                     </div>
                   )}
+
                   {modalType === "accept" && (
                     <div>Are you sure you want to accept this order?</div>
                   )}
+
                   {modalType === "reject" && (
                     <div>Are you sure you want to reject this order?</div>
+                  )}
+
+                  {modalType === "payment" && currentOrder && (
+                    <div>
+                      <h5>Payment / Credit Note</h5>
+
+                      <div className="mb-2">
+                        <strong>Total Amount (With Tax):</strong>{" "}
+                        {currentOrder.totalAmountWithTax != null
+                          ? currentOrder.totalAmountWithTax
+                          : currentOrder.netTotalAmount != null
+                          ? currentOrder.netTotalAmount
+                          : ""}
+                      </div>
+
+                      <div className="mb-3">
+                        <strong>Total Amount (Without Tax):</strong>{" "}
+                        {currentOrder
+                          ? currentOrder.franchisePurchaseReturnItems
+                              .reduce(
+                                (sum, item) =>
+                                  sum +
+                                  (item.unitPrice?.toNumber
+                                    ? item.unitPrice.toNumber()
+                                    : parseFloat(item.unitPrice || 0)) *
+                                    (item.quantity || 0),
+                                0
+                              )
+                              .toFixed(2)
+                          : "0.00"}
+                      </div>
+
+                      <div className="form-group">
+                        <label>Select - Refund / Credit Note</label>
+                        <select
+                          id="type"
+                          className="form-control"
+                          value={paymentForm.type}
+                          onChange={(e) =>
+                            handlePaymentFormChange("type", e.target.value)
+                          }
+                        >
+                          <option value="refund">Refund</option>
+                          <option value="credit_note">Credit Note</option>
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label>Enter amount</label>
+                        <input
+                          id="amount"
+                          type="number"
+                          className="form-control"
+                          value={paymentForm.amount}
+                          onChange={(e) =>
+                            handlePaymentFormChange("amount", e.target.value)
+                          }
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Date</label>
+                        <input
+                          id="date"
+                          type="date"
+                          className="form-control"
+                          value={paymentForm.date}
+                          onChange={(e) =>
+                            handlePaymentFormChange("date", e.target.value)
+                          }
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Select payment method</label>
+                        <select
+                          id="method"
+                          className="form-control"
+                          value={paymentForm.method}
+                          onChange={(e) =>
+                            handlePaymentFormChange("method", e.target.value)
+                          }
+                        >
+                          <option value="">Select Method</option>
+                          {paymentMethods.length > 0 ? (
+                            paymentMethods.map((m, idx) => (
+                              <option key={idx} value={m}>
+                                {m}
+                              </option>
+                            ))
+                          ) : (
+                            <>
+                              <option value="cash">Cash</option>
+                              <option value="bank">Bank</option>
+                              <option value="upi">UPI</option>
+                            </>
+                          )}
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label>Payment account</label>
+                        <select
+                          id="account"
+                          className="form-control"
+                          value={paymentForm.account}
+                          onChange={(e) =>
+                            handlePaymentFormChange("account", e.target.value)
+                          }
+                        >
+                          <option value="">Select Account</option>
+                          {paymentAccounts.length > 0 ? (
+                            paymentAccounts.map((a, idx) => (
+                              <option key={idx} value={a.id}>
+                                {a.accountName} ({a.accountNumber})
+                              </option>
+                            ))
+                          ) : (
+                            <option value="">--select--</option>
+                          )}
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label>Note</label>
+                        <textarea
+                          id="note"
+                          className="form-control"
+                          value={paymentForm.note}
+                          onChange={(e) =>
+                            handlePaymentFormChange("note", e.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
                 <div className="modal-footer">
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => setModalType(null)}
+                    onClick={() => {
+                      setModalType(null);
+                      setCurrentOrder(null);
+                    }}
                   >
                     Close
                   </button>
+
+                  {modalType === "payment" && (
+                    <button
+                      type="button"
+                      className="btn btn-success"
+                      onClick={handleSavePayment}
+                    >
+                      Save Payment
+                    </button>
+                  )}
+
                   {(modalType === "accept" || modalType === "reject") && (
                     <button
                       type="button"

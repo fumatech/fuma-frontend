@@ -448,7 +448,7 @@ const ListDIPurchaseOrder = () => {
                           <th>Invoice/Reference No</th>
                         )}
                         {columnsVisibility.date && <th>Purchase Date</th>}
-                        {columnsVisibility.vendor && <th>vendor</th>}
+                        {columnsVisibility.vendor && <th>Vendor</th>}
                         {columnsVisibility.totalItems && (
                           <th> Total Purchased Items</th>
                         )}

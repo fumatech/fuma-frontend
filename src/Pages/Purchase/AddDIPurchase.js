@@ -1246,7 +1246,7 @@ function AddDIPurchase() {
                               {/* Tax Selection */}
                               <div className="col-md-auto">
                                 <div className="form-group">
-                                  <label>Sale Tax</label>
+                                  <label>Purchase Tax</label>
                                   <Select
                                     options={taxOptions}
                                     value={

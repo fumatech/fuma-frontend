@@ -1002,7 +1002,7 @@ const ListSoSale = () => {
                           <th>Order Id</th>
                         )}
 
-                        {columnsVisibility.date && <th>Date</th>}
+                        {columnsVisibility.date && <th>Sale Date</th>}
                         {columnsVisibility.referenceNumber && (
                           <th>Invoice No</th>
                         )}
@@ -1096,7 +1096,7 @@ const ListSoSale = () => {
                           )}
 
                           {columnsVisibility.date && (
-                            <td>{purchase.orderDate}</td>
+                            <td>{purchase.saleDate}</td>
                           )}
                           {columnsVisibility.referenceNumber && (
                             <td>{purchase.referenceNumber}</td>

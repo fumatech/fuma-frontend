@@ -216,7 +216,7 @@ function AddSoSale() {
           setFranchiseId(data.franchiseId);
           setFranchiseName(data.franchiseName);
           setCustomerId(data.customerId);
-          setOrderedBy(data.orderedBy);
+          setOrderedBy(data.addedBy);
           setOrderDate(new Date(data.orderDate));
           setLocation(data.location);
           setAdditionalNotes(data.additionalNotes);
@@ -1045,59 +1045,19 @@ function AddSoSale() {
                         </div>
                       </div>
 
+                      {/* Purchase Date */}
                       <div className="col-md-4">
                         <div className="form-group d-flex flex-row flex-md-column">
                           <label htmlFor="transaction_date">Sale Date</label>
-                          <input
-                            type="text"
+                          <DatePicker
+                            selected={purchaseDate}
+                            onChange={(date) => setPurchaseDate(date)}
                             className="form-control w-100 ms-1 ms-md-0 py-3 rounded-1"
-                            // value={purchaseDate ? format(purchaseDate, 'MM/dd/yyyy') : ''}
-                            onClick={() => setShowDateModal(true)}
-                            readOnly
-                            placeholder="Select Sale Date"
+                            dateFormat="MM/dd/yyyy"
+                            required
+                            minDate={new Date()} // Prevent past dates
+                            popperPlacement="top" // Display the calendar above
                           />
-
-                          {showDateModal && (
-                            <div
-                              className="modal-overlay"
-                              style={{
-                                position: "fixed",
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
-                                background: "rgba(0,0,0,0.5)",
-                                zIndex: 9999,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  background: "white",
-                                  padding: "20px",
-                                  borderRadius: "8px",
-                                  zIndex: 10000,
-                                }}
-                              >
-                                <DatePicker
-                                  selected={purchaseDate}
-                                  onChange={(date) => {
-                                    setPurchaseDate(date);
-                                    setShowDateModal(false);
-                                  }}
-                                  inline
-                                />
-                                <button
-                                  onClick={() => setShowDateModal(false)}
-                                  className="btn btn-secondary mt-2"
-                                >
-                                  Close
-                                </button>
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
 
@@ -1275,8 +1235,9 @@ function AddSoSale() {
                               <tbody>
                                 {selectedProducts.map((product, index) => {
                                   const unitCostBeforeDiscount =
-                                    parseFloat(product.defaultSellingPrice) ||
-                                    0;
+                                    parseFloat(
+                                      product.defaultPurchasePriceExcTax
+                                    ) || 0;
                                   const discountPercent =
                                     parseFloat(product.discountPercent) || 0;
                                   const quantity =

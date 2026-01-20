@@ -157,6 +157,9 @@ import ViewPayslip from "./Pages/HRM/ViewPayslip";
 import AllPayrolls from "./Pages/HRM/AllPayrolls";
 import AddPayroll from "./Pages/HRM/AddPayroll";
 import EditPayroll from "./Pages/HRM/EditPayroll";
+import EditPayrolls from "./Pages/HRM/EditPayrolls";
+import AddPayment from "./Pages/HRM/AddPayment";
+import ViewPayrollGroups from "./Pages/HRM/ViewPayrollGroups ";
 import AllPayrollGroups from "./Pages/HRM/AllPayrollGroups";
 import PayComponents from "./Pages/HRM/PayComponents";
 import HRMSettings from "./Pages/HRM/HRMSettings";
@@ -728,6 +731,12 @@ const App = () => {
                   <Route path="/payroll/view" element={<ViewPayslip />} />
                   <Route path="/AddPayroll" element={<AddPayroll />} />
                   <Route path="/EditPayroll/:id" element={<EditPayroll />} />
+                  <Route path="/EditPayrolls/:id" element={<EditPayrolls />} />
+                  <Route path="/AddPayment/:id" element={<AddPayment />} />
+                  <Route
+                    path="/ViewPayrollGroups/:id"
+                    element={<ViewPayrollGroups />}
+                  />
                   <Route
                     path="/AllPayrollGroups"
                     element={<AllPayrollGroups />}
