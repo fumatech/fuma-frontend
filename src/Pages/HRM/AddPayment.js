@@ -7,236 +7,221 @@ const AddPayment = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+
   const [users, setUsers] = useState([]);
   const [payroll, setPayroll] = useState(null);
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState([]);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [paymentAccounts, setPaymentAccounts] = useState([]);
   const [businessLocations, setBusinessLocations] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
 
+  // ✅ SINGLE SOURCE OF TRUTH
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
+
+  const selectedEmployee = employees.find(
+    (e) => e.payrollEmployeeId === selectedEmployeeId,
+  );
+
   const [formData, setFormData] = useState({
     amount: "",
-    paidOn: new Date()
-      .toLocaleString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      })
-      .replace(",", ""),
+    paidOn: new Date().toISOString().slice(0, 10),
     paymentAccount: "",
     paymentNote: "",
     paymentMethod: "",
-    employeeId: "",
   });
 
-  useEffect(() => {
-    if (id) {
-      fetchPayrollDetails(id);
-      fetchPaymentAccounts();
-      fetchPaymentMathods();
-      fetchUsers();
-      fetchBusinessLocations();
-    }
-  }, [id]);
-  const fetchUsers = async () => {
-    try {
-      const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/user/getall`
-      );
-      setUsers(res.data || []);
-    } catch (err) {
-      toast.error("Failed to fetch users");
-    }
-  };
+  /* ---------------- FETCH INITIAL DATA ---------------- */
 
   useEffect(() => {
-    // Check if employee ID is passed via state
-    if (location.state?.employeeId) {
-      const employee = employees.find(
-        (emp) => emp.id === location.state.employeeId
-      );
-      if (employee) {
-        setSelectedEmployee(employee);
-        setFormData((prev) => ({
-          ...prev,
-          employeeId: employee.id,
-          amount: employee.total || "",
-        }));
+    if (!id) return;
+
+    fetchUsers();
+    fetchPaymentAccounts();
+    fetchPaymentMethods();
+    fetchBusinessLocations();
+  }, [id]);
+
+  useEffect(() => {
+    if (id && users.length > 0) {
+      fetchPayrollDetails(id);
+    }
+  }, [id, users]);
+  useEffect(() => {
+    if (selectedEmployee) {
+      setFormData((prev) => ({
+        ...prev,
+        amount: getEmployeeDue(selectedEmployee),
+      }));
+    }
+  }, [selectedEmployee]);
+
+  /* ---------------- API CALLS ---------------- */
+
+  const fetchUsers = async () => {
+    const res = await axios.get(
+      `${process.env.REACT_APP_BASE_URL}/user/getall`,
+    );
+    setUsers(res.data || []);
+  };
+
+  const fetchPayrollDetails = async (payrollId) => {
+    setLoading(true);
+
+    const res = await axios.get(
+      `${process.env.REACT_APP_BASE_URL}/payroll/full/${payrollId}`,
+    );
+    const employeesList =
+      res.data.employees?.map((emp) => {
+        const user = users.find((u) => Number(u.id) === Number(emp.employeeId));
+
+        return {
+          ...emp,
+          // payrollEmployeeId: emp.id,   ❌ REMOVE THIS line
+          payrollEmployeeId: emp.payrollEmployeeId, // ✅ USE THIS
+          employeeId: emp.employeeId,
+          name: user
+            ? `${user.firstname} ${user.lastname}`
+            : "Unknown Employee",
+          bankName: user?.bankName || "",
+          branch: user?.branch || "",
+          bankCode: user?.ifsc || "",
+          accountHolderName: user?.accountHolderName || "",
+          accountNumber: user?.accountNumber || "",
+          taxId: user?.taxPayerId || "",
+        };
+      }) || [];
+
+    setEmployees(employeesList);
+    setPayroll(res.data);
+
+    // ✅ PRESELECT EMPLOYEE
+    if (employeesList.length > 0) {
+      const preselected = location.state?.employeeId
+        ? employeesList.find((e) => e.employeeId === location.state.employeeId)
+        : employeesList[0];
+
+      if (preselected) {
+        setSelectedEmployeeId(preselected.payrollEmployeeId);
+        setFormData((p) => ({ ...p, amount: preselected.total || "" }));
       }
     }
-  }, [employees, location]);
+
+    setLoading(false);
+  };
+
+  const fetchPaymentAccounts = async () => {
+    const res = await axios.get(
+      `${process.env.REACT_APP_BASE_URL}/payment-account/getall`,
+    );
+    setPaymentAccounts(res.data || []);
+  };
+
+  const fetchPaymentMethods = async () => {
+    const res = await axios.get(
+      `${process.env.REACT_APP_BASE_URL}/payment-method/getall`,
+    );
+    setPaymentMethods(res.data || []);
+  };
+
   const fetchBusinessLocations = async () => {
-    try {
-      const res = await axios.get(
-        "https://fusionmastertech.com:8443/business-locations/getall"
-      );
-      setBusinessLocations(res.data || []);
-    } catch (error) {
-      toast.error("Failed to fetch business locations");
-      console.error(error);
+    const res = await axios.get(
+      "https://fusionmastertech.com:8443/business-locations/getall",
+    );
+    setBusinessLocations(res.data || []);
+  };
+
+  /* ---------------- HANDLERS ---------------- */
+
+  const handleEmployeeChange = (e) => {
+    const id = Number(e.target.value);
+    setSelectedEmployeeId(id);
+
+    const emp = employees.find((e) => e.payrollEmployeeId === id);
+    if (emp) {
+      setFormData((p) => ({ ...p, amount: emp.total || "" }));
     }
+  };
+  const getEmployeeDue = (employee) => {
+    // Sum all previous transaction amounts
+    const totalPaid = employee.transactions?.reduce(
+      (sum, t) => sum + Number(t.amount || 0),
+      0,
+    );
+
+    // Calculate due
+    const due = employee.total - totalPaid;
+    return due > 0 ? due : 0;
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((p) => ({ ...p, [name]: value }));
   };
   const getLocationName = (locationId) => {
     if (!locationId) return "All locations";
 
     const location = businessLocations.find(
-      (loc) => Number(loc.id) === Number(locationId)
+      (loc) => Number(loc.id) === Number(locationId),
     );
 
     return location ? location.name : "Unknown location";
   };
-
-  const fetchPayrollDetails = async (payrollId) => {
-    try {
-      setLoading(true);
-      const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/payroll/full/${payrollId}`
-      );
-
-      const payrollData = res.data;
-      const employeesList =
-        payrollData.employees?.map((emp) => {
-          const user = users.find((u) => u.id === emp.employeeId);
-
-          return {
-            ...emp,
-            id: emp.employeeId, // important for dropdown
-            name: user
-              ? `${user.firstname} ${user.lastname}`
-              : `Employee ${emp.employeeId}`,
-            bankName: user?.bankName || "",
-            branch: user?.branch || "",
-            bankCode: user?.ifsc || "",
-            accountHolderName: user?.accountHolderName || "",
-            accountNumber: user?.accountNumber || "",
-            taxId: user?.taxPayerId || "",
-          };
-        }) || [];
-
-      setPayroll({
-        id: payrollData.id,
-        name: payrollData.payrollName,
-        month: payrollData.month,
-        year: payrollData.year,
-        status: payrollData.status === 1 ? "Final" : "Draft",
-        location: payrollData.location || "All locations",
-        employees: employeesList,
-      });
-
-      setEmployees(employeesList);
-
-      // If no employee ID is provided, select the first employee
-      if (!location.state?.employeeId && employeesList.length > 0) {
-        setSelectedEmployee(employeesList[0]);
-        setFormData((prev) => ({
-          ...prev,
-          employeeId: employeesList[0].id,
-          amount: employeesList[0].total || "",
-        }));
-      }
-
-      setLoading(false);
-    } catch (error) {
-      toast.error("Failed to fetch payroll details");
-      console.error(error);
-      setLoading(false);
-    }
-  };
-
-  const fetchPaymentAccounts = async () => {
-    try {
-      const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/payment-account/getall`
-      );
-      setPaymentAccounts(res.data || []);
-    } catch (error) {
-      console.error("Failed to fetch payment accounts:", error);
-      // Set default payment accounts if API fails
-      setPaymentAccounts([
-        { id: 1, name: "None" },
-        { id: 2, name: "Cash Account" },
-        { id: 3, name: "Bank Account" },
-      ]);
-    }
-  };
-  const fetchPaymentMathods = async () => {
-    try {
-      const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/payment-method/getall`
-      );
-      setPaymentMethods(res.data || []);
-    } catch (error) {
-      console.error("Failed to fetch payment methods:", error);
-      // Set default payment methods if API fails
-      setPaymentMethods([]);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleEmployeeChange = (e) => {
-    const employeeId = e.target.value;
-    const employee = employees.find((emp) => emp.id === parseInt(employeeId));
-
-    setSelectedEmployee(employee);
-    setFormData((prev) => ({
-      ...prev,
-      employeeId: employeeId,
-      amount: employee ? employee.total || "" : "",
-    }));
-  };
-
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: "USD",
+      currency: "INR",
       minimumFractionDigits: 2,
     }).format(amount || 0);
   };
 
+  /* ---------------- SUBMIT ---------------- */
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.amount || !formData.paidOn || !formData.paymentMethod) {
+    if (!selectedEmployee) {
+      toast.error("Invalid employee selection");
+      return;
+    }
+
+    if (
+      !formData.amount ||
+      !formData.paymentMethod ||
+      !formData.paymentAccount
+    ) {
       toast.error("Please fill all required fields");
       return;
     }
 
-    try {
-      const paymentData = {
-        payrollId: id,
-        employeeId: formData.employeeId,
-        amount: parseFloat(formData.amount),
-        paidOn: formData.paidOn,
-        paymentAccount: formData.paymentAccount,
-        paymentNote: formData.paymentNote,
-        paymentMethod: formData.paymentMethod,
-        status: "Paid",
-      };
+    const method = paymentMethods.find(
+      (m) => Number(m.id) === Number(formData.paymentMethod),
+    );
 
-      // API call to add payment
-      await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/payroll/add-payment`,
-        paymentData
-      );
-
-      toast.success("Payment added successfully!");
-      navigate(`/payroll/${id}`);
-    } catch (error) {
-      toast.error("Failed to add payment");
-      console.error(error);
+    if (!method) {
+      toast.error("Invalid payment method");
+      return;
     }
+
+    const payload = [
+      {
+        payrollEmployeeId: selectedEmployee.payrollEmployeeId,
+        amount: Number(formData.amount),
+        paymentMethod: method.name,
+        note: formData.paymentNote || "",
+        date: new Date(formData.paidOn).toISOString(), // ✅ ISO string
+        addedBy: "abc",
+      },
+    ];
+    console.log(payload);
+
+    await axios.post(
+      `${process.env.REACT_APP_BASE_URL}/payroll/payroll-employee/bulk-transaction/${formData.paymentAccount}`,
+      payload,
+    );
+
+    toast.success("Payment added successfully");
+    navigate(`/payroll/${id}`);
   };
 
   if (loading) {
@@ -283,7 +268,7 @@ const AddPayment = () => {
           <div className="row mb-2">
             <div className="col-sm-12">
               <h5 className="mb-1">Add payment for payroll group</h5>
-              <p className="text-primary mb-1">({payroll.name})</p>
+              <p className="text-primary mb-1">{payroll.payrollName}</p>
               <h4 className="text-muted mb-3">
                 {getLocationName(payroll.location)}
               </h4>
@@ -302,14 +287,16 @@ const AddPayment = () => {
                   <h6 className="font-weight-bold mb-3">Employee</h6>
                   <div className="mb-3">
                     <select
-                      className="form-control form-control-sm"
-                      value={formData.employeeId}
+                      className="form-control"
+                      value={selectedEmployeeId ?? ""}
                       onChange={handleEmployeeChange}
                     >
-                      <option value="">Select Employee</option>
-                      {employees.map((employee) => (
-                        <option key={employee.id} value={employee.id}>
-                          {employee.name}
+                      {employees.map((e) => (
+                        <option
+                          key={e.payrollEmployeeId}
+                          value={e.payrollEmployeeId}
+                        >
+                          {e.name}
                         </option>
                       ))}
                     </select>
@@ -325,10 +312,19 @@ const AddPayment = () => {
             <div className="col-md-2">
               <div className="card">
                 <div className="card-body">
-                  <h6 className="font-weight-bold mb-3">Gross Amount</h6>
+                  {/* <h6 className="font-weight-bold mb-3">Gross Amount</h6> */}
                   {selectedEmployee && (
                     <p className="font-weight-bold">
-                      {formatCurrency(selectedEmployee.total)}
+                      Total: {formatCurrency(selectedEmployee.total)} <br />
+                      Paid:{" "}
+                      {formatCurrency(
+                        selectedEmployee.transactions?.reduce(
+                          (sum, t) => sum + Number(t.amount || 0),
+                          0,
+                        ) || 0,
+                      )}{" "}
+                      <br />
+                      Due: {formatCurrency(getEmployeeDue(selectedEmployee))}
                     </p>
                   )}
                 </div>
@@ -375,7 +371,7 @@ const AddPayment = () => {
             <div className="col-md-4">
               <div className="card">
                 <div className="card-body">
-                  <h6 className="font-weight-bold mb-3">Payments</h6>
+                  <h6 className="font-weight-bold mb-3">Add payment</h6>
 
                   {/* Amount */}
                   <div className="mb-3">
@@ -403,7 +399,7 @@ const AddPayment = () => {
                       Paid on:<span className="text-danger">*</span>
                     </label>
                     <input
-                      type="text"
+                      type="date"
                       className="form-control form-control-sm"
                       name="paidOn"
                       value={formData.paidOn}
@@ -413,9 +409,6 @@ const AddPayment = () => {
                   </div>
 
                   <hr className="my-3" />
-
-                  <h6 className="font-weight-bold mb-3">Add payment</h6>
-
                   {/* Payment Account - Changed to Dropdown */}
                   <div className="mb-3">
                     <label className="small font-weight-bold mb-1">
@@ -484,6 +477,7 @@ const AddPayment = () => {
                     <button
                       className="btn btn-primary btn-sm"
                       onClick={handleSubmit}
+                      disabled={getEmployeeDue(selectedEmployee) === 0}
                     >
                       Add Payment
                     </button>

@@ -13,7 +13,7 @@ const OpeningStockPage = () => {
       try {
         // Fetch product details
         const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/product/get/${productId}`
+          `${process.env.REACT_APP_BASE_URL}/product/get/${productId}`,
         );
 
         if (!response.ok) {
@@ -26,7 +26,7 @@ const OpeningStockPage = () => {
 
         // Fetch existing stock transactions
         const stockRes = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/stock-transactions/by-product/${productId}`
+          `${process.env.REACT_APP_BASE_URL}/stock-transactions/by-product/${productId}`,
         );
 
         let stockTransactions = [];
@@ -40,7 +40,7 @@ const OpeningStockPage = () => {
           const existingTx = stockTransactions.find(
             (tx) =>
               tx.variationId === variation.id &&
-              tx.transactionType === "open_stock"
+              tx.transactionType === "open_stock",
           );
 
           return {
@@ -79,6 +79,7 @@ const OpeningStockPage = () => {
           variationId: product.variationId,
           quantity: Number(product.totalStock) || 0,
           transactionType: "open_stock",
+          price: product.defaultPurchasePriceExcTax,
           date: product.date || new Date().toISOString().split("T")[0],
           note: product.note || "Stock updated after opening stock",
         };
@@ -91,7 +92,7 @@ const OpeningStockPage = () => {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload),
-            }
+            },
           );
         } else {
           // Create new transaction
@@ -101,7 +102,7 @@ const OpeningStockPage = () => {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify([payload]), // API expects array
-            }
+            },
           );
         }
       }

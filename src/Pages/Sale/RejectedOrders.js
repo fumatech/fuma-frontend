@@ -61,7 +61,7 @@ const RejectedOrders = () => {
   const fetchAcceptedOrders = async () => {
     try {
       const response = await fetch(
-        `https://fusionmastertech.com:8443/franchisepurchaseorder/getRejectedOrders`
+        `https://fusionmastertech.com:8443/franchisepurchaseorder/getRejectedOrders`,
       );
       if (!response.ok) throw new Error("Network response was not ok");
 
@@ -211,7 +211,7 @@ const RejectedOrders = () => {
         "Additional Notes": order.additionalNotes,
         "Ordered By": order.orderedBy,
         "Reason For Rejection": order.reasonForRejection,
-      }))
+      })),
     );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Rejected Orders");
@@ -260,7 +260,7 @@ const RejectedOrders = () => {
     const printWindow = window.open("", "", "height=800,width=1200");
     printWindow.document.write("<html><head><title>Print</title>");
     printWindow.document.write(
-      '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">'
+      '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">',
     );
     printWindow.document.write("</head><body>");
     printWindow.document.write($clonedContainer.html());
@@ -307,11 +307,11 @@ const RejectedOrders = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ status }),
-        }
+        },
       );
 
       if (response.ok) {
-        await fetchAcceptedOrders(); // ✅ Call the function already defined in useEffect
+        await fetchAcceptedOrders();
         toast.success("Order accepted back successfully.");
       } else {
         toast.error("Failed to accept the order back.");
@@ -411,7 +411,7 @@ const RejectedOrders = () => {
                                 >
                                   {franchiseName}
                                 </option>
-                              )
+                              ),
                             )}
                           </select>
                         </div>
@@ -584,7 +584,7 @@ const RejectedOrders = () => {
                         .slice(startIndex, endIndex)
                         .sort(
                           (a, b) =>
-                            new Date(b.orderDate) - new Date(a.orderDate)
+                            new Date(b.orderDate) - new Date(a.orderDate),
                         ) // Sort by date (latest first)
                         .map((order) => (
                           <tr key={order.orderId}>

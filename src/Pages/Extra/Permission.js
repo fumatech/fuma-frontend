@@ -18,7 +18,7 @@ function Permission() {
       // Send POST request to the API
       const response = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/permissions/save`,
-        permission
+        permission,
       );
       toast.success("Permission saved Sucessfully");
       // console.log("Permission saved:", response.data);
@@ -95,7 +95,6 @@ function Permission() {
                       Save
                     </button>
                   </div>
-                  x
                 </form>
               </div>
             </section>

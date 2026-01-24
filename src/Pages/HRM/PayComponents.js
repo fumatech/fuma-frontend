@@ -53,7 +53,7 @@ const PayComponents = () => {
   const fetchPayComponents = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/pay-component/all`
+        `${process.env.REACT_APP_BASE_URL}/pay-component/all`,
       );
       setPayComponents(response.data);
     } catch (error) {
@@ -126,14 +126,14 @@ const PayComponents = () => {
         // ✅ UPDATE
         await axios.put(
           `${process.env.REACT_APP_BASE_URL}/pay-component/${formData.id}`,
-          payload
+          payload,
         );
         toast.success("Pay component updated successfully");
       } else {
         // ✅ ADD
         await axios.post(
           `${process.env.REACT_APP_BASE_URL}/pay-component/add`,
-          payload
+          payload,
         );
         toast.success("Pay component saved successfully");
       }
@@ -153,7 +153,7 @@ const PayComponents = () => {
     if (window.confirm("Are you sure you want to delete this pay component?")) {
       try {
         await axios.delete(
-          `${process.env.REACT_APP_BASE_URL}/pay-component/${id}`
+          `${process.env.REACT_APP_BASE_URL}/pay-component/${id}`,
         );
         fetchPayComponents();
       } catch (error) {
@@ -183,74 +183,70 @@ const PayComponents = () => {
 
   return (
     <>
-      <section className="content">
-        <div className="container-fluid">
-          <div className="card cardHover rounded-4 border-0">
-            <div className="text-right p-3">
-              <button className="btn btn-add" onClick={() => openModal()}>
-                <i className="fas fa-plus"></i> Add
-              </button>
-              <div className="card-body">
-                {/* Table and other components */}
-                <div className="table-responsive">
-                  <table className="table table-bordered table-hover">
-                    <thead>
-                      <tr>
-                        {columnsVisibility.description && <th>Description</th>}
-                        {columnsVisibility.type && <th>Type</th>}
-                        {columnsVisibility.amount && <th>Amount</th>}
-                        {columnsVisibility.applicableDate && (
-                          <th>Applicable Date</th>
-                        )}
-                        {columnsVisibility.employee && <th>Employee</th>}
-                        {columnsVisibility.actions && <th>Action</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {payComponents.map((comp) => (
-                        <tr key={comp.id}>
-                          {columnsVisibility.description && (
-                            <td>{comp.description}</td>
-                          )}
-                          {columnsVisibility.type && <td>{comp.type}</td>}
-                          {columnsVisibility.amount && <td>{comp.amount}</td>}
-                          {columnsVisibility.applicableDate && (
-                            <td>{formatDate(comp.applicableDate)}</td>
-                          )}
-                          <td>
-                            {comp.employeeId && comp.employeeId.length > 0
-                              ? comp.employeeId
-                                  .map((id) => employeeMap[id] || "")
-                                  .join(", ")
-                              : "All"}
-                          </td>
+      <div className="card cardHover rounded-4 border-0">
+        <div className="text-right p-3">
+          <button className="btn btn-add" onClick={() => openModal()}>
+            <i className="fas fa-plus"></i> Add
+          </button>
+          <div className="card-body">
+            {/* Table and other components */}
+            <div className="table-responsive">
+              <table className="table table-bordered table-hover">
+                <thead>
+                  <tr>
+                    {columnsVisibility.description && <th>Description</th>}
+                    {columnsVisibility.type && <th>Type</th>}
+                    {columnsVisibility.amount && <th>Amount</th>}
+                    {columnsVisibility.applicableDate && (
+                      <th>Applicable Date</th>
+                    )}
+                    {columnsVisibility.employee && <th>Employee</th>}
+                    {columnsVisibility.actions && <th>Action</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {payComponents.map((comp) => (
+                    <tr key={comp.id}>
+                      {columnsVisibility.description && (
+                        <td>{comp.description}</td>
+                      )}
+                      {columnsVisibility.type && <td>{comp.type}</td>}
+                      {columnsVisibility.amount && <td>{comp.amount}</td>}
+                      {columnsVisibility.applicableDate && (
+                        <td>{formatDate(comp.applicableDate)}</td>
+                      )}
+                      <td>
+                        {comp.employeeId && comp.employeeId.length > 0
+                          ? comp.employeeId
+                              .map((id) => employeeMap[id] || "")
+                              .join(", ")
+                          : "All"}
+                      </td>
 
-                          {columnsVisibility.actions && (
-                            <td>
-                              <button
-                                onClick={() => openModal(comp)}
-                                className="btn-edit"
-                              >
-                                <i className="fas fa-edit"></i> Edit
-                              </button>
-                              <button
-                                onClick={() => handleDelete(comp.id)}
-                                className="btn-delete"
-                              >
-                                <i className="fas fa-trash"></i> Delete
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                      {columnsVisibility.actions && (
+                        <td>
+                          <button
+                            onClick={() => openModal(comp)}
+                            className="btn-edit"
+                          >
+                            <i className="fas fa-edit"></i> Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(comp.id)}
+                            className="btn-delete"
+                          >
+                            <i className="fas fa-trash"></i> Delete
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Pay Component Modal */}
       {isModalOpen && (
@@ -319,8 +315,8 @@ const PayComponents = () => {
                         onChange={(e) =>
                           setSelectedEmployees(
                             Array.from(e.target.selectedOptions, (opt) =>
-                              Number(opt.value)
-                            )
+                              Number(opt.value),
+                            ),
                           )
                         }
                         required

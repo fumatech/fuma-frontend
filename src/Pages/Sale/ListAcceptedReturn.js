@@ -63,7 +63,7 @@ const ListAcceptedReturn = () => {
     try {
       // Example endpoints — change to actual ones if different
       const methodsResp = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/payment-method/active-names`
+        `${process.env.REACT_APP_BASE_URL}/payment-method/active-names`,
       );
       if (methodsResp.ok) {
         const methods = await methodsResp.json();
@@ -75,7 +75,7 @@ const ListAcceptedReturn = () => {
 
     try {
       const accountsResp = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/payment-account/getall`
+        `${process.env.REACT_APP_BASE_URL}/payment-account/getall`,
       );
       if (accountsResp.ok) {
         const accounts = await accountsResp.json();
@@ -134,7 +134,7 @@ const ListAcceptedReturn = () => {
         "Total ShippedItems": order.totalShippedItems,
         "Additional Notes": order.additionalNotes,
         "Ordered By": order.orderedBy,
-      }))
+      })),
     );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Orders");
@@ -186,7 +186,7 @@ const ListAcceptedReturn = () => {
     const printWindow = window.open("", "", "height=800,width=1200");
     printWindow.document.write("<html><head><title>Print</title>");
     printWindow.document.write(
-      '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">'
+      '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">',
     );
     printWindow.document.write("</head><body>");
     printWindow.document.write($clonedContainer.html());
@@ -250,7 +250,7 @@ const ListAcceptedReturn = () => {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({ status }),
-            }
+            },
           );
           if (response.ok) {
             alert(`Order ${action}ed successfully.`);
@@ -272,7 +272,7 @@ const ListAcceptedReturn = () => {
   const fetchAcceptedOrders = async () => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/franchise-purchase-return/getAcceptedReturns`
+        `${process.env.REACT_APP_BASE_URL}/franchise-purchase-return/getAcceptedReturns`,
       );
       if (!response.ok) throw new Error("Network response was not ok");
 
@@ -324,7 +324,7 @@ const ListAcceptedReturn = () => {
       amount: Number(paymentForm.amount),
       transactionType: paymentForm.type === "refund" ? "Refund" : "credit note",
       note: paymentForm.note,
-      date: dateString, // ✅ date with current time
+      date: dateString,
       vendor: currentOrder.vendor || "",
       addedBy: userEmail,
       franchiseName: currentOrder.customer || "",
@@ -337,7 +337,7 @@ const ListAcceptedReturn = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       if (response.ok) {
@@ -487,7 +487,7 @@ const ListAcceptedReturn = () => {
                       {viewOrders
                         .sort(
                           (a, b) =>
-                            new Date(b.orderDate) - new Date(a.orderDate)
+                            new Date(b.orderDate) - new Date(a.orderDate),
                         ) // Sort by date (latest first)
                         .slice(startIndex, endIndex)
                         .map((order) => (
@@ -554,7 +554,7 @@ const ListAcceptedReturn = () => {
                                         onChange={(e) =>
                                           handlePaymentAction(
                                             e.target.value,
-                                            order
+                                            order,
                                           )
                                         }
                                         defaultValue=""
@@ -596,7 +596,7 @@ const ListAcceptedReturn = () => {
                                         onChange={(e) =>
                                           handlePaymentAction(
                                             e.target.value,
-                                            order
+                                            order,
                                           )
                                         }
                                         defaultValue=""
@@ -616,9 +616,9 @@ const ListAcceptedReturn = () => {
                                 {order.paymentStatus === 0
                                   ? order.netTotalAmount
                                   : order.paymentStatus === 1 ||
-                                    order.paymentStatus === 2
-                                  ? 0
-                                  : ""}
+                                      order.paymentStatus === 2
+                                    ? 0
+                                    : ""}
                               </td>
                             )}
 
@@ -648,10 +648,10 @@ const ListAcceptedReturn = () => {
                     {modalType === "view"
                       ? "View Order"
                       : modalType === "accept"
-                      ? "Accept Order"
-                      : modalType === "payment"
-                      ? "Payment Details"
-                      : "Reject Order"}
+                        ? "Accept Order"
+                        : modalType === "payment"
+                          ? "Payment Details"
+                          : "Reject Order"}
                   </h5>
                   <button
                     type="button"
@@ -700,8 +700,8 @@ const ListAcceptedReturn = () => {
                         {currentOrder.totalAmountWithTax != null
                           ? currentOrder.totalAmountWithTax
                           : currentOrder.netTotalAmount != null
-                          ? currentOrder.netTotalAmount
-                          : ""}
+                            ? currentOrder.netTotalAmount
+                            : ""}
                       </div>
 
                       <div className="mb-3">
@@ -715,7 +715,7 @@ const ListAcceptedReturn = () => {
                                     ? item.unitPrice.toNumber()
                                     : parseFloat(item.unitPrice || 0)) *
                                     (item.quantity || 0),
-                                0
+                                0,
                               )
                               .toFixed(2)
                           : "0.00"}

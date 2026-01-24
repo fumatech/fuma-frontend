@@ -32,6 +32,10 @@ const AllPayrolls = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPayroll, setSelectedPayroll] = useState(null);
+  const [paymentAccounts, setPaymentAccounts] = useState([]);
+  const [businesses, setBusinesses] = useState([]);
 
   const toggleColumn = (col) => {
     setColumnsVisibility((prev) => ({
@@ -47,6 +51,41 @@ const AllPayrolls = () => {
 
   const handleModalToggle = () => {
     setIsModalOpen(!isModalOpen);
+  };
+  const fetchPaymentAccounts = async () => {
+    try {
+      const res = await axios.get(
+        "https://fusionmastertech.com:8443/payment-account/getall",
+      );
+      setPaymentAccounts(res.data);
+    } catch (error) {
+      console.error("Failed to load payment accounts", error);
+    }
+  };
+  const fetchBusinesses = async () => {
+    try {
+      const res = await axios.get(
+        "https://fusionmastertech.com:8443/business-details/getall",
+      );
+      setBusinesses(res.data);
+    } catch (error) {
+      console.error("Failed to load business details", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPaymentAccounts();
+    fetchBusinesses();
+  }, []);
+  const getBusinessName = () => {
+    return businesses.length > 0 ? businesses[0].name : "-";
+  };
+
+  const getAccountDisplay = (accountId) => {
+    const account = paymentAccounts.find((a) => a.id === accountId);
+    if (!account) return "-";
+
+    return `${account.accountName} (${account.accountNumber})`;
   };
 
   const openModal = (payroll = null) => {
@@ -83,14 +122,14 @@ const AllPayrolls = () => {
   };
 
   const filteredEmployees = allEmployees.filter((emp) =>
-    `${emp.firstname} ${emp.lastname}`.toLowerCase().includes(searchTerm)
+    `${emp.firstname} ${emp.lastname}`.toLowerCase().includes(searchTerm),
   );
 
   const handleEmployeeSelect = (employeeId) => {
     setSelectedEmployees((prev) =>
       prev.includes(employeeId)
         ? prev.filter((id) => id !== employeeId)
-        : [...prev, employeeId]
+        : [...prev, employeeId],
     );
   };
 
@@ -106,7 +145,7 @@ const AllPayrolls = () => {
   const fetchEmployees = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/user/getall`
+        `${process.env.REACT_APP_BASE_URL}/user/getall`,
       );
       setAllEmployees(response.data);
     } catch (error) {
@@ -117,13 +156,33 @@ const AllPayrolls = () => {
   const fetchPayrolls = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/payroll/employee-wise`
+        `${process.env.REACT_APP_BASE_URL}/payroll/employee-wise`,
       );
-      console.log(response);
 
-      setPayrollData(response.data);
+      const formatted = response.data.map((payroll) => {
+        // Total transactions for this employee
+        const totalPaid = (payroll.transactions || []).reduce(
+          (sum, t) => sum + Number(t.amount || 0),
+          0,
+        );
+
+        // Determine payment status
+        let paymentStatus = "Due";
+        if (totalPaid >= payroll.total) {
+          paymentStatus = "Paid";
+        }
+
+        return {
+          ...payroll,
+          totalPaid,
+          paymentStatus,
+        };
+      });
+
+      setPayrollData(formatted);
     } catch (error) {
       console.error("Error fetching payrolls:", error);
+      toast.error("Failed to fetch payrolls");
     }
   };
 
@@ -148,7 +207,7 @@ const AllPayrolls = () => {
       }));
 
     const selectedLocation = locations.find(
-      (loc) => loc.id === Number(formData.location)
+      (loc) => loc.id === Number(formData.location),
     );
 
     const payrollPayload = {
@@ -156,7 +215,7 @@ const AllPayrolls = () => {
       locationName: selectedLocation?.name,
       monthYear: formData.monthYear,
       payrollGroupName: `Payroll for ${new Date(
-        formData.monthYear
+        formData.monthYear,
       ).toLocaleString("default", {
         month: "long",
         year: "numeric",
@@ -171,7 +230,7 @@ const AllPayrolls = () => {
     if (window.confirm("Are you sure you want to delete this payroll?")) {
       try {
         await axios.delete(
-          `${process.env.REACT_APP_BASE_URL}/payroll/delete/${id}`
+          `${process.env.REACT_APP_BASE_URL}/payroll/delete/${id}`,
         );
         fetchPayrolls();
       } catch (error) {
@@ -191,7 +250,7 @@ const AllPayrolls = () => {
   const fetchBusinessLocations = async () => {
     try {
       const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/business-locations/getall`
+        `${process.env.REACT_APP_BASE_URL}/business-locations/getall`,
       );
       setLocations(res.data);
     } catch (error) {
@@ -201,7 +260,7 @@ const AllPayrolls = () => {
   const fetchDepartments = async () => {
     try {
       const response = await axios.get(
-        "https://fusionmastertech.com:8443/department/getall"
+        "https://fusionmastertech.com:8443/department/getall",
       );
       setDepartments(response.data);
     } catch (error) {
@@ -212,7 +271,7 @@ const AllPayrolls = () => {
   const fetchDesignations = async () => {
     try {
       const response = await axios.get(
-        "https://fusionmastertech.com:8443/designation/getall"
+        "https://fusionmastertech.com:8443/designation/getall",
       );
       setDesignations(response.data);
     } catch (error) {
@@ -235,6 +294,10 @@ const AllPayrolls = () => {
     const employee = allEmployees.find((emp) => emp.id === id);
     return employee ? `${employee.firstname} ${employee.lastname}` : "Unknown";
   };
+  const getEmployeeEmail = (id) => {
+    const employee = allEmployees.find((emp) => emp.id === id);
+    return employee ? employee.email : "Unknown";
+  };
   const getDepartmentName = (departmentId) => {
     const dept = departments.find((d) => d.id === departmentId);
     return dept ? dept.department : "-";
@@ -252,216 +315,232 @@ const AllPayrolls = () => {
 
   return (
     <>
-      <section className="content">
-        <div className="container-fluid">
-          <div className="card cardHover rounded-4 border-0">
-            <div className="text-right p-3">
-              <button className="btn btn-add" onClick={() => openModal()}>
-                <i className="fas fa-plus"></i> Add
-              </button>
-              <div className="card-body">
-                {/* Table */}
-                <div className="row mb-3 d-flex align-items-center">
-                  <div className="col-12 col-md-auto form-group mb-2 d-flex align-items-center text-bold mt-2 mb-2 mr-2">
-                    <label htmlFor="entriesPerPage" className="mb-0 mr-2">
-                      Show
-                    </label>
-                    <select
-                      id="entriesPerPage"
-                      className="form-control form-control-sm mr-2"
-                    >
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                      <option value={75}>75</option>
-                      <option value={100}>100</option>
-                    </select>
-                    Entries
-                  </div>
+      <div className="card cardHover rounded-4 border-0">
+        <div className="text-right p-3">
+          <button className="btn btn-add" onClick={() => openModal()}>
+            <i className="fas fa-plus"></i> Add
+          </button>
+          <div className="card-body">
+            {/* Table */}
+            <div className="row mb-3 d-flex align-items-center">
+              <div className="col-12 col-md-auto form-group mb-2 d-flex align-items-center text-bold mt-2 mb-2 mr-2">
+                <label htmlFor="entriesPerPage" className="mb-0 mr-2">
+                  Show
+                </label>
+                <select
+                  id="entriesPerPage"
+                  className="form-control form-control-sm mr-2"
+                >
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={75}>75</option>
+                  <option value={100}>100</option>
+                </select>
+                Entries
+              </div>
 
-                  <div className="col d-flex flex-wrap align-items-center">
-                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                      <i className="fa fa-file-csv"></i> Export CSV
-                    </button>
-                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                      <i className="fa fa-file-excel"></i> Export Excel
-                    </button>
-                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                      <i className="fa fa-print"></i> Print
-                    </button>
-                    <button className="btn Export-Btn mt-2 mb-2 mr-2">
-                      <i className="fa fa-file-pdf"></i> Export PDF
-                    </button>
-                    <div className="dropdown mt-lg-2 mb-lg-2">
-                      <button
-                        className="btn Export-Btn dropdown-toggle"
-                        type="button"
-                        id="dropdownMenuButton"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                      >
-                        <i className="fa fa-columns"></i> Column Visibility
-                      </button>
+              <div className="col d-flex flex-wrap align-items-center">
+                <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                  <i className="fa fa-file-csv"></i> Export CSV
+                </button>
+                <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                  <i className="fa fa-file-excel"></i> Export Excel
+                </button>
+                <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                  <i className="fa fa-print"></i> Print
+                </button>
+                <button className="btn Export-Btn mt-2 mb-2 mr-2">
+                  <i className="fa fa-file-pdf"></i> Export PDF
+                </button>
+                <div className="dropdown mt-lg-2 mb-lg-2">
+                  <button
+                    className="btn Export-Btn dropdown-toggle"
+                    type="button"
+                    id="dropdownMenuButton"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                  >
+                    <i className="fa fa-columns"></i> Column Visibility
+                  </button>
+                  <div
+                    className="dropdown-menu"
+                    aria-labelledby="dropdownMenuButton"
+                  >
+                    {Object.keys(columnsVisibility).map((col) => (
                       <div
-                        className="dropdown-menu"
-                        aria-labelledby="dropdownMenuButton"
+                        key={col}
+                        className="dropdown-item d-flex align-items-center"
                       >
-                        {Object.keys(columnsVisibility).map((col) => (
-                          <div
-                            key={col}
-                            className="dropdown-item d-flex align-items-center"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={columnsVisibility[col]}
-                              onChange={() => toggleColumn(col)}
-                              className="mr-2"
-                            />
-                            <span
-                              className="btn border-0 bg-transparent p-0 m-0"
-                              onClick={(e) => handleDropdownItemClick(col, e)}
-                            >
-                              {col.replace(/([A-Z])/g, " $1").toUpperCase()}
-                            </span>
-                          </div>
-                        ))}
+                        <input
+                          type="checkbox"
+                          checked={columnsVisibility[col]}
+                          onChange={() => toggleColumn(col)}
+                          className="mr-2"
+                        />
+                        <span
+                          className="btn border-0 bg-transparent p-0 m-0"
+                          onClick={(e) => handleDropdownItemClick(col, e)}
+                        >
+                          {col.replace(/([A-Z])/g, " $1").toUpperCase()}
+                        </span>
                       </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
+              </div>
+            </div>
 
-                <div id="table-container" style={{ overflowX: "auto" }}>
-                  <table
-                    className="table table-bordered table-hover"
-                    id="example1"
-                  >
-                    <thead>
-                      <tr role="row">
+            <div id="table-container" style={{ overflowX: "auto" }}>
+              <table className="table table-bordered table-hover" id="example1">
+                <thead>
+                  <tr role="row">
+                    {columnsVisibility.employee && (
+                      <th className="sorting_asc">Employee</th>
+                    )}
+                    {columnsVisibility.department && (
+                      <th className="sorting">Department</th>
+                    )}
+                    {columnsVisibility.designation && (
+                      <th className="sorting">Designation</th>
+                    )}
+                    {columnsVisibility.monthYear && (
+                      <th className="sorting">Month/Year</th>
+                    )}
+                    {columnsVisibility.referenceNo && (
+                      <th className="sorting">Reference No</th>
+                    )}
+                    {columnsVisibility.totalAmount && (
+                      <th className="sorting">Total Amount</th>
+                    )}
+                    {columnsVisibility.paymentStatus && (
+                      <th className="sorting_disabled">Payment Status</th>
+                    )}
+                    {columnsVisibility.actions && (
+                      <th className="sorting">Action</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {payrollData.length > 0 ? (
+                    payrollData.map((payroll, index) => (
+                      <tr key={`${payroll.payrollId}-${payroll.employeeId}`}>
                         {columnsVisibility.employee && (
-                          <th className="sorting_asc">Employee</th>
+                          <td>{getEmployeeName(payroll.employeeId)}</td>
                         )}
                         {columnsVisibility.department && (
-                          <th className="sorting">Department</th>
+                          <td>
+                            {getDepartmentName(
+                              allEmployees.find(
+                                (emp) => emp.id === payroll.employeeId,
+                              )?.departmentId,
+                            )}
+                          </td>
                         )}
                         {columnsVisibility.designation && (
-                          <th className="sorting">Designation</th>
+                          <td>
+                            {getDesignationName(
+                              allEmployees.find(
+                                (emp) => emp.id === payroll.employeeId,
+                              )?.designationId,
+                            )}
+                          </td>
                         )}
+
                         {columnsVisibility.monthYear && (
-                          <th className="sorting">Month/Year</th>
+                          <td>
+                            {new Date(
+                              payroll.year,
+                              payroll.month - 1,
+                            ).toLocaleString("default", {
+                              month: "long",
+                              year: "numeric",
+                            })}
+                          </td>
                         )}
                         {columnsVisibility.referenceNo && (
-                          <th className="sorting">Reference No</th>
+                          <td>{getReferenceNo(payroll)}</td>
                         )}
+
                         {columnsVisibility.totalAmount && (
-                          <th className="sorting">Total Amount</th>
+                          <td>{payroll.total.toFixed(2)}</td>
                         )}
                         {columnsVisibility.paymentStatus && (
-                          <th className="sorting_disabled">Payment Status</th>
+                          <td>
+                            <span
+                              className={`badge cursor-pointer ${
+                                payroll.paymentStatus === "Paid"
+                                  ? "bg-success"
+                                  : "bg-warning text-dark"
+                              }`}
+                              style={{ cursor: "pointer" }}
+                              onClick={() => {
+                                setSelectedPayroll(payroll);
+                                setShowPaymentModal(true);
+                              }}
+                            >
+                              {payroll.paymentStatus}
+                            </span>
+
+                            <small className="d-block text-muted">
+                              ₹{payroll.totalPaid.toFixed(2)} / ₹
+                              {payroll.total.toFixed(2)}
+                            </small>
+                          </td>
                         )}
+
                         {columnsVisibility.actions && (
-                          <th className="sorting">Action</th>
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {payrollData.length > 0 ? (
-                        payrollData.map((payroll, index) => (
-                          <tr
-                            key={`${payroll.payrollId}-${payroll.employeeId}`}
-                          >
-                            {columnsVisibility.employee && (
-                              <td>{getEmployeeName(payroll.employeeId)}</td>
-                            )}
-                            {columnsVisibility.department && (
-                              <td>
-                                {getDepartmentName(
-                                  allEmployees.find(
-                                    (emp) => emp.id === payroll.employeeId
-                                  )?.departmentId
-                                )}
-                              </td>
-                            )}
-                            {columnsVisibility.designation && (
-                              <td>
-                                {getDesignationName(
-                                  allEmployees.find(
-                                    (emp) => emp.id === payroll.employeeId
-                                  )?.designationId
-                                )}
-                              </td>
-                            )}
+                          <td className="text-center">
+                            <div className="dropdown">
+                              <button
+                                className="btn btn-sm btn-secondary dropdown-toggle"
+                                type="button"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                              >
+                                Actions
+                              </button>
 
-                            {columnsVisibility.monthYear && (
-                              <td>
-                                {new Date(
-                                  payroll.year,
-                                  payroll.month - 1
-                                ).toLocaleString("default", {
-                                  month: "long",
-                                  year: "numeric",
-                                })}
-                              </td>
-                            )}
-                            {columnsVisibility.referenceNo && (
-                              <td>{getReferenceNo(payroll)}</td>
-                            )}
-
-                            {columnsVisibility.totalAmount && (
-                              <td>{payroll.total.toFixed(2)}</td>
-                            )}
-                            {columnsVisibility.paymentStatus && (
-                              <td>
-                                <span
-                                  className={`badge ${
-                                    payroll.paymentStatus === 1
-                                      ? "bg-success"
-                                      : "bg-warning text-dark"
-                                  }`}
-                                >
-                                  {payroll.paymentStatus === 1 ? "Paid" : "Due"}
-                                </span>
-                              </td>
-                            )}
-                            {columnsVisibility.actions && (
-                              <td className="text-center">
+                              <div className="dropdown-menu dropdown-menu-right">
                                 <button
-                                  type="button"
-                                  className="btn btn-sm btn-info"
+                                  className="dropdown-item"
                                   onClick={() =>
                                     navigate("/payroll/view", {
                                       state: {
                                         payroll,
                                         employee: allEmployees.find(
-                                          (emp) => emp.id === payroll.employeeId
+                                          (emp) =>
+                                            emp.id === payroll.employeeId,
                                         ),
                                       },
                                     })
                                   }
                                 >
-                                  View
+                                  <i className="fas fa-eye mr-2"></i> View
                                 </button>
-                              </td>
-                            )}
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan={Object.keys(columnsVisibility).length}
-                            className="text-center"
-                          >
-                            No payroll data found
+                              </div>
+                            </div>
                           </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                        )}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={Object.keys(columnsVisibility).length}
+                        className="text-center"
+                      >
+                        No payroll data found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
       {isModalOpen && (
         <>
@@ -561,7 +640,7 @@ const AllPayrolls = () => {
                                 type="checkbox"
                                 id={`emp-${employee.id}`}
                                 checked={selectedEmployees.includes(
-                                  employee.id
+                                  employee.id,
                                 )}
                                 onChange={() =>
                                   handleEmployeeSelect(employee.id)
@@ -624,6 +703,129 @@ const AllPayrolls = () => {
                     </div>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+      {showPaymentModal && selectedPayroll && (
+        <>
+          <div
+            className="modal fade show"
+            style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
+            onClick={() => setShowPaymentModal(false)}
+          ></div>
+
+          <div className="modal fade show" style={{ display: "block" }}>
+            <div className="modal-dialog modal-lg modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header bg-primary text-white">
+                  <h5 className="modal-title">Payroll Payment</h5>
+                  <button
+                    type="button"
+                    className="close text-white"
+                    onClick={() => setShowPaymentModal(false)}
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                <div className="modal-body">
+                  {/* Payroll Info */}
+                  <div className="mb-3">
+                    <div className="row mb-2">
+                      <div className="col-md-6">
+                        <strong>Payroll For:</strong>{" "}
+                        {getEmployeeName(selectedPayroll.employeeId)}
+                      </div>
+                      <div className="col-md-6">
+                        <strong>Email:</strong>{" "}
+                        {getEmployeeEmail(selectedPayroll.employeeId)}
+                      </div>
+                    </div>
+
+                    <div className="row mb-2">
+                      <div className="col-md-6">
+                        <strong>Business:</strong> {getBusinessName()}
+                      </div>
+
+                      <div className="col-md-6">
+                        <strong>Reference No:</strong>{" "}
+                        {getReferenceNo(selectedPayroll)}
+                      </div>
+                    </div>
+
+                    <div className="row mb-2">
+                      <div className="col-md-6">
+                        <strong>Month/Year:</strong>{" "}
+                        {new Date(
+                          selectedPayroll.year,
+                          selectedPayroll.month - 1,
+                        ).toLocaleString("default", {
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </div>
+
+                      <div className="col-md-6">
+                        <strong>Payment Status:</strong>{" "}
+                        <span
+                          className={`badge ${
+                            selectedPayroll.paymentStatus === "Paid"
+                              ? "bg-success"
+                              : "bg-warning text-dark"
+                          }`}
+                        >
+                          {selectedPayroll.paymentStatus}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Transactions Table */}
+                  <table className="table table-bordered">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Transaction No</th>
+                        <th>Amount</th>
+                        <th>Payment Method</th>
+                        <th>Payment Note</th>
+                        <th>Payment Account</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedPayroll.transactions &&
+                      selectedPayroll.transactions.length > 0 ? (
+                        selectedPayroll.transactions.map((txn) => (
+                          <tr key={txn.transactionId}>
+                            <td>{txn.date.split("T")[0]}</td>
+                            <td>{txn.transactionId}</td>
+                            <td>₹{txn.amount.toFixed(2)}</td>
+                            <td>{txn.paymentMethod}</td>
+                            <td>{txn.note || "-"}</td>
+                            <td>{getAccountDisplay(txn.accountId)}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="6" className="text-center text-muted">
+                            No records found
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="modal-footer">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowPaymentModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>

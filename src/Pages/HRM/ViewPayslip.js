@@ -19,15 +19,16 @@ const ViewPayslip = () => {
     fetchCompanyLogo();
     fetchSignatureImage();
   }, []);
+
   const fetchSignatureImage = async () => {
     try {
       const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/signature-image/get-all`
+        `${process.env.REACT_APP_BASE_URL}/signature-image/get-all`,
       );
 
       if (res.data && res.data.length > 0) {
         const images = res.data.filter(
-          (f) => f.image && /\.(jpg|jpeg|png|gif|jfif)$/i.test(f.image)
+          (f) => f.image && /\.(jpg|jpeg|png|gif|jfif)$/i.test(f.image),
         );
 
         if (images.length > 0) {
@@ -47,19 +48,19 @@ const ViewPayslip = () => {
   const fetchCompanyLogo = async () => {
     try {
       const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/file/get-all`
+        `${process.env.REACT_APP_BASE_URL}/file/get-all`,
       );
 
       if (res.data && res.data.length > 0) {
         // Take last uploaded image
         const images = res.data.filter(
-          (f) => f.image && /\.(jpg|jpeg|png|gif|jfif)$/i.test(f.image)
+          (f) => f.image && /\.(jpg|jpeg|png|gif|jfif)$/i.test(f.image),
         );
 
         if (images.length > 0) {
           const latestImage = images[images.length - 1];
           setCompanyLogo(
-            `${process.env.REACT_APP_BASE_URL}${latestImage.image}`
+            `${process.env.REACT_APP_BASE_URL}${latestImage.image}`,
           );
         }
       }
@@ -71,7 +72,7 @@ const ViewPayslip = () => {
   const fetchDepartments = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/department/getall`
+        `${process.env.REACT_APP_BASE_URL}/department/getall`,
       );
       setDepartments(response.data);
     } catch (error) {
@@ -82,7 +83,7 @@ const ViewPayslip = () => {
   const fetchDesignations = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/designation/getall`
+        `${process.env.REACT_APP_BASE_URL}/designation/getall`,
       );
       setDesignations(response.data);
     } catch (error) {
@@ -107,17 +108,31 @@ const ViewPayslip = () => {
     {
       month: "long",
       year: "numeric",
-    }
+    },
   );
 
   const totalEarnings = payroll.earnings.reduce((sum, e) => sum + e.amount, 0);
-  const netpay = payroll.total;
   const totalDeductions = payroll.deductions.reduce(
     (sum, d) => sum + d.amount,
-    0
+    0,
   );
   const referenceNo = `PAY-${payroll.payrollId}-${payroll.month}${payroll.year}`;
-  const paymentStatus = payroll.status === 1 ? "Paid" : "Due";
+  // Total paid from transactions
+  const totalPaid = (payroll.transactions || []).reduce(
+    (sum, t) => sum + Number(t.amount || 0),
+    0,
+  );
+
+  // Determine payment status
+  let paymentStatus = "Due";
+  if (totalPaid >= payroll.total) {
+    paymentStatus = "Paid";
+  } else if (totalPaid > 0 && totalPaid < payroll.total) {
+    paymentStatus = "Partial";
+  }
+
+  // Net pay that should be shown (remaining due if partial)
+  const netpay = totalPaid; // or use payroll.total for full net salary
 
   const handlePrint = () => {
     window.print();
@@ -192,11 +207,17 @@ const ViewPayslip = () => {
                   className={`badge ${
                     paymentStatus === "Paid"
                       ? "bg-success"
-                      : "bg-warning text-dark"
+                      : paymentStatus === "Partial"
+                        ? "bg-info text-white"
+                        : "bg-warning text-dark"
                   }`}
                 >
                   {paymentStatus}
                 </span>
+                <small className="d-block text-muted">
+                  Paid: ₹{totalPaid.toFixed(2)} / Total: ₹
+                  {payroll.total.toFixed(2)}
+                </small>
               </div>
             </div>
 

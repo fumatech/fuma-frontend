@@ -49,7 +49,7 @@ const EditPayrolls = () => {
   const fetchBusinessLocations = async () => {
     try {
       const res = await axios.get(
-        "https://fusionmastertech.com:8443/business-locations/getall"
+        "https://fusionmastertech.com:8443/business-locations/getall",
       );
       setBusinessLocations(res.data || []);
     } catch (error) {
@@ -61,7 +61,7 @@ const EditPayrolls = () => {
     if (!locationId) return "All locations";
 
     const location = businessLocations.find(
-      (loc) => Number(loc.id) === Number(locationId)
+      (loc) => Number(loc.id) === Number(locationId),
     );
 
     return location ? location.name : "Unknown location";
@@ -70,7 +70,7 @@ const EditPayrolls = () => {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/payroll/full/${id}`
+        `${process.env.REACT_APP_BASE_URL}/payroll/full/${id}`,
       );
 
       const payroll = response.data;
@@ -129,7 +129,7 @@ const EditPayrolls = () => {
             essentials_duration: String(employee.workDuration || "1"),
             essentials_duration_unit: employee.unit === 1 ? "Day" : "Month",
             essentials_amount_per_unit_duration: String(
-              employee.amountPerUnit || "0"
+              employee.amountPerUnit || "0",
             ),
             total: String(employee.basic || "0"),
             allowances: allowances,
@@ -166,7 +166,7 @@ const EditPayrolls = () => {
   const fetchLocationName = async (locationId) => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/business-locations/${locationId}`
+        `${process.env.REACT_APP_BASE_URL}/business-locations/${locationId}`,
       );
       setPayrollData((prev) => ({
         ...prev,
@@ -343,7 +343,7 @@ const EditPayrolls = () => {
           workDuration: Number(payroll.essentials_duration || 0),
           unit: 1,
           amountPerUnit: Number(
-            payroll.essentials_amount_per_unit_duration || 0
+            payroll.essentials_amount_per_unit_duration || 0,
           ),
           basic: Number(payroll.total || 0),
           total: Number(calculateGrossAmount(id)),
@@ -362,7 +362,7 @@ const EditPayrolls = () => {
               amountType: d.type === "fixed" ? "Fixed" : "Percentage",
               amount: Number(d.amount),
             })),
-        })
+        }),
       );
 
       const formatMonthYearForBackend = (monthYear) => {
@@ -378,15 +378,15 @@ const EditPayrolls = () => {
         monthYear: formatMonthYearForBackend(payrollData.monthYear),
         status: payrollData.payroll_group_status === "final" ? 1 : 0,
         addedBy: userName,
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         employeePayrolls,
       };
 
       console.log("UPDATE PAYROLL PAYLOAD 👉", payload);
 
-      await axios.put(
+      await axios.post(
         `${process.env.REACT_APP_BASE_URL}/payroll/save`,
-        payload
+        payload,
       );
 
       toast.success("Payroll updated successfully!");
@@ -397,7 +397,7 @@ const EditPayrolls = () => {
       console.error("Error updating payroll:", err);
       setError(
         err.response?.data?.message ||
-          "Failed to update payroll. Please try again."
+          "Failed to update payroll. Please try again.",
       );
       toast.error("Failed to update payroll");
     } finally {
@@ -460,7 +460,7 @@ const EditPayrolls = () => {
                                   <strong>
                                     {payrollData.monthYear
                                       ? new Date(
-                                          payrollData.monthYear + "-01"
+                                          payrollData.monthYear + "-01",
                                         ).toLocaleString("default", {
                                           month: "long",
                                           year: "numeric",
@@ -609,7 +609,7 @@ const EditPayrolls = () => {
                                                     handlePayrollInputChange(
                                                       id,
                                                       "essentials_duration",
-                                                      e.target.value
+                                                      e.target.value,
                                                     )
                                                   }
                                                 />
@@ -634,7 +634,7 @@ const EditPayrolls = () => {
                                                     handlePayrollInputChange(
                                                       id,
                                                       "essentials_duration_unit",
-                                                      e.target.value
+                                                      e.target.value,
                                                     )
                                                   }
                                                 />
@@ -661,7 +661,7 @@ const EditPayrolls = () => {
                                                     handlePayrollInputChange(
                                                       id,
                                                       "essentials_amount_per_unit_duration",
-                                                      e.target.value
+                                                      e.target.value,
                                                     )
                                                   }
                                                 />
@@ -683,7 +683,7 @@ const EditPayrolls = () => {
                                                     handlePayrollInputChange(
                                                       id,
                                                       "total",
-                                                      e.target.value
+                                                      e.target.value,
                                                     )
                                                   }
                                                 />
@@ -719,7 +719,7 @@ const EditPayrolls = () => {
                                                           {payroll.allowances.map(
                                                             (
                                                               allowance,
-                                                              index
+                                                              index,
                                                             ) => (
                                                               <tr key={index}>
                                                                 <td>
@@ -730,14 +730,14 @@ const EditPayrolls = () => {
                                                                       allowance.name
                                                                     }
                                                                     onChange={(
-                                                                      e
+                                                                      e,
                                                                     ) =>
                                                                       handleAllowanceChange(
                                                                         id,
                                                                         index,
                                                                         "name",
                                                                         e.target
-                                                                          .value
+                                                                          .value,
                                                                       )
                                                                     }
                                                                   />
@@ -750,14 +750,14 @@ const EditPayrolls = () => {
                                                                       allowance.type
                                                                     }
                                                                     onChange={(
-                                                                      e
+                                                                      e,
                                                                     ) =>
                                                                       handleAllowanceChange(
                                                                         id,
                                                                         index,
                                                                         "type",
                                                                         e.target
-                                                                          .value
+                                                                          .value,
                                                                       )
                                                                     }
                                                                   >
@@ -779,7 +779,7 @@ const EditPayrolls = () => {
                                                                           allowance.percent
                                                                         }
                                                                         onChange={(
-                                                                          e
+                                                                          e,
                                                                         ) =>
                                                                           handleAllowanceChange(
                                                                             id,
@@ -787,7 +787,7 @@ const EditPayrolls = () => {
                                                                             "percent",
                                                                             e
                                                                               .target
-                                                                              .value
+                                                                              .value,
                                                                           )
                                                                         }
                                                                       />
@@ -805,14 +805,14 @@ const EditPayrolls = () => {
                                                                       allowance.amount
                                                                     }
                                                                     onChange={(
-                                                                      e
+                                                                      e,
                                                                     ) =>
                                                                       handleAllowanceChange(
                                                                         id,
                                                                         index,
                                                                         "amount",
                                                                         e.target
-                                                                          .value
+                                                                          .value,
                                                                       )
                                                                     }
                                                                   />
@@ -825,7 +825,7 @@ const EditPayrolls = () => {
                                                                       className="btn btn-outline-primary btn-xs add_allowance"
                                                                       onClick={() =>
                                                                         addAllowanceRow(
-                                                                          id
+                                                                          id,
                                                                         )
                                                                       }
                                                                     >
@@ -839,7 +839,7 @@ const EditPayrolls = () => {
                                                                         removeRow(
                                                                           id,
                                                                           "allowance",
-                                                                          index
+                                                                          index,
                                                                         )
                                                                       }
                                                                     >
@@ -848,7 +848,7 @@ const EditPayrolls = () => {
                                                                   )}
                                                                 </td>
                                                               </tr>
-                                                            )
+                                                            ),
                                                           )}
                                                         </tbody>
                                                         <tfoot>
@@ -863,8 +863,8 @@ const EditPayrolls = () => {
                                                               >
                                                                 {formatCurrency(
                                                                   calculateTotalAllowances(
-                                                                    id
-                                                                  )
+                                                                    id,
+                                                                  ),
                                                                 )}
                                                               </span>
                                                             </td>
@@ -907,7 +907,7 @@ const EditPayrolls = () => {
                                                           {payroll.deductions.map(
                                                             (
                                                               deduction,
-                                                              index
+                                                              index,
                                                             ) => (
                                                               <tr key={index}>
                                                                 <td>
@@ -918,14 +918,14 @@ const EditPayrolls = () => {
                                                                       deduction.name
                                                                     }
                                                                     onChange={(
-                                                                      e
+                                                                      e,
                                                                     ) =>
                                                                       handleDeductionChange(
                                                                         id,
                                                                         index,
                                                                         "name",
                                                                         e.target
-                                                                          .value
+                                                                          .value,
                                                                       )
                                                                     }
                                                                   />
@@ -938,14 +938,14 @@ const EditPayrolls = () => {
                                                                       deduction.type
                                                                     }
                                                                     onChange={(
-                                                                      e
+                                                                      e,
                                                                     ) =>
                                                                       handleDeductionChange(
                                                                         id,
                                                                         index,
                                                                         "type",
                                                                         e.target
-                                                                          .value
+                                                                          .value,
                                                                       )
                                                                     }
                                                                   >
@@ -967,7 +967,7 @@ const EditPayrolls = () => {
                                                                           deduction.percent
                                                                         }
                                                                         onChange={(
-                                                                          e
+                                                                          e,
                                                                         ) =>
                                                                           handleDeductionChange(
                                                                             id,
@@ -975,7 +975,7 @@ const EditPayrolls = () => {
                                                                             "percent",
                                                                             e
                                                                               .target
-                                                                              .value
+                                                                              .value,
                                                                           )
                                                                         }
                                                                       />
@@ -993,14 +993,14 @@ const EditPayrolls = () => {
                                                                       deduction.amount
                                                                     }
                                                                     onChange={(
-                                                                      e
+                                                                      e,
                                                                     ) =>
                                                                       handleDeductionChange(
                                                                         id,
                                                                         index,
                                                                         "amount",
                                                                         e.target
-                                                                          .value
+                                                                          .value,
                                                                       )
                                                                     }
                                                                   />
@@ -1013,7 +1013,7 @@ const EditPayrolls = () => {
                                                                       className="btn btn-outline-primary btn-xs add_deduction"
                                                                       onClick={() =>
                                                                         addDeductionRow(
-                                                                          id
+                                                                          id,
                                                                         )
                                                                       }
                                                                     >
@@ -1027,7 +1027,7 @@ const EditPayrolls = () => {
                                                                         removeRow(
                                                                           id,
                                                                           "deduction",
-                                                                          index
+                                                                          index,
                                                                         )
                                                                       }
                                                                     >
@@ -1036,7 +1036,7 @@ const EditPayrolls = () => {
                                                                   )}
                                                                 </td>
                                                               </tr>
-                                                            )
+                                                            ),
                                                           )}
                                                         </tbody>
                                                         <tfoot>
@@ -1051,8 +1051,8 @@ const EditPayrolls = () => {
                                                               >
                                                                 {formatCurrency(
                                                                   calculateTotalDeductions(
-                                                                    id
-                                                                  )
+                                                                    id,
+                                                                  ),
                                                                 )}
                                                               </span>
                                                             </td>
@@ -1071,7 +1071,7 @@ const EditPayrolls = () => {
                                                   id={`gross_amount_text_${id}`}
                                                 >
                                                   {formatCurrency(
-                                                    calculateGrossAmount(id)
+                                                    calculateGrossAmount(id),
                                                   )}
                                                 </span>
                                               </strong>
@@ -1102,7 +1102,7 @@ const EditPayrolls = () => {
                                                     handlePayrollInputChange(
                                                       id,
                                                       "staff_note",
-                                                      e.target.value
+                                                      e.target.value,
                                                     )
                                                   }
                                                 ></textarea>
@@ -1111,7 +1111,7 @@ const EditPayrolls = () => {
                                           </tr>
                                         </React.Fragment>
                                       );
-                                    }
+                                    },
                                   )}
                                 </tbody>
                               </table>

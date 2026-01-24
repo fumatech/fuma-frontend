@@ -30,7 +30,7 @@ const ViewPayrollGroups = () => {
   const fetchBusinessLocations = async () => {
     try {
       const res = await axios.get(
-        "https://fusionmastertech.com:8443/business-locations/getall"
+        "https://fusionmastertech.com:8443/business-locations/getall",
       );
       setBusinessLocations(res.data || []);
     } catch (error) {
@@ -42,7 +42,7 @@ const ViewPayrollGroups = () => {
     if (!locationId) return "All locations";
 
     const location = businessLocations.find(
-      (loc) => Number(loc.id) === Number(locationId)
+      (loc) => Number(loc.id) === Number(locationId),
     );
 
     return location ? location.name : "Unknown location";
@@ -51,7 +51,7 @@ const ViewPayrollGroups = () => {
   const fetchUsers = async () => {
     try {
       const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/user/getall`
+        `${process.env.REACT_APP_BASE_URL}/user/getall`,
       );
       setUsers(res.data || []);
     } catch (error) {
@@ -75,7 +75,7 @@ const ViewPayrollGroups = () => {
       setLoading(true);
 
       const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/payroll/full/${payrollId}`
+        `${process.env.REACT_APP_BASE_URL}/payroll/full/${payrollId}`,
       );
 
       const payrollData = res.data;
@@ -83,7 +83,7 @@ const ViewPayrollGroups = () => {
       const totalGrossAmount =
         payrollData.employees?.reduce(
           (sum, employee) => sum + (employee.total || 0),
-          0
+          0,
         ) || 0;
 
       // 🔥 JOIN employees with users
@@ -132,11 +132,11 @@ const ViewPayrollGroups = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: "USD",
+      currency: "INR",
       minimumFractionDigits: 2,
-    }).format(amount);
+    }).format(amount || 0);
   };
 
   const getMonthName = (monthNumber) => {
@@ -179,10 +179,7 @@ const ViewPayrollGroups = () => {
           <div className="alert alert-danger">
             Payroll not found. Please go back to the list.
           </div>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate("/payroll")}
-          >
+          <button className="btn btn-primary" onClick={() => navigate(-1)}>
             Back to Payroll List
           </button>
         </div>
@@ -201,7 +198,7 @@ const ViewPayrollGroups = () => {
                   <h1 className="h3 mb-0 text-primary">View payroll group</h1>
                   <button
                     className="btn btn-outline-secondary"
-                    onClick={() => navigate("/payroll")}
+                    onClick={() => navigate(-1)}
                   >
                     <i className="fas fa-arrow-left mr-2"></i> Back to List
                   </button>
@@ -366,7 +363,7 @@ const ViewPayrollGroups = () => {
                               <td>
                                 {(() => {
                                   const paidAmount = getPaidAmount(
-                                    employee.transactions
+                                    employee.transactions,
                                   );
                                   const isPaid =
                                     paidAmount >= (employee.total || 0);
@@ -386,7 +383,7 @@ const ViewPayrollGroups = () => {
                                       <div className="small text-muted mt-1">
                                         Paid: {formatCurrency(paidAmount)}{" "}
                                         <br />
-                                        Gross:{" "}
+                                        Total:{" "}
                                         {formatCurrency(employee.total || 0)}
                                       </div>
                                     </>
