@@ -51,6 +51,19 @@ const BusinessCategory = () => {
         setFilteredCategories(sorted);
       })
       .catch(console.error);
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
+    // Cleanup function
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
 
   // ================= FILTER VALUES =================
@@ -192,7 +205,7 @@ const BusinessCategory = () => {
             </div>
 
             <div id="table-container">
-              <table className="table table-bordered table-hover">
+              <table id="example1" className="table table-bordered table-hover">
                 <thead>
                   <tr>
                     <th>Business Category</th>

@@ -84,6 +84,12 @@ const ListAcceptedReturn = () => {
     } catch (err) {
       // ignore errors
     }
+
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
   };
 
   const exportCSV = () => {

@@ -58,7 +58,7 @@ const ListPurchaseOrder = () => {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-
+  
       // Check if the fetched data is an array and sort by purchaseOrderId in descending order
       if (Array.isArray(data)) {
         const sortedData = data.sort((a, b) => b.id - a.id);
@@ -71,6 +71,12 @@ const ListPurchaseOrder = () => {
       console.error("Error fetching purchases:", error);
       setPurchases([]);
     }
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
   };
 
   useEffect(() => {

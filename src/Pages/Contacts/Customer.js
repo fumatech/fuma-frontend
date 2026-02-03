@@ -803,7 +803,7 @@ function Customer({ userRoles }) {
                 </div>
 
                 <div id="table-container" style={{ overflowX: "auto" }}>
-                  <table className="table table-bordered table-hover">
+                  <table id="example1" className="table table-bordered table-hover">
                     <thead>
                       <tr>
                         <th>Actions</th>

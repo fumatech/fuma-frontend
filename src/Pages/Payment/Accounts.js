@@ -69,7 +69,7 @@ const Accounts = () => {
         }
         const accountsData = await response.json();
         const sortedAccounts = accountsData.sort((a, b) => b.id - a.id);
-
+  
         const updatedAccounts = await Promise.all(
           sortedAccounts.map(async (account) => {
             try {
@@ -91,7 +91,7 @@ const Accounts = () => {
             }
           })
         );
-
+  
         setAccounts(updatedAccounts);
         setFilteredAccounts(updatedAccounts);
       } catch (error) {
@@ -100,8 +100,21 @@ const Accounts = () => {
         setFilteredAccounts([]);
       }
     };
-
+  
     fetchAccounts();
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
+    // Cleanup function to remove script when component unmounts
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
 
   // Extract filter values when accounts data changes

@@ -33,16 +33,29 @@ const InputTaxPurchase = () => {
       .catch(console.error);
   }, []);
 
-  // Fetch purchase orders
-  useEffect(() => {
-    fetch(`${process.env.REACT_APP_BASE_URL}/purchase-combined-orders/with-tax`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.orders) setInputTaxPurchase(data.orders);
-        else setInputTaxPurchase([]);
-      })
-      .catch(console.error);
-  }, []);
+ // Fetch purchase orders
+useEffect(() => {
+  fetch(`${process.env.REACT_APP_BASE_URL}/purchase-combined-orders/with-tax`)
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.orders) setInputTaxPurchase(data.orders);
+      else setInputTaxPurchase([]);
+    })
+    .catch(console.error);
+
+  // Add jQuery script at the bottom
+  const script = document.createElement("script");
+  script.src = "js/JqueryContent.js";
+  script.async = true;
+  document.body.appendChild(script);
+
+  // Cleanup function
+  return () => {
+    if (script.parentNode) {
+      script.parentNode.removeChild(script);
+    }
+  };
+}, []);
 
   const getOrderTaxAmounts = (order, taxes = []) => {
     const result = {};
@@ -280,7 +293,7 @@ const InputTaxPurchase = () => {
                 </div>
 
                 <div id="table-container" style={{ overflowX: "auto" }}>
-                  <table className="table table-bordered table-hover">
+                  <table  id="example1" className="table table-bordered table-hover">
                     <thead>
                       <tr>
                         {columnsVisibility.date && <th>Date</th>}

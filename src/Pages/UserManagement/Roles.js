@@ -46,20 +46,33 @@ const Roles = ({ userRoles }) => {
           // Convert both to lowercase for case-insensitive comparison
           const aRole = a.role.toLowerCase();
           const bRole = b.role.toLowerCase();
-
+  
           // Super Admin should always come first
           if (aRole === "super admin") return -1;
           if (bRole === "super admin") return 1;
-
+  
           // Then sort others alphabetically
           return aRole.localeCompare(bRole);
         });
-
+  
         setRoles(sortedRoles);
-
+  
         // Rest of your script loading code...
       })
       .catch((error) => console.error("Error fetching roles:", error));
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
+    // Cleanup function
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
 
   const exportCSV = () => {

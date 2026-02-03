@@ -76,6 +76,12 @@ function TaxRate() {
     } catch (error) {
       console.error("Error fetching taxes:", error);
     }
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
   };
 
   // Pagination handlers
@@ -495,7 +501,7 @@ function TaxRate() {
                 </div>
 
                 <div className="table-responsive">
-                  <table
+                  <table  id="example1"
                     className="table table-bordered table-striped"
                     role="grid"
                   >
@@ -544,60 +550,7 @@ function TaxRate() {
                   </table>
                 </div>
 
-                {/* Pagination for single taxes */}
-                <div className="row mt-3">
-                  <div className="col-12 d-flex justify-content-center">
-                    <nav>
-                      <ul className="pagination">
-                        <li
-                          className={`page-item ${
-                            currentPage === 1 ? "disabled" : ""
-                          }`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() =>
-                              setCurrentPage((p) => Math.max(1, p - 1))
-                            }
-                          >
-                            Previous
-                          </button>
-                        </li>
-                        {Array.from({ length: totalSinglePages }, (_, i) => (
-                          <li
-                            key={i}
-                            className={`page-item ${
-                              currentPage === i + 1 ? "active" : ""
-                            }`}
-                          >
-                            <button
-                              className="page-link"
-                              onClick={() => setCurrentPage(i + 1)}
-                            >
-                              {i + 1}
-                            </button>
-                          </li>
-                        ))}
-                        <li
-                          className={`page-item ${
-                            currentPage === totalSinglePages ? "disabled" : ""
-                          }`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() =>
-                              setCurrentPage((p) =>
-                                Math.min(totalSinglePages, p + 1)
-                              )
-                            }
-                          >
-                            Next
-                          </button>
-                        </li>
-                      </ul>
-                    </nav>
-                  </div>
-                </div>
+             
               </div>
             </div>
 
@@ -697,7 +650,7 @@ function TaxRate() {
                 </div>
 
                 <div className="table-responsive">
-                  <table
+                  <table id="example1"
                     className="table table-bordered table-striped"
                     role="grid"
                   >
@@ -760,62 +713,7 @@ function TaxRate() {
                   </table>
                 </div>
 
-                {/* Pagination for tax groups */}
-                <div className="row mt-3">
-                  <div className="col-12 d-flex justify-content-center">
-                    <nav>
-                      <ul className="pagination">
-                        <li
-                          className={`page-item ${
-                            currentPageGroup === 1 ? "disabled" : ""
-                          }`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() =>
-                              setCurrentPageGroup((p) => Math.max(1, p - 1))
-                            }
-                          >
-                            Previous
-                          </button>
-                        </li>
-                        {Array.from({ length: totalGroupPages }, (_, i) => (
-                          <li
-                            key={i}
-                            className={`page-item ${
-                              currentPageGroup === i + 1 ? "active" : ""
-                            }`}
-                          >
-                            <button
-                              className="page-link"
-                              onClick={() => setCurrentPageGroup(i + 1)}
-                            >
-                              {i + 1}
-                            </button>
-                          </li>
-                        ))}
-                        <li
-                          className={`page-item ${
-                            currentPageGroup === totalGroupPages
-                              ? "disabled"
-                              : ""
-                          }`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() =>
-                              setCurrentPageGroup((p) =>
-                                Math.min(totalGroupPages, p + 1)
-                              )
-                            }
-                          >
-                            Next
-                          </button>
-                        </li>
-                      </ul>
-                    </nav>
-                  </div>
-                </div>
+          
               </div>
             </div>
           </div>

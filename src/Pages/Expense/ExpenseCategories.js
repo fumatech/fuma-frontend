@@ -46,8 +46,13 @@ const ExpenseCategories = () => {
       toast.error("Failed to fetch categories");
       setLoading(false);
     }
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
   };
-
   useEffect(() => {
     fetchCategories();
   }, []);

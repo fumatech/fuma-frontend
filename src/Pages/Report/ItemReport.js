@@ -1086,16 +1086,7 @@ const ItemReport = () => {
                       </div>
                     </div>
                     
-                    <div className="alert alert-info mb-3">
-                      <i className="fas fa-info-circle me-2"></i>
-                      Showing <strong>{filteredItems.length}</strong> items for period: <strong>{dateRange === "all" ? "All Time" : dateRange}</strong>
-                      {dashboardData.totalQuantitySold > 0 && (
-                        <span className="ms-2">
-                          | <strong>{dashboardData.totalQuantitySold}</strong> units sold | 
-                          <strong className="text-success ms-2">{formatCurrency(dashboardData.totalProfit)}</strong> total profit
-                        </span>
-                      )}
-                    </div>
+                 
                     
                     <div id="table-container" style={{ overflowX: "auto" }}>
                       <table

@@ -56,9 +56,9 @@ const PaymentReport = () => {
         `${process.env.REACT_APP_BASE_URL}/payment-account/getall`
       );
       if (!response.ok) throw new Error("Network error");
-
+  
       const accounts = await response.json();
-
+  
       // Flatten transactions
       let allPayments = [];
       accounts.forEach((acc) => {
@@ -75,15 +75,21 @@ const PaymentReport = () => {
           });
         });
       });
-
+  
       setPayments(allPayments);
       setFilteredPayments(allPayments);
-
+  
       const total = allPayments.reduce((sum, p) => sum + p.amount, 0);
       setTotalAmount(total);
     } catch (error) {
       console.error("Error fetching payment data:", error);
     }
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
   };
   const [filterOpen, setFilterOpen] = useState(false);
   // Extract filter values when payments data changes
@@ -498,7 +504,7 @@ const PaymentReport = () => {
                   {/* TABLE */}
                   <div className="card cardHover rounded-4 shadow border-0">
                     <div className="card-body">
-                      <table className="table table-bordered table-striped">
+                      <table  id="example1" className="table table-bordered table-striped">
                         <thead>
                           <tr>
                             {columnsVisibility.accountName && (

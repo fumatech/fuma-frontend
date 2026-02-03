@@ -29,6 +29,12 @@ const ListPaymentMethod = () => {
       //console.error("Error fetching payment methods:", error);
       toast.error("Failed to fetch payment methods");
     }
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
   };
 
   const handleToggleStatus = async (id, currentStatus) => {
@@ -80,7 +86,7 @@ const ListPaymentMethod = () => {
               </div>
               <div className="card-body">
                 <div id="table-container" style={{ overflowX: "auto" }}>
-                  <table className="table table-bordered table-hover shadow">
+                  <table id="example1" className="table table-bordered table-hover shadow">
                     <thead>
                       <tr>
                         <th>ID</th>

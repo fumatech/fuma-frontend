@@ -12,11 +12,12 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
+import axios from 'axios';
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 const ListSoSale = () => {
   const [purchases, setPurchases] = useState([]);
+  const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000/api/v1';
   const [columnsVisibility, setColumnsVisibility] = useState({
     action: true,
     purchasePoOrderId: true,
@@ -55,7 +56,7 @@ const ListSoSale = () => {
     cities: [],
     states: [],
   });
-
+  
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
@@ -64,40 +65,51 @@ const ListSoSale = () => {
     city: "",
     state: "",
   });
-
+  
   const [filteredPurchases, setFilteredPurchases] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [companyLogo, setCompanyLogo] = useState(null);
+  const [businessDetails, setBusinessDetails] = useState(null);
 
   useEffect(() => {
+    // Add jQuery script
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
     const fetchPurchases = async () => {
       try {
         const response = await fetch(
           `${process.env.REACT_APP_BASE_URL}/sale-so-order/getall`
         );
-
+  
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
-
+  
         const data = await response.json();
+  
+        console.log(data);
         const sortedData = data.sort((a, b) => b.id - a.id);
-
+  
         const updatedPurchases = await Promise.all(
           sortedData.map(async (purchase) => {
             try {
               const customerRes = await fetch(
                 `${process.env.REACT_APP_BASE_URL}/customer/${purchase.customerId}`
               );
-
+  
               if (!customerRes.ok) throw new Error("Customer not found");
-
+  
               const customer = await customerRes.json();
-
+  
               return {
                 ...purchase,
                 franchiseName: customer.franchiseName || "",
                 city: customer.city || "",
                 state: customer.state || "",
+                customerData: customer // Store full customer data for invoice
               };
             } catch (err) {
               console.error("Error fetching customer:", err);
@@ -106,11 +118,12 @@ const ListSoSale = () => {
                 franchiseName: "N/A",
                 city: "N/A",
                 state: "N/A",
+                customerData: null
               };
             }
           })
         );
-
+  
         setPurchases(updatedPurchases);
         setFilteredPurchases(updatedPurchases);
       } catch (error) {
@@ -119,26 +132,103 @@ const ListSoSale = () => {
         setFilteredPurchases([]);
       }
     };
-
+  
     fetchPurchases();
+  
+    // Optional: Cleanup function to remove script when component unmounts
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
+
+  // Fetch logo and business details when component mounts
+  useEffect(() => {
+    const fetchLogoAndBusinessDetails = async () => {
+      try {
+        console.log("Fetching logo from:", `${BASE_URL}/file/get-all`);
+        const response = await axios.get(`${BASE_URL}/file/get-all`);
+        const files = response.data || [];
+        
+        console.log("Files from API:", files);
+        
+        const logoFile = files.find(file => {
+          if (!file.image) return false;
+          
+          const fileName = file.image.split("/").pop();
+          const isImage = /\.(jpg|jfif|jpeg|png|gif)$/i.test(fileName);
+          
+          return isImage && (fileName.toLowerCase().includes('logo') || 
+                 fileName.toLowerCase().includes('company') || 
+                 fileName.toLowerCase().includes('fuma') ||
+                 true);
+        });
+        
+        if (logoFile && logoFile.image) {
+          console.log("Found logo file:", logoFile);
+          
+          const logoUrl = `${BASE_URL}${logoFile.image}`;
+          console.log("Logo URL:", logoUrl);
+          
+          setCompanyLogo(logoUrl);
+          
+          try {
+            const imageResponse = await fetch(logoUrl);
+            const blob = await imageResponse.blob();
+            
+            const base64String = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            
+            console.log("Logo converted to base64 successfully");
+            setCompanyLogo(base64String);
+          } catch (conversionError) {
+            console.warn("Could not convert logo to base64, using direct URL:", conversionError);
+            setCompanyLogo(logoUrl);
+          }
+        } else {
+          console.log("No image file found in API response");
+          const anyImageFile = files.find(file => file.image && file.image.match(/\.(jpg|jpeg|png|gif)$/i));
+          if (anyImageFile && anyImageFile.image) {
+            const fallbackLogoUrl = `${BASE_URL}${anyImageFile.image}`;
+            console.log("Using fallback image:", fallbackLogoUrl);
+            setCompanyLogo(fallbackLogoUrl);
+          }
+        }
+
+        // Fetch business details
+        console.log("Fetching business details from:", `${BASE_URL}/business-details/getall`);
+        const businessRes = await axios.get(`${BASE_URL}/business-details/getall`);
+        const businessData = businessRes.data || [];
+        
+        if (businessData.length > 0) {
+          console.log("Found business details:", businessData[0]);
+          setBusinessDetails(businessData[0]);
+        } else {
+          console.log("No business details found");
+        }
+        
+      } catch (error) {
+        console.error("Failed to fetch logo or business details:", error);
+        setCompanyLogo("https://via.placeholder.com/150x50/0d6efd/ffffff?text=FUMA+Logo");
+      }
+    };
+    
+    fetchLogoAndBusinessDetails();
+  }, [BASE_URL]);
 
   // Extract filter values when purchases data changes
   useEffect(() => {
     if (purchases.length > 0) {
-      const franchiseNames = [
-        ...new Set(purchases.map((item) => item.franchiseName)),
-      ].filter(Boolean);
-      const locations = [
-        ...new Set(purchases.map((item) => item.location)),
-      ].filter(Boolean);
-      const cities = [...new Set(purchases.map((item) => item.city))].filter(
-        Boolean
-      );
-      const states = [...new Set(purchases.map((item) => item.state))].filter(
-        Boolean
-      );
-
+      const franchiseNames = [...new Set(purchases.map(item => item.franchiseName))].filter(Boolean);
+      const locations = [...new Set(purchases.map(item => item.location))].filter(Boolean);
+      const cities = [...new Set(purchases.map(item => item.city))].filter(Boolean);
+      const states = [...new Set(purchases.map(item => item.state))].filter(Boolean);
+      
       setFilterValues({
         franchiseNames,
         locations,
@@ -152,14 +242,13 @@ const ListSoSale = () => {
   useEffect(() => {
     const filteredData = purchases.filter((purchase) => {
       const purchaseDate = new Date(purchase.orderDate);
-
-      // Date range filter
+      
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-
+        
         dateMatch = purchaseDate >= startDate && purchaseDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -169,34 +258,22 @@ const ListSoSale = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = purchaseDate <= endDate;
       }
-
-      // Franchise Name filter
-      const franchiseNameMatch =
-        activeFilters.franchiseName === "" ||
+      
+      const franchiseNameMatch = activeFilters.franchiseName === "" || 
         purchase.franchiseName === activeFilters.franchiseName;
-
-      // Location filter
-      const locationMatch =
-        activeFilters.location === "" ||
+      
+      const locationMatch = activeFilters.location === "" || 
         purchase.location === activeFilters.location;
-
-      // City filter
-      const cityMatch =
-        activeFilters.city === "" || purchase.city === activeFilters.city;
-
-      // State filter
-      const stateMatch =
-        activeFilters.state === "" || purchase.state === activeFilters.state;
-
-      return (
-        dateMatch &&
-        franchiseNameMatch &&
-        locationMatch &&
-        cityMatch &&
-        stateMatch
-      );
+      
+      const cityMatch = activeFilters.city === "" || 
+        purchase.city === activeFilters.city;
+      
+      const stateMatch = activeFilters.state === "" || 
+        purchase.state === activeFilters.state;
+      
+      return dateMatch && franchiseNameMatch && locationMatch && cityMatch && stateMatch;
     });
-
+    
     setFilteredPurchases(filteredData);
   }, [activeFilters, purchases]);
 
@@ -257,19 +334,19 @@ const ListSoSale = () => {
             )
               .then((res) => {
                 if (res.ok) {
-                  toast.success("Sale So Order deleted successfully!");
+                  alert("Sale So Order deleted successfully!");
                 } else {
-                  toast.error("Sale So Order deleted successfully!");
+                  alert("Failed to delete");
                 }
               })
               .catch((error) =>
                 console.error("Error updating order status:", error)
               );
           } else {
-            toast.error("Failed to delete.");
+            alert("Failed to delete product.");
           }
         })
-        .catch((error) => console.error("Error deleting :", error));
+        .catch((error) => console.error("Error deleting product:", error));
     }
   };
 
@@ -369,6 +446,89 @@ const ListSoSale = () => {
     }));
   };
 
+  // Enhanced function to convert numbers to words
+  const numberToWords = (num) => {
+    const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    const thousands = ['', 'Thousand', 'Lakh', 'Crore'];
+
+    if (num === 0) return 'Zero';
+
+    const convertLessThanThousand = (n) => {
+      if (n === 0) return '';
+      
+      let result = '';
+      
+      if (Math.floor(n / 100) > 0) {
+        result += ones[Math.floor(n / 100)] + ' Hundred ';
+        n %= 100;
+      }
+      
+      if (n >= 20) {
+        result += tens[Math.floor(n / 10)] + ' ';
+        n %= 10;
+      } else if (n >= 10) {
+        result += teens[n - 10] + ' ';
+        return result;
+      }
+      
+      if (n > 0) {
+        result += ones[n] + ' ';
+      }
+      
+      return result;
+    };
+
+    const convertIndianNumber = (n) => {
+      if (n === 0) return 'Zero';
+      
+      let result = '';
+      let index = 0;
+      
+      // Handle lakhs and crores (Indian numbering system)
+      if (n >= 10000000) {
+        const crores = Math.floor(n / 10000000);
+        result += convertLessThanThousand(crores) + 'Crore ';
+        n %= 10000000;
+      }
+      
+      if (n >= 100000) {
+        const lakhs = Math.floor(n / 100000);
+        result += convertLessThanThousand(lakhs) + 'Lakh ';
+        n %= 100000;
+      }
+      
+      if (n >= 1000) {
+        const thousands = Math.floor(n / 1000);
+        result += convertLessThanThousand(thousands) + 'Thousand ';
+        n %= 1000;
+      }
+      
+      if (n > 0) {
+        result += convertLessThanThousand(n);
+      }
+      
+      return result.trim();
+    };
+
+    // Handle decimal part
+    const integerPart = Math.floor(num);
+    const decimalPart = Math.round((num - integerPart) * 100);
+    
+    let result = convertIndianNumber(integerPart);
+    
+    if (result === '') {
+      result = 'Zero';
+    }
+    
+    if (decimalPart > 0) {
+      result += ' and ' + convertLessThanThousand(decimalPart).trim() + ' Paise';
+    }
+    
+    return result + ' Only';
+  };
+
   const printData = () => {
     const printWindow = window.open("", "_blank", "width=800,height=600");
 
@@ -390,15 +550,9 @@ const ListSoSale = () => {
             <thead>
               <tr>
                 ${columnsVisibility.date ? "<th> Date</th>" : ""}
-                ${
-                  columnsVisibility.referenceNumber ? "<th>Invoice No</th>" : ""
-                }
+                ${columnsVisibility.referenceNumber ? "<th>Invoice No</th>" : ""}
                 ${columnsVisibility.location ? "<th>Location</th>" : ""}
-                ${
-                  columnsVisibility.franchiseName
-                    ? "<th>franchiseName</th>"
-                    : ""
-                }
+                ${columnsVisibility.franchiseName ? "<th>franchiseName</th>" : ""}
                 ${columnsVisibility.totalItems ? "<th>Total Items</th>" : ""}
                 ${columnsVisibility.additionalNotes ? "<th>Note</th>" : ""}
                 ${columnsVisibility.addedBy ? "<th>Added By</th>" : ""}
@@ -406,48 +560,17 @@ const ListSoSale = () => {
             </thead>
             <tbody>
               ${filteredPurchases
-                .slice(
-                  (currentPage - 1) * entriesPerPage,
-                  currentPage * entriesPerPage
-                )
+                .slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage)
                 .map(
                   (purchase) => `
                 <tr>
-                  ${
-                    columnsVisibility.date
-                      ? `<td>${purchase.orderDate}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.referenceNumber
-                      ? `<td>${purchase.referenceNumber}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.location
-                      ? `<td>${purchase.location}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.franchiseName
-                      ? `<td>${purchase.franchiseName}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.totalItems
-                      ? `<td>${purchase.totalItems}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.additionalNotes
-                      ? `<td>${purchase.additionalNotes}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.addedBy
-                      ? `<td>${purchase.addedBy}</td>`
-                      : ""
-                  }
+                  ${columnsVisibility.date ? `<td>${purchase.orderDate}</td>` : ""}
+                  ${columnsVisibility.referenceNumber ? `<td>${purchase.referenceNumber}</td>` : ""}
+                  ${columnsVisibility.location ? `<td>${purchase.location}</td>` : ""}
+                  ${columnsVisibility.franchiseName ? `<td>${purchase.franchiseName}</td>` : ""}
+                  ${columnsVisibility.totalItems ? `<td>${purchase.totalItems}</td>` : ""}
+                  ${columnsVisibility.additionalNotes ? `<td>${purchase.additionalNotes}</td>` : ""}
+                  ${columnsVisibility.addedBy ? `<td>${purchase.addedBy}</td>` : ""}
                 </tr>
               `
                 )
@@ -481,257 +604,600 @@ const ListSoSale = () => {
   const endIndex = startIndex + entriesPerPage;
   const purchase = filteredPurchases.slice(startIndex, endIndex);
 
-  const handlePrintInvoice = (purchase) => {
+const handlePrintInvoice = (purchaseItem) => {
+    // Ask user if they want invoice with logo
+    const withLogo = window.confirm("Do you want to print invoice with company logo?");
+    
     const printWindow = window.open("", "_blank", "width=800,height=900");
-
+  
+    // Calculate values
     const subtotal =
-      purchase.saleSoItem?.reduce(
-        (sum, item) => sum + item.quantity * item.unitSellingPrice,
+      purchaseItem.saleSoItem?.reduce(
+        (sum, item) => sum + (item.quantity * item.unitSellingPrice),
         0
       ) || 0;
-    const tax = purchase.taxAmount || 0;
-    const discount = purchase.discountAmount || 0;
-    const total = subtotal + tax - discount;
+    
+    const tax = purchaseItem.taxAmount || 0;
+    const discount = purchaseItem.discountAmount || 0;
+    const shippingCharges = purchaseItem.shippingSoDetails?.[0]?.shippingCharges || 0;
+    
+    // Calculate total
+    const taxableAmount = subtotal - discount;
+    const total = taxableAmount + tax + shippingCharges;
+    
+    // Get customer data
+    const customer = purchaseItem.customerData || {};
+    
+    // Get business details
+    const business = businessDetails || {};
+    
+    // Logo HTML - conditionally include based on user choice
+    const logoHtml = withLogo && companyLogo 
+      ? `<img src="${companyLogo}" alt="Company Logo" style="max-width: 380px; max-height: 180px; width: auto; height: auto; object-fit: contain; background: transparent; mix-blend-mode: multiply;" onerror="this.style.display='none'; this.parentNode.innerHTML='<p style=\'margin: 0; font-weight: bold; font-size: 16px;\'>${business.name || 'KIOT LOGO'}</p>';" />`
+      : `<p style="margin: 0; font-weight: bold; font-size: 22px;">${business.name || 'KIOT LOGO'}</p>`;
+
+    // Calculate dynamic content height
+    const items = purchaseItem.saleSoItem || [];
+    const itemRows = items.length;
+    const additionalRows = 3; // For tax, discount, shipping rows
+    const totalTableRows = itemRows + additionalRows;
+    
+    // Calculate space needed for the table
+    const rowHeight = 24; // Approximate height per row in pixels
+    const tableHeight = Math.max(150, totalTableRows * rowHeight); // Minimum 150px
+    
+    // Calculate remaining space for footer
+    const pageHeight = 1123; // A4 height in pixels (297mm ≈ 1123px at 96dpi)
+    const headerHeight = 200; // Approximate height of header sections
+    const footerHeight = 220; // Approximate height of footer section
+    const tableSpace = pageHeight - headerHeight - footerHeight - 50; // 50px buffer
+    
+    // Adjust empty rows based on available space
+    const emptyRowsNeeded = Math.max(0, Math.floor((tableSpace - (itemRows * rowHeight)) / rowHeight));
+    const maxEmptyRows = 10; // Limit maximum empty rows
 
     const invoiceContent = `
       <html>
         <head>
           <style>
-            body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-            
-            .header-section { margin-bottom: 15px; border-bottom: 1px solid #666; }
-            .invoice-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; line-height: 1.1; }
-            .company-info { text-align: left; }
-            .company-logo { width: 150px; height: 50px; border-radius : 10px; border: 2px solid #666; display: flex; align-items: center; justify-content: center; text-align: center; }
-            .details-table, .items-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-            .items-table th, .items-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            .total-section { display: flex; justify-content: space-between; gap: 20px; margin-top: 20px; }
-            .total-box { border: 2px solid #666; border-radius : 10px; padding: 10px; font-size: 13px; width: 30%; }
-            .notes-box { border: 2px solid #666; border-radius : 10px; padding: 10px; font-size: 13px; width: 65%; }            .footer { text-align: center; margin-top: 25px; border-top: 1px solid #666; padding-top: 15px; font-size: 13px; }
-            .customer_detail > div {
-              border: 1px solid #666; 
-              border-radius : 10px;
-              padding: 10px; 
-              width: 48%; 
-              box-sizing: border-box;
+            @page {
+              size: A4;
+              margin: 10mm;
             }
-            .customer_detail { 
+            
+            body { 
+              font-family: Arial, sans-serif; 
+              margin: 0;
+              padding: 10px;
+              color: #333; 
+              font-size: 12px;
+              background: white !important;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            
+            .invoice-container {
+              border: 1px solid #000;
+              padding: 15px;
+              box-sizing: border-box;
+              min-height: 98vh; /* Use viewport height instead of fixed */
+              display: flex;
+              flex-direction: column;
+            }
+            
+            @media print {
+              body {
+                margin: 0;
+                padding: 0;
+                background: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+              .invoice-container {
+                border: 1px solid #000;
+                padding: 15px;
+                margin: 0;
+                min-height: 98vh;
+              }
+              * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+            }
+            
+            .invoice-header { 
               display: flex; 
-              gap: 20px; 
-              font-size: 13px; 
+              justify-content: space-between; 
+              align-items: center; 
+              font-size: 12px; 
+              line-height: 1.15;
+              flex-shrink: 0;
+            }
+            .company-info { text-align: left; }
+            .company-logo { 
+              width: 180px; 
+              height: 70px; 
+              display: flex; 
+              align-items: center; 
+              justify-content: center; 
+              text-align: center; 
+              overflow: hidden; 
+              background: transparent !important;
+            }
+            
+            .header-section {
+              margin-left: 10px; 
+              padding-bottom: 9px;
+              flex-shrink: 0;
+            }
+            
+            .header-section h3 {
+              font-size: 14px; 
+              margin: 6px 0;
+            }
+            
+            .header-section p {
+              margin: 2px 0; 
+              display: flex;
+            }
+            
+            .header-section strong {
+              min-width: 92px; 
+              font-size: 12px;
+            }
+            
+            .customer-details-table {
+              width: 100%;
+              border-collapse: collapse;
               margin-top: 10px;
-              padding-bottom: 13px; 
-              margin-bottom: 10px; border-bottom: 1px solid #666;
-            }  
+              border: 1px solid #333;
+              flex-shrink: 0;
+            }
+            
+            .customer-details-table th {
+              background-color: #f2f2f2;
+              padding: 6px;
+              text-align: left;
+              border-bottom: 1px solid #333;
+              font-size: 13px;
+            }
+            
+            .customer-details-table td {
+              padding: 4px 6px;
+              vertical-align: top;
+              font-size: 11px;
+            }
+            
+            .customer-left-col {
+              width: 50%;
+              border-right: 1px solid #333;
+              padding-right: 10px;
+            }
+            
+            .customer-right-col {
+              width: 50%;
+              padding-left: 10px;
+            }
+            
+            .items-section {
+              margin-top: 15px;
+              flex: 1; /* Take remaining space */
+              display: flex;
+              flex-direction: column;
+            }
+            
+            .items-table-container {
+              border: 1px solid #000;
+              border-top: none;
+              flex: 1;
+              min-height: ${tableHeight}px;
+              display: flex;
+              flex-direction: column;
+            }
+            
             .items-table {
               width: 100%;
               border-collapse: collapse;
-              font-size: 13px;
-              line-height: 1.2;
-              border: 1px solid #000;
+              font-size: 11px;
+              margin: 0;
+              flex: 1;
             }
-  
+            
+            .items-table thead {
+              display: table-header-group;
+            }
+            
+            .items-table tbody {
+              display: table-row-group;
+            }
+            
             .items-table th {
               background-color: #f2f2f2;
-              border: 1.75px solid #000;
-              padding: 8px;
-              text-align: left;
-              font-weight: bolder;
+              font-weight: bold;
+              padding: 6px 4px;
+              border-left: 1px solid #000;
+              border-right: 1px solid #000;
+              border-top: 1px solid #000;
+              text-align: center;
+              font-size: 12px;
+              page-break-inside: avoid;
             }
-  
+            
+            .items-table th:first-child {
+              border-left: 1px solid #000;
+            }
+            
+            .items-table th:last-child {
+              border-right: 1px solid #000;
+            }
+            
             .items-table td {
-              border: 1px solid #333;
+              padding: 5px 4px;
+              border-left: 1px solid #000;
+              border-right: 1px solid #000;
+              text-align: center;
+              vertical-align: middle;
+              page-break-inside: avoid;
+            }
+            
+            .items-table tr {
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
+            
+            .summary-section {
+              margin-top: 10px;
+              font-size: 12px;
+              flex-shrink: 0;
+              page-break-inside: avoid;
+            }
+            
+            .amount-words {
+              background-color: #f9f9f9;
               padding: 8px;
-              text-align: left;
+              border: 1px solid #000;
+              margin-bottom: 8px;
+              font-size: 11px;
+              page-break-inside: avoid;
+            }
+            
+            .footer-container {
+              margin-top: auto; /* Push to bottom */
+              flex-shrink: 0;
+              page-break-inside: avoid;
+            }
+            
+            .footer-section {
+              display: flex;
+              margin-top: 10px;
+              font-size: 11px;
+              page-break-before: avoid;
+              page-break-inside: avoid;
+            }
+            
+            .footer-left {
+              flex: 1;
+              padding: 8px;
+              border: 1px solid #000;
+              border-right: none;
+              page-break-inside: avoid;
+            }
+            
+            .footer-right {
+              flex: 1;
+              padding: 8px;
+              border: 1px solid #000;
+              page-break-inside: avoid;
+            }
+            
+            .footer-section h4 {
+              margin: 0 0 5px 0;
+              font-size: 12px;
+              font-weight: bold;
+            }
+            
+            .signature {
+              margin-top: 20px;
+              text-align: right;
+              font-size: 12px;
+            }
+            
+            .signature div {
+              margin-top: 30px;
+            }
+            
+            .title {
+              text-align: center;
+              font-size: 21px;
+              font-weight: bold;
+              margin: 9px 0;
+              flex-shrink: 0;
+            }
+            
+            .total-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 10px;
+              font-size: 11px;
+            }
+            
+            .total-table td {
+              padding: 5px;
+              text-align: right;
+            }
+            
+            .total-table tr:last-child {
+              font-weight: bold;
+              border-top: 1px solid #000;
+            }
+            
+            img {
+              background: transparent !important;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            
+            /* Ensure no page breaks inside critical sections */
+            .invoice-header,
+            .customer-details-table,
+            .title {
+              page-break-inside: avoid;
             }
           </style>
         </head>
-        <body>
-          <div style="text-align: center;">
-            <h1 style="font-size: 24px; font-weight: bold; margin: 10px 0;">Invoice</h1>
-          </div>
-  
-          <div class="invoice-header">
-            <div class="company-info">
-              <h2 style="margin: 0; margin-left: 10px;">FUMA</h2>
-              <p style="margin: 2px 0; margin-left: 10px;">Power Innovation</p>
-            </div>
-            <div class="company-logo">
-              <p style="margin: 0;">Logo</p>
-            </div>
-          </div>
-  
-          <div class="header-section" style="margin-left: 10px; padding-bottom:10px">
+        <body style="background: white !important;">
+          <div class="invoice-container">
+            <div class="title">Quotation</div>
+            
             <div class="invoice-header">
-              <div style="width: 50%;">
-                <h3 style="font-size: 15px;">Invoice Details</h3>
-                <p style="margin: 2px 0; display: flex;">
-                  <strong style="min-width: 110px;">Invoice No:</strong>: ${
-                    purchase.orderId || "N/A"
-                  }
-                </p>
-                <p style="margin: 2px 0; display: flex;">
-                  <strong style="min-width: 110px;">Invoice Date:</strong>: ${
-                    purchase.saleDate || "N/A"
-                  }
-                </p>
-                <p style="margin: 2px 0; display: flex;">
-                  <strong style="min-width: 110px;">Customer:</strong>: ${
-                    purchase.orderedBy || "N/A"
-                  }
-                </p>
-                <p style="margin: 2px 0; display: flex;">
-                  <strong style="min-width: 110px;">Reference No:</strong>: ${
-                    purchase.referenceNumber || "N/A"
-                  }
-                </p>
-                <p style="margin: 2px 0; display: flex;">
-                  <strong style="min-width: 110px;">Location:</strong>: ${
-                    purchase.location || "N/A"
-                  }
-                </p>
+              <div class="company-info">
+                <h2 style="margin: 0; margin-left: 10px; font-size: 17px;">${business.name || 'Kiot Innovations Pvt Ltd'}</h2>
+                <p style="margin: 2px 0; margin-left: 10px; font-size: 13px;">${business.address || 'Power Innovation'}</p>
+              </div>
+              <div class="company-logo" style="background: transparent !important;">
+                ${logoHtml}
               </div>
             </div>
-          </div>
-  
-          <div class="customer_detail">
-            <div>
-              <h3 style="font-size: 14px;">Business Details</h3>
-              <p style="margin: 2px 0; display: flex;"><strong style="min-width: 110px;">Franchise Name</strong>: ${
-                purchase.franchise || "FUMA"
-              }</p>
-              <p style="margin: 2px 0; display: flex;"><strong style="min-width: 110px;">Address:</strong>: ${
-                purchase.location || "N/A"
-              }</p>
-              <p style="margin: 2px 0; display: flex;"><strong style="min-width: 110px;">Phone No:</strong>: N/A</p>
-              <p style="margin: 2px 0; display: flex;"><strong style="min-width: 110px;">GST No:</strong>: N/A</p>
-              <p style="margin: 2px 0; display: flex;"><strong style="min-width: 110px;">Email:</strong>: ${
-                purchase.addedBy || "N/A"
-              }</p>
+            
+            <div class="header-section">
+              <div class="invoice-header">
+                <div style="width: 50%;">
+                  <h3>Invoice Details</h3>
+                  <p>
+                    <strong>Invoice No:</strong> ${purchaseItem.orderId || "N/A"}
+                  </p>
+                  <p>
+                    <strong>Invoice Date:</strong> ${purchaseItem.saleDate || purchaseItem.orderDate || "N/A"}
+                  </p>
+                  <p>
+                    <strong>Customer:</strong> ${customer.firstname || purchaseItem.orderedBy || purchaseItem.franchise || "N/A"}
+                  </p>
+                  <p>
+                    <strong>Reference No:</strong> ${purchaseItem.referenceNumber || "N/A"}
+                  </p>
+                  <p>
+                    <strong>Location:</strong> ${purchaseItem.location || "N/A"}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <h3 style="font-size: 14px;">Customer Details</h3>
-              <p style="margin: 2px 0; display: flex;"><strong style="min-width: 90px;">Name:</strong>: ${
-                purchase.orderedBy || "N/A"
-              }</p>
-              <p style="margin: 2px 0; display: flex;"><strong style="min-width: 90px;">Address:</strong>: ${
-                purchase.location || "N/A"
-              }</p>
-              <p style="margin: 2px 0; display: flex;"><strong style="min-width: 90px;">Number:</strong>: N/A</p>
-              <p style="margin: 2px 0; display: flex;"><strong style="min-width: 90px;">Email:</strong>: ${
-                purchase.addedBy || "N/A"
-              }</p>
-              <p style="margin: 2px 0; display: flex;"><strong style="min-width: 90px;">Reference:</strong>: ${
-                purchase.referenceNumber || "N/A"
-              }</p>
-            </div>
-          </div>
-  
-          <table class="items-table">
-            <thead>
-              <tr>
-                <th style="padding: 4px; font-size: 15px;">Sr.n</th>
-                <th style="padding: 4px; font-size: 15px;">Product</th>
-                <th style="padding: 4px; font-size: 15px;">Product code</th>
-                <th style="padding: 4px; font-size: 15px;">HLS code</th>
-                <th style="padding: 4px; font-size: 15px;">Unit Price</th>
-                <th style="padding: 4px; font-size: 15px;">Quantity</th>
-                <th style="padding: 4px; font-size: 15px;">Total</th>
-                <th style="padding: 4px; font-size: 15px;">Discount</th>
-                <th style="padding: 4px; font-size: 15px;">GST</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${purchase.saleSoItem
-                ?.map(
-                  (item, index) => `
+            
+            <table class="customer-details-table">
+              <tbody>
                 <tr>
-                  <td style="padding: 3px;">${index + 1}</td>
-                  <td style="padding: 3px;">${item.productName || "N/A"}</td>
-                  <td style="padding: 3px;">${item.productSku || "N/A"}</td>
-                  <td style="padding: 3px;"></td>
-                  <td style="padding: 3px;">₹${
-                    item.unitSellingPrice?.toFixed(2) || "0.00"
-                  }</td>
-                  <td style="padding: 3px;">${item.quantity || "0"}</td>
-                  <td style="padding: 3px;">₹${(
-                    (item.quantity || 0) * (item.unitSellingPrice || 0)
-                  ).toFixed(2)}</td>
-                  <td style="padding: 3px;">${
-                    purchase.discountAmount || "0"
-                  }</td>
-                  <td style="padding: 3px;">${purchase.taxAmount || "0"}</td>
+                  <td class="customer-left-col">
+                    <div style="margin-bottom: 8px;">
+                      <h4 style="margin: 0 0 4px 0; font-size: 13px; color: #333;">Business Details</h4>
+                      <p style="margin: 2px 0; display: flex;">
+                        <strong style="min-width: 100px; font-size: 11px;">Business Name:</strong> 
+                        <span style="font-size: 11px;">${business.name || "N/A"}</span>
+                      </p>
+                      <p style="margin: 2px 0; display: flex;">
+                        <strong style="min-width: 100px; font-size: 11px;">Address:</strong> 
+                        <span style="font-size: 11px;">${business.address || "N/A"}</span>
+                      </p>
+                      <p style="margin: 2px 0; display: flex;">
+                        <strong style="min-width: 100px; font-size: 11px;">Phone No:</strong> 
+                        <span style="font-size: 11px;">${business.phoneNumber || "N/A"}</span>
+                      </p>
+                      <p style="margin: 2px 0; display: flex;">
+                        <strong style="min-width: 100px; font-size: 11px;">GST No:</strong> 
+                        <span style="font-size: 11px;">${business.taxOrGstNumber || "N/A"}</span>
+                      </p>
+                      <p style="margin: 2px 0; display: flex;">
+                        <strong style="min-width: 100px; font-size: 11px;">Email:</strong> 
+                        <span style="font-size: 11px;">${business.email || "N/A"}</span>
+                      </p>
+                    </div>
+                  </td>
+                  
+                  <td class="customer-right-col">
+                    <div style="margin-bottom: 8px;">
+                      <h4 style="margin: 0 0 4px 0; font-size: 13px; color: #333;">Customer Details</h4>
+                      <p style="margin: 2px 0; display: flex;">
+                        <strong style="min-width: 90px; font-size: 11px;">Name</strong> 
+                        <span style="font-size: 11px;">${customer.firstname || purchaseItem.orderedBy || purchaseItem.franchiseName || "N/A"}</span>
+                      </p>
+                      <p style="margin: 2px 0; display: flex;">
+                        <strong style="min-width: 90px; font-size: 11px;">Address</strong> 
+                        <span style="font-size: 11px;">${customer.permanentAddress || customer.currentAddress || purchaseItem.location || "N/A"}</span>
+                      </p>
+                      <p style="margin: 2px 0; display: flex;">
+                        <strong style="min-width: 90px; font-size: 11px;">Number</strong> 
+                        <span style="font-size: 11px;">${customer.mobileNumber || "N/A"}</span>
+                      </p>
+                      <p style="margin: 2px 0; display: flex;">
+                        <strong style="min-width: 90px; font-size: 11px;">Email</strong> 
+                        <span style="font-size: 11px;">${customer.email || purchaseItem.addedBy || "N/A"}</span>
+                      </p>
+                      <p style="margin: 2px 0; display: flex;">
+                        <strong style="min-width: 90px; font-size: 11px;">GST No</strong> 
+                        <span style="font-size: 11px;">${customer.taxOrGstNumber || "N/A"}</span>
+                      </p>
+                    </div>
+                  </td>
                 </tr>
-              `
-                )
-                .join("")}
-              
-              ${(() => {
-                const emptyRows = [];
-                const itemCount = purchase.saleSoItem?.length || 0;
-                for (let i = itemCount; i < 12; i++) {
-                  emptyRows.push(`
+              </tbody>
+            </table>
+            
+            <div class="items-section">
+              <div class="items-table-container">
+                <table class="items-table">
+                  <thead>
                     <tr>
-                      <td style="padding: 3px;"></td>
-                      <td style="padding: 3px;">&nbsp;</td>
-                      <td style="padding: 3px;">&nbsp;</td>
-                      <td style="padding: 3px;">&nbsp;</td>
-                      <td style="padding: 3px;">&nbsp;</td>
-                      <td style="padding: 3px;">&nbsp;</td>
-                      <td style="padding: 3px;">&nbsp;</td>
-                      <td style="padding: 3px;">&nbsp;</td>
-                      <td style="padding: 3px;">&nbsp;</td>
+                      <th style="width: 5%;">Sr No</th>
+                      <th style="width: 25%;">Description of Services</th>
+                      <th style="width: 8%;">HSN/SAC</th>
+                      <th style="width: 8%;">Quantity</th>
+                      <th style="width: 12%;">Rate (Incl. Tax)</th>
+                      <th style="width: 10%;">Rate</th>
+                      <th style="width: 6%;">per</th>
+                      <th style="width: 8%;">Disc. %</th>
+                      <th style="width: 10%;">Amount</th>
                     </tr>
-                  `);
-                }
-                return emptyRows.join("");
-              })()}
-            </tbody>
-          </table>
-  
-          <div class="total-section">
-            <div class="notes-box">
-              <h3>Notes:</h3>
-              <p>${purchase.additionalNotes || "No Note."}</p>
+                  </thead>
+                  <tbody>
+                    ${(() => {
+                      const rows = [];
+                      
+                      items.forEach((item, index) => {
+                        const itemTotal = ((item.quantity || 0) * (item.unitSellingPrice || 0));
+                        const itemDiscount = itemTotal * (item.discountPercent || 0) / 100;
+                        const itemAfterDiscount = itemTotal - itemDiscount;
+                        const itemTax = item.taxAmount || 0;
+                        const rateInclTax = itemAfterDiscount + itemTax;
+                        
+                        rows.push(`
+                          <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.productName || "N/A"}</td>
+                            <td>${item.hsnCode || item.productSku || "N/A"}</td>
+                            <td>${item.quantity || "0"}</td>
+                            <td>₹${rateInclTax.toFixed(2)}</td>
+                            <td>₹${item.unitSellingPrice?.toFixed(2) || "0.00"}</td>
+                            <td>Unit</td>
+                            <td>${item.discountPercent || purchaseItem.discountPercentage || "0"}%</td>
+                            <td style="text-align: right;">₹${itemTotal.toFixed(2)}</td>
+                          </tr>
+                        `);
+                      });
+                      
+                      // Dynamically calculate empty rows based on available space
+                      const actualEmptyRows = Math.min(emptyRowsNeeded, maxEmptyRows);
+                      for (let i = 0; i < actualEmptyRows; i++) {
+                        rows.push(`
+                          <tr>
+                            <td>${items.length + i + 1}</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                        `);
+                      }
+                      
+                      // Add tax row based on tax type
+                      if (tax > 0) {
+                        const taxType = purchaseItem.purchaseTax || "IGST";
+                        rows.push(`
+                          <tr>
+                            <td colspan="8" style="text-align: right; font-weight: bold; border-top: 1px solid #333;">${taxType}</td>
+                            <td style="text-align: right; border-top: 1px solid #333;">₹${tax.toFixed(2)}</td>
+                          </tr>
+                        `);
+                      }
+                      
+                      // Add overall discount row if exists
+                      if (discount > 0) {
+                        rows.push(`
+                          <tr>
+                            <td colspan="8" style="text-align: right; font-weight: bold; border-top: 1px solid #333;">Overall Discount</td>
+                            <td style="text-align: right; border-top: 1px solid #333;">- ₹${discount.toFixed(2)}</td>
+                          </tr>
+                        `);
+                      }
+                      
+                      // Add shipping charges row if exists
+                      if (shippingCharges > 0) {
+                        rows.push(`
+                          <tr>
+                            <td colspan="8" style="text-align: right; font-weight: bold; border-top: 1px solid #333;">Shipping Charges</td>
+                            <td style="text-align: right; border-top: 1px solid #333;">₹${shippingCharges.toFixed(2)}</td>
+                          </tr>
+                        `);
+                      }
+                      
+                      // Add total row
+                      rows.push(`
+                        <tr>
+                          <td colspan="8" style="text-align: right; font-weight: bold; border-top: 2px solid #000; font-size: 13px;">Total</td>
+                          <td style="text-align: right; font-weight: bold; border-top: 2px solid #000; font-size: 13px;">₹${total.toFixed(2)}</td>
+                        </tr>
+                      `);
+                      
+                      return rows.join('');
+                    })()}
+                  </tbody>
+                </table>
+              </div>
             </div>
-  
-            <div class="total-box">
-              <table style="width:100%">
-                <tr><td>Subtotal:</td><td>₹${subtotal.toFixed(2)}</td></tr>
-                <tr><td>SGST :</td><td>${
-                  purchase.taxRate?.toFixed(2) || "0.00"
-                }</td></tr>
-                <tr><td>IGST:</td><td>₹${tax.toFixed(2)}</td></tr>
-                <tr><td>Payment Term:</td><td>${
-                  purchase.payTermNumber || "N/A"
-                } ${purchase.payTermType || ""}</td></tr>
-                <tr><td><strong>Total:</strong></td><td><strong>₹${total.toFixed(
-                  2
-                )}</strong></td></tr>
-              </table>
+            
+            <div class="footer-container">
+              <div class="summary-section">
+                <div class="amount-words">
+                  <strong>Amount Chargeable (in words):</strong> INR ${numberToWords(total)}
+                  <div style="text-align: right; font-style: italic;">E. & O.E</div>
+                </div>
+              </div>
+              
+              <div class="footer-section">
+                <div class="footer-left">
+                  <h4>Remarks:</h4>
+                  ${purchaseItem.additionalNotes || `
+                  INCOME TAX DECLARATION - NO TDS ON SOFTWARE SALE<br>
+                  As per Govt of India (CBDT) Notification no.21/2012 [F.No. 142/10/2012-SO (TPL)][S.O.1323 (E ) dated 13-06-2012, NO TDS is to be deducted u/s 194-J<br>
+                  We hereby declare that the software items supplied vide our invoice are :<br>
+                  -Sold without any modifications<br>
+                  -Tax has been deducted u/s 194J/195 on payment of Company's PAN : ${business.panNumber || 'AAHCK2249K'}
+                  `}
+                  
+                  <div style="margin-top: 10px;">
+                    <h4>Declaration</h4>
+                    We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.
+                  </div>
+                </div>
+                
+                <div class="footer-right">
+                  <h4>Company's Bank Details</h4>
+                  A/c Holder's Name : ${business.name || 'Fusion Masters Tech Innovations Pvt. Ltd.'}<br>
+                  Bank Name : ${business.bankName || ''}<br>
+                  A/c No. : ${business.accountNumber || ''}<br>
+                  Branch & IFS Code : ${business.ifscCode || ''}
+                  
+                  <div class="signature">
+                    <div>
+                      <strong>for ${business.name || 'Fusion Masters Tech Innovations Pvt. Ltd.'}</strong><br>
+                      Authorised Signatory
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-  
-          <div class="footer">
-            <h3>Thank you for your business!</h3>
-            <p>
-              ${
-                purchase.location ||
-                "Opposite to Padamji Papermill/pune, india, ST, 00000"
-              }<br>
-              Tel: N/A | Email: ${
-                purchase.addedBy || "nanasaheb.k@fuma.co.in"
-              }<br>
-              Web: www.fuma.co.in
-            </p>
           </div>
         </body>
       </html>
     `;
-
+  
     printWindow.document.write(invoiceContent);
     printWindow.document.close();
-    printWindow.print();
+    
+    setTimeout(() => {
+      printWindow.print();
+    }, 1000);
   };
 
   return (
@@ -752,7 +1218,6 @@ const ListSoSale = () => {
 
         <section className="content">
           <div className="container-fluid">
-            {/* Filter Card */}
             <div className="card card-default rounded-4 border-0 cardHover mb-3">
               <div
                 className="my- p-3 d-flex align-items-center"
@@ -770,7 +1235,6 @@ const ListSoSale = () => {
                 <div className="border-top">
                   <div className="card-body">
                     <div className="row py-2 g-2">
-                      {/* Start Date Picker */}
                       <div className="col-md-3">
                         <div className="form-group">
                           <label className="me-2">Start Date:</label>
@@ -784,7 +1248,6 @@ const ListSoSale = () => {
                         </div>
                       </div>
 
-                      {/* End Date Picker */}
                       <div className="col-md-3">
                         <div className="form-group">
                           <label className="me-2">End Date:</label>
@@ -798,7 +1261,6 @@ const ListSoSale = () => {
                         </div>
                       </div>
 
-                      {/* Franchise Name Dropdown */}
                       <div className="col-md-3">
                         <div className="form-group">
                           <label className="me-2">Franchise Name:</label>
@@ -809,21 +1271,15 @@ const ListSoSale = () => {
                             onChange={handleFilterChange}
                           >
                             <option value="">All Franchises</option>
-                            {filterValues.franchiseNames.map(
-                              (franchiseName, index) => (
-                                <option
-                                  key={`franchise-${index}`}
-                                  value={franchiseName}
-                                >
-                                  {franchiseName}
-                                </option>
-                              )
-                            )}
+                            {filterValues.franchiseNames.map((franchiseName, index) => (
+                              <option key={`franchise-${index}`} value={franchiseName}>
+                                {franchiseName}
+                              </option>
+                            ))}
                           </select>
                         </div>
                       </div>
 
-                      {/* Location Dropdown */}
                       <div className="col-md-3">
                         <div className="form-group">
                           <label className="me-2">Location:</label>
@@ -843,7 +1299,6 @@ const ListSoSale = () => {
                         </div>
                       </div>
 
-                      {/* City Dropdown */}
                       <div className="col-md-3">
                         <div className="form-group">
                           <label className="me-2">City:</label>
@@ -863,7 +1318,6 @@ const ListSoSale = () => {
                         </div>
                       </div>
 
-                      {/* State Dropdown */}
                       <div className="col-md-3">
                         <div className="form-group">
                           <label className="me-2">State:</label>
@@ -883,7 +1337,6 @@ const ListSoSale = () => {
                         </div>
                       </div>
 
-                      {/* Reset Button */}
                       <div className="col-md-12 d-flex align-items-end">
                         <button
                           className="btn btn-sm btn-outline-secondary"
@@ -1002,7 +1455,7 @@ const ListSoSale = () => {
                           <th>Order Id</th>
                         )}
 
-                        {columnsVisibility.date && <th>Sale Date</th>}
+                        {columnsVisibility.date && <th>Date</th>}
                         {columnsVisibility.referenceNumber && (
                           <th>Invoice No</th>
                         )}
@@ -1024,8 +1477,8 @@ const ListSoSale = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {purchase.map((purchase) => (
-                        <tr key={purchase.id}>
+                      {purchase.map((purchaseItem) => (
+                        <tr key={purchaseItem.id}>
                           {columnsVisibility.action && (
                             <td>
                               <DropdownButton
@@ -1036,7 +1489,7 @@ const ListSoSale = () => {
                               >
                                 <Dropdown.Item
                                   as="button"
-                                  onClick={() => handleViewClick(purchase.id)}
+                                  onClick={() => handleViewClick(purchaseItem.id)}
                                 >
                                   <div className="d-inline-block w-75 btn-view justify-content-center text-secondary">
                                     <i className="dropdown_hover fa fa-eye me-3"></i>
@@ -1046,7 +1499,7 @@ const ListSoSale = () => {
 
                                 <Dropdown.Item
                                   as="button"
-                                  onClick={() => handleEditClick(purchase.id)}
+                                  onClick={() => handleEditClick(purchaseItem.id)}
                                 >
                                   <div className="d-inline-block w-75 btn-edit justify-content-center text-secondary">
                                     <i className="dropdown_hover fa-solid fa-pen-to-square me-3"></i>
@@ -1057,8 +1510,8 @@ const ListSoSale = () => {
                                   as="button"
                                   onClick={() =>
                                     handleDeleteClick(
-                                      purchase.id,
-                                      purchase.orderId
+                                      purchaseItem.id,
+                                      purchaseItem.orderId
                                     )
                                   }
                                 >
@@ -1070,7 +1523,7 @@ const ListSoSale = () => {
 
                                 <Dropdown.Item
                                   as="button"
-                                  onClick={() => handlePrintInvoice(purchase)}
+                                  onClick={() => handlePrintInvoice(purchaseItem)}
                                 >
                                   <div className="d-inline-block w-100 btn-print justify-content-center text-secondary">
                                     <i className="fa fa-print me-3"></i>
@@ -1082,41 +1535,41 @@ const ListSoSale = () => {
                           )}
                           {columnsVisibility.status && (
                             <td>
-                              {purchase.status === 1
+                              {purchaseItem.status === 1
                                 ? "Ordered"
-                                : purchase.status === 2
+                                : purchaseItem.status === 2
                                 ? "Pending"
-                                : purchase.status === 3
+                                : purchaseItem.status === 3
                                 ? "Received"
                                 : "Unknown"}
                             </td>
                           )}
                           {columnsVisibility.purchasePoOrderId && (
-                            <td>{purchase.orderId}</td>
+                            <td>{purchaseItem.orderId}</td>
                           )}
 
                           {columnsVisibility.date && (
-                            <td>{purchase.saleDate}</td>
+                            <td>{purchaseItem.orderDate}</td>
                           )}
                           {columnsVisibility.referenceNumber && (
-                            <td>{purchase.referenceNumber}</td>
+                            <td>{purchaseItem.referenceNumber}</td>
                           )}
                           {columnsVisibility.franchiseName && (
-                            <td>{purchase.franchise}</td>
+                            <td>{purchaseItem.franchise}</td>
                           )}
-                          {columnsVisibility.city && <td>{purchase.city}</td>}
-                          {columnsVisibility.state && <td>{purchase.state}</td>}
+                          {columnsVisibility.city && <td>{purchaseItem.city}</td>}
+                          {columnsVisibility.state && <td>{purchaseItem.state}</td>}
                           {columnsVisibility.totalItems && (
-                            <td>{purchase.totalItems}</td>
+                            <td>{purchaseItem.totalItems}</td>
                           )}
                           {columnsVisibility.netTotalAmount && (
-                            <td>{purchase.netTotalAmount}</td>
+                            <td>{purchaseItem.netTotalAmount}</td>
                           )}
                           {columnsVisibility.additionalNotes && (
-                            <td>{purchase.additionalNotes}</td>
+                            <td>{purchaseItem.additionalNotes}</td>
                           )}
                           {columnsVisibility.addedBy && (
-                            <td>{purchase.addedBy}</td>
+                            <td>{purchaseItem.addedBy}</td>
                           )}
                         </tr>
                       ))}
@@ -1124,7 +1577,7 @@ const ListSoSale = () => {
                   </table>
                 </div>
               </div>
-            </div>
+            </div>  
           </div>
         </section>
       </div>

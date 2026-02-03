@@ -40,7 +40,16 @@ function TrialBalance() {
       `${process.env.REACT_APP_BASE_URL}/trail-balance/get`
     );
     if (!response.ok) throw new Error("Network response was not ok");
-    return await response.json();
+    
+    const data = await response.json();
+    
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+    
+    return data;
   };
 
   const calculateTotals = (balances, actualAccounts) => {
@@ -169,7 +178,7 @@ function TrialBalance() {
                     </h3>
                   </div>
                   <div className="box-body">
-                    <table className="table">
+                    <table  className="table" >
                       <thead>
                         <tr>
                           <th>Trial Balance</th>

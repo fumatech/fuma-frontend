@@ -54,23 +54,23 @@ const CashFlow = () => {
           `${process.env.REACT_APP_BASE_URL}/payment-account/getall`
         );
         const data = await res.json();
-
+  
         const flattenedRows = [];
-
+  
         data.forEach((account) => {
           // Step 1: sort transactions by date ASC
           const sortedTx = [...account.transactions].sort((a, b) => {
             return new Date(a.date || 0) - new Date(b.date || 0);
           });
-
+  
           let runningBalance = 0;
-
+  
           sortedTx.forEach((tx) => {
             let debit = 0;
             let credit = 0;
-
+  
             const type = tx.transactionType?.toLowerCase();
-
+  
             if (
               ["sale", "deposit", "credit note", "opening_balance"].includes(
                 type
@@ -82,7 +82,7 @@ const CashFlow = () => {
               debit = tx.amount;
               runningBalance -= tx.amount;
             }
-
+  
             flattenedRows.push({
               id: tx.id,
               date: tx.date ? tx.date.split("T")[0] : "",
@@ -97,12 +97,12 @@ const CashFlow = () => {
             });
           });
         });
-
+  
         flattenedRows.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+  
         setAllTransactions(flattenedRows);
         setFilteredTransactions(flattenedRows);
-
+  
         // extract filter values
         const accounts = [
           ...new Set(flattenedRows.map((t) => t.account)),
@@ -113,7 +113,7 @@ const CashFlow = () => {
         const transactionTypes = [
           ...new Set(flattenedRows.map((t) => t.description)),
         ].filter(Boolean);
-
+  
         setFilterValues({
           accounts,
           paymentMethods,
@@ -123,8 +123,21 @@ const CashFlow = () => {
         console.error("Error:", err);
       }
     };
-
+  
     fetchTransactions();
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
+    // Cleanup function to remove script when component unmounts
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
   // Apply all filters
   useEffect(() => {
@@ -693,77 +706,7 @@ const CashFlow = () => {
                   </table>
                 </div>
 
-                {/* Pagination */}
-                <div className="d-flex justify-content-between align-items-center mt-3">
-                  <div>
-                    Showing {startIndex + 1} to{" "}
-                    {Math.min(endIndex, filteredTransactions.length)} of{" "}
-                    {filteredTransactions.length} entries
-                  </div>
-                  <div>
-                    <nav>
-                      <ul className="pagination mb-0">
-                        <li
-                          className={`page-item ${
-                            currentPage === 1 ? "disabled" : ""
-                          }`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() => setCurrentPage(1)}
-                          >
-                            First
-                          </button>
-                        </li>
-                        <li
-                          className={`page-item ${
-                            currentPage === 1 ? "disabled" : ""
-                          }`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() =>
-                              setCurrentPage((p) => Math.max(1, p - 1))
-                            }
-                          >
-                            Prev
-                          </button>
-                        </li>
-                        <li className="page-item disabled">
-                          <span className="page-link">
-                            {currentPage} / {totalPages}
-                          </span>
-                        </li>
-                        <li
-                          className={`page-item ${
-                            currentPage === totalPages ? "disabled" : ""
-                          }`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() =>
-                              setCurrentPage((p) => Math.min(totalPages, p + 1))
-                            }
-                          >
-                            Next
-                          </button>
-                        </li>
-                        <li
-                          className={`page-item ${
-                            currentPage === totalPages ? "disabled" : ""
-                          }`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() => setCurrentPage(totalPages)}
-                          >
-                            Last
-                          </button>
-                        </li>
-                      </ul>
-                    </nav>
-                  </div>
-                </div>
+               
               </div>
             </div>
           </div>

@@ -238,7 +238,7 @@ const ListShipReturn = () => {
         `${process.env.REACT_APP_BASE_URL}/franchise-purchase-return/getRejectedReturns`
       );
       if (!response.ok) throw new Error("Network response was not ok");
-
+  
       const data = await response.json();
       if (Array.isArray(data)) {
         setViewOrders(data); // Update state with fetched data
@@ -250,6 +250,12 @@ const ListShipReturn = () => {
       console.error("Error fetching pending orders:", error);
       setViewOrders([]); // Reset state in case of error
     }
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
   };
 
   const handleViewClick = (id) => {

@@ -6,13 +6,13 @@ import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
 import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
 import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
 import { Dropdown, DropdownButton, Collapse } from "react-bootstrap";
+
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 const ListDISale = () => {
   const [purchases, setPurchases] = useState([]);
@@ -73,25 +73,25 @@ const ListDISale = () => {
         const response = await fetch(
           `${process.env.REACT_APP_BASE_URL}/sale-di-order/getall`
         );
-
+  
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
-
+  
         const data = await response.json();
         const sortedData = data.sort((a, b) => b.id - a.id);
-
+  
         const updatedPurchases = await Promise.all(
           sortedData.map(async (purchase) => {
             try {
               const customerRes = await fetch(
                 `${process.env.REACT_APP_BASE_URL}/customer/${purchase.customerId}`
               );
-
+  
               if (!customerRes.ok) throw new Error("Customer not found");
-
+  
               const customer = await customerRes.json();
-
+  
               return {
                 ...purchase,
                 franchiseName: customer.franchiseName || "",
@@ -109,7 +109,7 @@ const ListDISale = () => {
             }
           })
         );
-
+  
         setPurchases(updatedPurchases);
         setFilteredPurchases(updatedPurchases);
       } catch (error) {
@@ -118,8 +118,21 @@ const ListDISale = () => {
         setFilteredPurchases([]);
       }
     };
-
+  
     fetchPurchases();
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
+    // Cleanup function
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
 
   // Extract filter values when purchases data changes
@@ -243,14 +256,14 @@ const ListDISale = () => {
             setPurchases((prevPurchases) =>
               prevPurchases.filter((purchase) => purchase.id !== id)
             );
-            toast.success("Sale DI Order deleted successfully!");
+            alert("Sale DI Order deleted successfully!");
           } else {
-            toast.error("Failed to delete sale.");
+            alert("Failed to delete sale.");
           }
         })
         .catch((error) => {
-          // console.error("Error deleting sale:", error);
-          toast.error("An error occurred while deleting the sale.");
+          console.error("Error deleting sale:", error);
+          alert("An error occurred while deleting the sale.");
         });
     }
   };

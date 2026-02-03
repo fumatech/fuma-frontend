@@ -80,19 +80,31 @@ const Users = ({ userRoles }) => {
         const sortedUsers = [...data].sort((a, b) => {
           const roleA = extractRole(a.roles);
           const roleB = extractRole(b.roles);
-
+  
           if (roleA === "Super Admin" && roleB !== "Super Admin") return -1;
           if (roleA !== "Super Admin" && roleB === "Super Admin") return 1;
           return 0; // Keep original order for others
         });
-
+  
         setUsers(sortedUsers);
-
+  
         // Rest of your code...
       })
       .catch((error) => console.error("Error fetching users:", error));
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
+    // Cleanup function
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
-
   const exportCSV = () => {
     const csvData = users.map((user) => ({
       "First Name": user.firstname,
