@@ -18,7 +18,7 @@ const PermissionGroup = ({
       <div className="row align-items-center mb-3">
         <div className="col-md-2 mb-2">
           <h4 className="text-lg font-weight-bold">
-            {prefix.charAt(0).toUpperCase() + prefix.slice(1)}
+            {prefix.replace(/_/g, " ").charAt(0).toUpperCase() + prefix.replace(/_/g, " ").slice(1)}
           </h4>
         </div>
 
@@ -53,7 +53,7 @@ const PermissionGroup = ({
               <input
                 type="checkbox"
                 id={permission.name}
-                checked={selectedPermissions[prefix][permission.name] || false}
+                checked={selectedPermissions[prefix]?.[permission.name] || false}
                 onChange={() => handlePermissionChange(prefix, permission.name)}
                 style={{
                   cursor: "default",
@@ -70,10 +70,13 @@ const PermissionGroup = ({
               >
                 {permission.name
                   .split(".")[1]
-                  .replace("add", "Add ")
+                  ?.replace("add", "Add ")
                   .replace("view", "View ")
                   .replace("edit", "Edit ")
-                  .replace("delete", "Delete ")}
+                  .replace("delete", "Delete ") || "Unknown"}
+                {permission.name.split(".")[0] !== prefix && (
+                  <span className="text-muted small ms-1">({permission.name.split(".")[0]})</span>
+                )}
               </label>
             </div>
           ))}
@@ -107,8 +110,35 @@ const AddRoles = () => {
     }
   }, [roleName]);
 
+  // Standard list from Permission.js to ensure consistent ordering
+  const standardModules = [
+    "user", "roles", "vendor", "franchise", "product", "category", "brand", "variation", "unit",
+    "purchase_order", "di_purchase", "po_purchase", "return_purchase", "purchase_entry",
+    "view_orders", "accepted_orders", "ship_orders", "rejected_orders",
+    "so_sale", "di_sale", "all_sale_orders", "sale_return", "accepted_return", "sale_entry", "ship_return",
+    "stock_transfer", "stock_adjustment", "warranty_claim", "expense", "expense_category",
+    "account", "trial_balance", "cash_flow", "payment_report", "payment_method",
+    "purchase_and_sale_report", "tax_report", "customers_and_suppliers_report", "stock_report",
+    "stock_adjustment_report", "item_report", "product_purchase_report", "product_sell_report",
+    "purchase_payment_report", "sale_payment_report", "tax_rate", "business_details",
+    "business_locations", "business_category", "permission", "image_upload", "signature_upload",
+    "hrm", "crm"
+  ];
+
+  // Map legacy/inconsistent prefixes to standard ones
+  const legacyMapping = {
+    "users": "user",
+    "purchaseorder": "purchase_order",
+    "purchase": "purchase_order",
+    "sales": "so_sale",
+    "sale": "so_sale",
+    "expenses": "expense",
+    "report": "stock_report",
+    "settings": "business_details"
+  };
+
   const fetchPermissions = () => {
-    fetch(`${process.env.REACT_APP_BASE_URL}/permissions/getall`) // ✅ FIXED
+    fetch(`${process.env.REACT_APP_BASE_URL}/permissions/getall`)
       .then((response) => response.json())
       .then((data) => {
         const grouped = data.reduce((acc, permission) => {
@@ -117,7 +147,13 @@ const AddRoles = () => {
             permission.name &&
             typeof permission.name === "string"
           ) {
-            const prefix = permission.name.split(".")[0];
+            let prefix = permission.name.split(".")[0].toLowerCase();
+
+            // Normalize prefix if it's a legacy standard
+            if (legacyMapping[prefix]) {
+              prefix = legacyMapping[prefix];
+            }
+
             if (!acc[prefix]) {
               acc[prefix] = [];
             }
@@ -299,7 +335,7 @@ const AddRoles = () => {
                         type="checkbox"
                         className="form-check-input check_all"
                         id="selectAllOthers"
-                        // Optional: Handle with state if you want to manage its state
+                      // Optional: Handle with state if you want to manage its state
                       />
                       <label
                         className="form-check-label"
@@ -331,17 +367,33 @@ const AddRoles = () => {
 
                 {permissionsLoaded && (
                   <>
-                    {Object.keys(groupedPermissions).map((prefix) => (
-                      <PermissionGroup
-                        key={prefix}
-                        prefix={prefix}
-                        permissions={groupedPermissions[prefix]}
-                        selectAll={selectAll}
-                        selectedPermissions={selectedPermissions}
-                        handleSelectAll={handleSelectAll}
-                        handlePermissionChange={handlePermissionChange}
-                      />
+                    {standardModules.map((prefix) => (
+                      groupedPermissions[prefix] && (
+                        <PermissionGroup
+                          key={prefix}
+                          prefix={prefix}
+                          permissions={groupedPermissions[prefix]}
+                          selectAll={selectAll}
+                          selectedPermissions={selectedPermissions}
+                          handleSelectAll={handleSelectAll}
+                          handlePermissionChange={handlePermissionChange}
+                        />
+                      )
                     ))}
+                    {/* Catch-all for any other permissions not in standard order */}
+                    {Object.keys(groupedPermissions)
+                      .filter(prefix => !standardModules.includes(prefix))
+                      .map((prefix) => (
+                        <PermissionGroup
+                          key={prefix}
+                          prefix={prefix}
+                          permissions={groupedPermissions[prefix]}
+                          selectAll={selectAll}
+                          selectedPermissions={selectedPermissions}
+                          handleSelectAll={handleSelectAll}
+                          handlePermissionChange={handlePermissionChange}
+                        />
+                      ))}
                   </>
                 )}
               </div>

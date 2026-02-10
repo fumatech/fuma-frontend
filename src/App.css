@@ -6,12 +6,14 @@
   margin: 0;
   scroll-behavior: smooth;
 
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  font-family: 'Plus Jakarta Display', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-weight: 500;
 }
 
 /* Media query to animate the logo only if motion is not reduced */
 @media (prefers-reduced-motion: no-preference) {
+
   /* Infinite spinning animation for the App logo */
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
@@ -47,6 +49,7 @@
 .nav-link {
   padding: 0px;
 }
+
 .nav-icon {
   width: 17px;
   height: 17px;
@@ -62,6 +65,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -125,7 +129,7 @@
 /* Styling for main headings */
 .all-heading {
   font-family: "Plus Jakarta Display", sans-serif;
-  font-weight: bold;
+  font-weight: 600;
   color: #0c4461;
 }
 
@@ -135,7 +139,9 @@
   color: #9fa6b2;
   margin-left: 3px;
   font-size: 14px;
+  font-weight: 500;
 }
+
 .dashboard-background {
   /* 
   background: rgb(36,37,63);
@@ -147,6 +153,7 @@
 .dashbord-card-logo {
   color: white;
 }
+
 /* .dashboard-background {
   background: linear-gradient(
     135deg,
@@ -161,28 +168,28 @@
 
 .menu_theme {
   background: rgb(25, 24, 48);
-  background: linear-gradient(
-    179deg,
-    rgba(25, 24, 48, 1) 0%,
-    rgba(12, 68, 97, 1) 49%
-  );
+  background: linear-gradient(179deg,
+      rgba(25, 24, 48, 1) 0%,
+      rgba(12, 68, 97, 1) 49%);
   border: none;
 
-  backdrop-filter: blur(20px); /* Adjust the blur value */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow for contrast */
+  backdrop-filter: blur(20px);
+  /* Adjust the blur value */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  /* Optional shadow for contrast */
 }
 
 .header-background {
   background: rgba(240, 239, 244, 0);
-  background: linear-gradient(
-    179deg,
-    rgba(25, 24, 48, 0) 0%,
-    rgba(12, 69, 97, 0.015) 49%
-  );
+  background: linear-gradient(179deg,
+      rgba(25, 24, 48, 0) 0%,
+      rgba(12, 69, 97, 0.015) 49%);
   border: none;
 
-  backdrop-filter: blur(20px); /* Adjust the blur value */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow for contrast */
+  backdrop-filter: blur(20px);
+  /* Adjust the blur value */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  /* Optional shadow for contrast */
 }
 
 /* Light Theme */
@@ -221,31 +228,37 @@ body {
   border: 2px white;
   margin: 10px;
   background: rgb(25, 24, 48);
-  background: linear-gradient(
-    179deg,
-    rgba(25, 24, 48, 1) 0%,
-    rgba(12, 68, 97, 1) 49%
-  );
-  backdrop-filter: blur(1px); /* Adjust the value for the blur effect */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.9); /* Optional: Adds a subtle shadow for better contrast */
-  padding: 20px; /* Optional: Adds some padding inside the card */
+  background: linear-gradient(179deg,
+      rgba(25, 24, 48, 1) 0%,
+      rgba(12, 68, 97, 1) 49%);
+  backdrop-filter: blur(1px);
+  /* Adjust the value for the blur effect */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.9);
+  /* Optional: Adds a subtle shadow for better contrast */
+  padding: 20px;
+  /* Optional: Adds some padding inside the card */
   border-radius: 25px;
 }
 
 .table-rounded {
   border-collapse: separate;
-  border-spacing: 0; /* To remove the default spacing */
+  border-spacing: 0;
+  /* To remove the default spacing */
 }
 
 .table-rounded th,
 .table-rounded td {
-  border: 1px solid #dee2e6; /* Table border color */
-  border-radius: 8px; /* Adjust the radius as needed */
-  overflow: hidden; /* Prevents content from overflowing */
+  border: 1px solid #dee2e6;
+  /* Table border color */
+  border-radius: 8px;
+  /* Adjust the radius as needed */
+  overflow: hidden;
+  /* Prevents content from overflowing */
 }
 
 .table-rounded th {
-  background-color: #f8f9fa; /* Optional: Header background color */
+  background-color: #f8f9fa;
+  /* Optional: Header background color */
 }
 
 .app-background {
@@ -261,15 +274,14 @@ body {
 }
 
 .dataTables_wrapper .dataTables_paginate {
-  color: red; /* Change the text color to red */
+  color: red;
+  /* Change the text color to red */
 }
 
-.dataTables_wrapper .dataTables_paginate a {
-  background-color: #0c4461; /* Change the link color to red */
-}
-
-.dataTables_wrapper .dataTables_paginate {
-  /* Change the hover color if desired */
+/* Hide DataTables empty message if there are actual data rows */
+.table tbody tr:has(~ tr) .dataTables_empty,
+.table tbody tr:has(+ tr) .dataTables_empty {
+  display: none !important;
 }
 
 .page-item.active .page-link {
@@ -277,6 +289,7 @@ body {
   /* background-color: #007bff; */
   border-color: #007bff;
 }
+
 h1 {
   font-size: 28px;
 }
@@ -294,7 +307,8 @@ h1 {
 
 .date-range-dropdown {
   position: absolute;
-  top: 38px; /* Adjust based on input height */
+  top: 38px;
+  /* Adjust based on input height */
   left: 0;
   width: 300px;
   background-color: white;
@@ -317,7 +331,7 @@ h1 {
 .custom-size-textsize {
   padding: 10px 12px;
   font-size: 14px;
-  font-weight: 100;
+  font-weight: 500;
   line-height: 1;
 
   color: #555;
@@ -326,36 +340,37 @@ h1 {
   border: 1px solid #ccc;
 }
 
-.custom-outline-dropdown {
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: 24px !important;
+  /* Change this value as needed */
+  padding: 0px 10px;
+  /* Adjust padding as needed */
 }
 
-.select2-container--default
-  .select2-selection--single
-  .select2-selection__rendered {
-  line-height: 24px !important; /* Change this value as needed */
-  padding: 0px 10px; /* Adjust padding as needed */
-}
-.select2-container--default
-  .select2-selection--single
-  .select2-selection__rendered {
-  line-height: 24px !important; /* Add !important to override */
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: 24px !important;
+  /* Add !important to override */
 }
 
 .select2-container--default .select2-search__field:focus {
   outline: 0;
-  border: none !important; /* Remove the border */
-  box-shadow: none !important; /* Remove any shadow */
+  border: none !important;
+  /* Remove the border */
+  box-shadow: none !important;
+  /* Remove any shadow */
 }
 
 /* If you want to apply this to all states (including non-focus) */
 .select2-container--default .select2-search__field {
-  border: none !important; /* Remove the border */
+  border: none !important;
+  /* Remove the border */
 }
 
 /* Hide the spinner buttons in WebKit browsers (Chrome, Safari) */
 .number input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 
@@ -385,9 +400,11 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .menuSidebar {
-  height: 100vh; /* Adjust according to your header or top margin */
+  height: 100vh;
+  /* Adjust according to your header or top margin */
   overflow-y: auto;
-  overflow-x: hidden; /* Prevent horizontal scroll if necessary */
+  overflow-x: hidden;
+  /* Prevent horizontal scroll if necessary */
 }
 
 /* Hide scrollbars */
@@ -401,25 +418,31 @@ input[type="number"]::-webkit-outer-spin-button {
 
 /* styles.css or your CSS file */
 .datepicker-wrapper {
-  position: relative; /* Ensure it can position itself */
-  z-index: 1050; /* Bootstrap modal default z-index is 1050 */
+  position: relative;
+  /* Ensure it can position itself */
+  z-index: 1050;
+  /* Bootstrap modal default z-index is 1050 */
 }
 
 .card {
-  z-index: 1000; /* Ensure this is lower than the DatePicker */
-  position: relative; /* Make sure it's positioned to use z-index */
+  z-index: 1000;
+  /* Ensure this is lower than the DatePicker */
+  position: relative;
+  /* Make sure it's positioned to use z-index */
 }
 
 .invoice-button:hover {
-  background-color: #45a049; /* Darker green on hover */
+  background-color: #45a049;
+  /* Darker green on hover */
 }
+
 /* Main menu item hover */
-.nav-item > .nav-link:hover {
+.nav-item>.nav-link:hover {
   background-color: rgba(0, 64, 193, 0.1) !important;
 }
 
-.nav-item > .nav-link:hover i,
-.nav-item > .nav-link:hover p {
+.nav-item>.nav-link:hover i,
+.nav-item>.nav-link:hover p {
   color: black !important;
 }
 
@@ -434,11 +457,14 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .main-sidebar {
-  background-color: #ffffff !important; /* Force transparency */
-  position: fixed; /* Make it float */
+  background-color: #ffffff !important;
+  /* Force transparency */
+  position: fixed;
+  /* Make it float */
   top: 0;
   left: 0;
-  z-index: 1000; /* Ensure it's above other content */
+  z-index: 1000;
+  /* Ensure it's above other content */
   border: none;
   /* padding: 20px 8px 30px 11px; */
 }
@@ -448,6 +474,7 @@ input[type="number"]::-webkit-outer-spin-button {
   background-color: #003aaf;
   color: #ffffff;
 }
+
 .nav-item {
   font-size: 13px;
   font-weight: 550;
