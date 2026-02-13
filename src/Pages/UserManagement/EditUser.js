@@ -824,11 +824,13 @@ const EditUser = () => {
                                     required
                                   >
                                     <option value="">Select Role</option>
-                                    {roles.map((role) => (
-                                      <option key={role.id} value={role.id}>
-                                        {role.role}
-                                      </option>
-                                    ))}
+                                    {roles
+                                      .filter((role) => role.role !== "Super Admin")
+                                      .map((role) => (
+                                        <option key={role.id} value={role.id}>
+                                          {role.role}
+                                        </option>
+                                      ))}
                                   </select>
                                   <i
                                     className="fas fa-info-circle text-info ms-2"
