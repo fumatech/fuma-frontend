@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "../../assets/dist/css/adminlte.min.css";
+import "react-toastify/dist/ReactToastify.css";
+import "./Roles.css";
+import BackButton from "../../components/BackButton";
 import { toast } from "react-toastify";
 
 // Component to render each permission group
@@ -299,7 +300,8 @@ const AddRoles = () => {
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-sm-6">
+              <div className="col-sm-6 d-flex align-items-center">
+                <BackButton />
                 <h1 className="all-heading fs-2">Add Role</h1>
               </div>
             </div>

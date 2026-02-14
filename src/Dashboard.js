@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import BusinessFunctionCards from "./components/Dashboard/BusinessFunctionCards";
 import "./Pages/Dashboard.css";
 const Dashboard = () => {
   const [userEmail, setUserEmail] = useState(null);
@@ -140,6 +141,8 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+
+            <BusinessFunctionCards />
 
             {/* /.row */}
             {/* Main row */}

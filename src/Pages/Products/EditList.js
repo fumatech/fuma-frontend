@@ -5,6 +5,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min";
 import axios from "axios";
 import Select from "react-select";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 function EditList() {
   const { productId } = useParams(); // Get productId from URL params
@@ -380,17 +381,17 @@ function EditList() {
       // Ensure rows is defined and is an array
       const updatedRows = Array.isArray(variation.rows)
         ? variation.rows.map((row) => {
-            const excTaxPrice = parseFloat(row.defaultPurchasePriceExcTax) || 0;
+          const excTaxPrice = parseFloat(row.defaultPurchasePriceExcTax) || 0;
 
-            // Calculate Inc. Tax based on Exc. Tax and applicable tax rate
-            const newIncTaxPrice = calculateIncTaxFromExc(excTaxPrice);
-            row.defaultPurchasePriceIncTax = newIncTaxPrice.toFixed(2);
+          // Calculate Inc. Tax based on Exc. Tax and applicable tax rate
+          const newIncTaxPrice = calculateIncTaxFromExc(excTaxPrice);
+          row.defaultPurchasePriceIncTax = newIncTaxPrice.toFixed(2);
 
-            // Calculate Default Selling Price for the current row
-            row.defaultSellingPrice = calculateDefaultSellingPriceForRow(row);
+          // Calculate Default Selling Price for the current row
+          row.defaultSellingPrice = calculateDefaultSellingPriceForRow(row);
 
-            return row;
-          })
+          return row;
+        })
         : []; // Fallback to an empty array if rows are not defined
 
       return { ...variation, rows: updatedRows };
@@ -989,8 +990,9 @@ function EditList() {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
-                  <h1>Edit Products</h1>
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
+                  <h1>Edit Product</h1>
                 </div>
               </div>
             </div>
@@ -1244,8 +1246,8 @@ function EditList() {
                                   {file
                                     ? file.name
                                     : existingImage
-                                    ? existingImage.split("/").pop()
-                                    : "No file selected"}
+                                      ? existingImage.split("/").pop()
+                                      : "No file selected"}
                                 </div>
                               </div>
                               <div className="input-group-append">
@@ -1519,16 +1521,16 @@ function EditList() {
                                             {/* Display the selected image preview if available */}
                                             {productVariantImage &&
                                               productVariantImage.length >
-                                                0 && (
+                                              0 && (
                                                 <div>
                                                   <img
                                                     src={
                                                       typeof productVariantImage[0] ===
-                                                      "string"
+                                                        "string"
                                                         ? productVariantImage[0]
                                                         : URL.createObjectURL(
-                                                            productVariantImage[0]
-                                                          )
+                                                          productVariantImage[0]
+                                                        )
                                                     }
                                                     alt="Product"
                                                     width="100"
@@ -1538,7 +1540,7 @@ function EditList() {
 
                                             {/* Display existing image if no new image is selected */}
                                             {!productVariantImage ||
-                                            productVariantImage.length === 0 ? (
+                                              productVariantImage.length === 0 ? (
                                               <div>
                                                 <img
                                                   src={singleExistingImage}
@@ -1663,9 +1665,9 @@ function EditList() {
                                                       const selectedValues =
                                                         selectedOptions
                                                           ? selectedOptions.map(
-                                                              (option) =>
-                                                                option.value
-                                                            )
+                                                            (option) =>
+                                                              option.value
+                                                          )
                                                           : [];
                                                       handleVariationChange(
                                                         {
@@ -1839,7 +1841,7 @@ function EditList() {
                                                             {/* Display the uploaded image if it's a string (i.e., an image URL) */}
                                                             {row.variationProductImages &&
                                                               typeof row.variationProductImages ===
-                                                                "string" && (
+                                                              "string" && (
                                                                 <img
                                                                   src={
                                                                     row.variationProductImages
@@ -1931,10 +1933,10 @@ function EditList() {
                                           {product.sku})
                                           <span className="badge badge-primary badge-pill">
                                             {product.defaultSellingPrice &&
-                                            !isNaN(product.defaultSellingPrice)
+                                              !isNaN(product.defaultSellingPrice)
                                               ? product.defaultSellingPrice.toFixed(
-                                                  2
-                                                )
+                                                2
+                                              )
                                               : "N/A"}
                                           </span>
                                         </li>
@@ -1983,22 +1985,22 @@ function EditList() {
                                               </td>
                                               <td>
                                                 {product.defaultSellingPrice &&
-                                                !isNaN(
-                                                  product.defaultSellingPrice
-                                                )
+                                                  !isNaN(
+                                                    product.defaultSellingPrice
+                                                  )
                                                   ? product.defaultSellingPrice.toFixed(
-                                                      2
-                                                    )
+                                                    2
+                                                  )
                                                   : "0.00"}{" "}
                                                 {/* Fallback to 0.00 */}
                                               </td>
                                               <td>
                                                 {product.defaultSellingPrice &&
-                                                product.quantity
+                                                  product.quantity
                                                   ? (
-                                                      product.defaultSellingPrice *
-                                                      product.quantity
-                                                    ).toFixed(2)
+                                                    product.defaultSellingPrice *
+                                                    product.quantity
+                                                  ).toFixed(2)
                                                   : "0.00"}{" "}
                                                 {/* Fallback to 0.00 */}
                                               </td>
@@ -2072,9 +2074,9 @@ function EditList() {
                                         value={
                                           netTotalAmount && profitMargin
                                             ? (
-                                                netTotalAmount *
-                                                (1 + profitMargin / 100)
-                                              ).toFixed(2)
+                                              netTotalAmount *
+                                              (1 + profitMargin / 100)
+                                            ).toFixed(2)
                                             : "0.00"
                                         } // Calculate based on net total and profit margin
                                         readOnly

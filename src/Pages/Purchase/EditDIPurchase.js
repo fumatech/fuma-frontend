@@ -4,6 +4,9 @@ import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
+import "react-toastify/dist/ReactToastify.css";
+import "../../assets/dist/css/adminlte.min.css";
+import BackButton from "../../components/BackButton";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -103,7 +106,7 @@ function EditDIPurchase() {
     const fetchPurchaseData = async () => {
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/purchase-di-order/get/${id}`
+          `${process.env.REACT_APP_BASE_URL} /purchase-di-order/get / ${id} `
         );
 
         if (!response.ok) {
@@ -208,7 +211,7 @@ function EditDIPurchase() {
   // Fetch payment methods
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_BASE_URL}/payment-method/active-names`)
+      .get(`${process.env.REACT_APP_BASE_URL} /payment-method/active - names`)
       .then((response) => {
         setPaymentMethods(response.data); // Store fetched methods
       })
@@ -220,7 +223,7 @@ function EditDIPurchase() {
   // Fetch payment accounts
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_BASE_URL}/payment-account/getall`)
+      .get(`${process.env.REACT_APP_BASE_URL} /payment-account/getall`)
       .then((response) => {
         // Filter active accounts (status === 1)
         const activeAccounts = response.data.filter(
@@ -238,7 +241,7 @@ function EditDIPurchase() {
       setUserEmail(email);
 
       // Call the API to get the username based on the email
-      fetch(`${process.env.REACT_APP_BASE_URL}/user/username?email=${email}`)
+      fetch(`${process.env.REACT_APP_BASE_URL} /user/username ? email = ${email} `)
         .then((response) => response.json())
         .then((data) => {
           if (data) {
@@ -317,7 +320,7 @@ function EditDIPurchase() {
   useEffect(() => {
     // Fetch tax rates
     axios
-      .get(`${process.env.REACT_APP_BASE_URL}/tax/getall`)
+      .get(`${process.env.REACT_APP_BASE_URL} /tax/getall`)
       .then((response) => {
         setTaxRates(response.data);
 
@@ -345,11 +348,11 @@ function EditDIPurchase() {
       prev.map((product) =>
         product.id === productId && product.variationId === variationId
           ? {
-              ...product,
-              taxRate, // Set tax rate for calculations
-              taxRateId, // Set taxRateId for backend
-              selectedTax: selectedOption || null, // Store the full tax option for display purposes
-            }
+            ...product,
+            taxRate, // Set tax rate for calculations
+            taxRateId, // Set taxRateId for backend
+            selectedTax: selectedOption || null, // Store the full tax option for display purposes
+          }
           : product
       )
     );
@@ -366,7 +369,7 @@ function EditDIPurchase() {
     const fetchVendors = async () => {
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/vendor/getallactive`
+          `${process.env.REACT_APP_BASE_URL} /vendor/getallactive`
         );
         const data = await response.json();
 
@@ -463,9 +466,8 @@ function EditDIPurchase() {
   const searchProducts = async (query) => {
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
-        }/product/search/active?query=${encodeURIComponent(query)}`
+        `${process.env.REACT_APP_BASE_URL
+        } /product/search / active ? query = ${encodeURIComponent(query)} `
       );
       const data = await response.json();
       setSearchResults(data);
@@ -829,7 +831,7 @@ function EditDIPurchase() {
       }
 
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/purchase-di-order/update/${id}`,
+        `${process.env.REACT_APP_BASE_URL} /purchase-di-order/update / ${id} `,
         {
           method: "PUT",
           body: formData,
@@ -858,7 +860,8 @@ function EditDIPurchase() {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
                   <h1 className="all-heading">Edit DI Purchase</h1>
                 </div>
               </div>
@@ -1031,7 +1034,7 @@ function EditDIPurchase() {
                                                 type="checkbox"
                                                 checked={
                                                   selectedVariations[
-                                                    variation.id
+                                                  variation.id
                                                   ] || false
                                                 }
                                                 onChange={(e) =>
@@ -1156,7 +1159,7 @@ function EditDIPurchase() {
                                               e.target.value
                                             )
                                           }
-                                          //  readOnly
+                                        //  readOnly
                                         />
                                       </td>
 
@@ -1175,7 +1178,7 @@ function EditDIPurchase() {
                                               e.target.value
                                             )
                                           }
-                                          //  readOnly
+                                        //  readOnly
                                         />
                                       </td>
                                       <td>
@@ -1257,7 +1260,7 @@ function EditDIPurchase() {
                                   name="discountType"
                                   value={discountType}
                                   onChange={handleDiscountTypeChange}
-                                  // disabled
+                                // disabled
                                 >
                                   <option value="">None</option>
                                   <option value="Fixed">Fixed</option>
@@ -1303,15 +1306,15 @@ function EditDIPurchase() {
                                 className="display_currency"
                               >
                                 {discountType === "Percentage" &&
-                                discountAmount &&
-                                subtotalAmount
+                                  discountAmount &&
+                                  subtotalAmount
                                   ? (
-                                      (parseFloat(discountAmount) / 100) *
-                                      parseFloat(subtotalAmount)
-                                    ).toFixed(2)
+                                    (parseFloat(discountAmount) / 100) *
+                                    parseFloat(subtotalAmount)
+                                  ).toFixed(2)
                                   : discountAmount
-                                  ? parseFloat(discountAmount).toFixed(2)
-                                  : "0.00"}
+                                    ? parseFloat(discountAmount).toFixed(2)
+                                    : "0.00"}
                               </span>
                             </td>
                           </tr>
@@ -1370,7 +1373,7 @@ function EditDIPurchase() {
                                   id="additional_notes"
                                   value={additionalNotes}
                                   onChange={handleAdditionalNotesChange}
-                                  // readOnly
+                                // readOnly
                                 />
                               </div>
                             </td>
@@ -1400,7 +1403,7 @@ function EditDIPurchase() {
                             value={shippingDetails}
                             onChange={(e) => setShippingDetails(e.target.value)}
                             required
-                            //  readOnly
+                          //  readOnly
                           />
                         </div>
                       </div>
@@ -1419,7 +1422,7 @@ function EditDIPurchase() {
                             value={shippingCharges}
                             onChange={(e) => setShippingCharges(e.target.value)}
                             required
-                            // readOnly
+                          // readOnly
                           />
                         </div>
                       </div>
@@ -1429,14 +1432,13 @@ function EditDIPurchase() {
                           className="btn"
                           style={{ backgroundColor: "#0c4461", color: "white" }}
                           onClick={toggleVisibility}
-                          //  disabled
+                        //  disabled
                         >
                           <i className="fas fa-plus"></i> Add additional
                           expenses{" "}
                           <i
-                            className={`fas ${
-                              isVisible ? "fa-chevron-up" : "fa-chevron-down"
-                            }`}
+                            className={`fas ${isVisible ? "fa-chevron-up" : "fa-chevron-down"
+                              } `}
                           ></i>
                         </button>
                       </div>

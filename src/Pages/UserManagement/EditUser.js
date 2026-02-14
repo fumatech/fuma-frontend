@@ -12,8 +12,10 @@ import "../../assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css
 import "../../assets/plugins/bootstrap4-duallistbox/bootstrap-duallistbox.min.css";
 import "../../assets/plugins/bs-stepper/css/bs-stepper.min.css";
 import "../../assets/plugins/dropzone/min/dropzone.min.css";
+import "react-toastify/dist/ReactToastify.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../AddUser.css";
+import BackButton from "../../components/BackButton";
 import { toast } from "react-toastify";
 
 const EditUser = () => {
@@ -595,7 +597,8 @@ const EditUser = () => {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
                   <h1 className="all-heading fs-2">Edit User</h1>
                 </div>
               </div>

@@ -13,8 +13,10 @@ import "../../assets/plugins/bootstrap4-duallistbox/bootstrap-duallistbox.min.cs
 import "../../assets/plugins/bs-stepper/css/bs-stepper.min.css";
 import "../../assets/plugins/dropzone/min/dropzone.min.css";
 import "../../assets/dist/css/adminlte.min.css";
+import "react-toastify/dist/ReactToastify.css";
 import "../AddUser.css";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 const AddUser = () => {
   // Basic Information
@@ -533,7 +535,8 @@ const AddUser = () => {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
                   <h1 className="all-heading fs-2">Add User</h1>
                 </div>
               </div>

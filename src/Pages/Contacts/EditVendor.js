@@ -15,6 +15,7 @@ import "../../assets/plugins/dropzone/min/dropzone.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../AddUser.css";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 const EditVendor = () => {
   const { id } = useParams();
@@ -396,7 +397,8 @@ const EditVendor = () => {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
                   <h1 className="all-heading fs-2">Edit Vendor</h1>
                 </div>
               </div>

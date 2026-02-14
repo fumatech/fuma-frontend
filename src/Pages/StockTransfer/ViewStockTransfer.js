@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import BackButton from "../../components/BackButton";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Tooltip, OverlayTrigger } from "react-bootstrap";
 import DatePicker from "react-datepicker";
@@ -81,9 +82,8 @@ function ViewStockTransfer() {
         // Set selected products
         if (data.stockTransferItems && data.stockTransferItems.length > 0) {
           const products = data.stockTransferItems.map((item) => ({
-            id: `${item.productId}-${
-              item.productVariationId || "no-variation"
-            }`,
+            id: `${item.productId}-${item.productVariationId || "no-variation"
+              }`,
             itemId: item.id, // ⭐ STORE DB ID
             productId: item.productId,
             productName: item.productName,
@@ -463,8 +463,9 @@ function ViewStockTransfer() {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-md-6">
-                  <h1 className="all-heading">View Stock Transfer</h1>
+                <div className="col-md-6 d-flex align-items-center flex-wrap gap-2">
+                  <BackButton />
+                  <h1 className="all-heading mb-0">View Stock Transfer</h1>
                 </div>
                 {/* <div className="col-md-6 text-right">
                   <Link
@@ -536,7 +537,7 @@ function ViewStockTransfer() {
                           value={status}
                           disabled
                           onChange={(e) => setStatus(e.target.value)}
-                          // disabled={status === "completed"}
+                        // disabled={status === "completed"}
                         >
                           <option value="" disabled>
                             Please Select
@@ -587,7 +588,7 @@ function ViewStockTransfer() {
                           value={locationTo}
                           onChange={handleLocationToChange}
                           disabled
-                          // disabled={!locationFrom} // optional UX improvement
+                        // disabled={!locationFrom} // optional UX improvement
                         >
                           <option value="" disabled>
                             Please Select
@@ -648,20 +649,18 @@ function ViewStockTransfer() {
                               {searchResults.map((product, index) => (
                                 <div
                                   key={product.id}
-                                  className={`product-row ${
-                                    focusedIndex === index ? "focused" : ""
-                                  } ${
-                                    (
+                                  className={`product-row ${focusedIndex === index ? "focused" : ""
+                                    } ${(
                                       product.productVariations &&
-                                      product.productVariations.length > 0
+                                        product.productVariations.length > 0
                                         ? product.productVariations.some(
-                                            (v) => selectedVariations[v.id]
-                                          )
+                                          (v) => selectedVariations[v.id]
+                                        )
                                         : selectedVariations[product.id]
                                     )
                                       ? "selected"
                                       : ""
-                                  }`}
+                                    }`}
                                   onClick={() =>
                                     !status === "completed" &&
                                     handleProductSelect(product)
@@ -685,11 +684,10 @@ function ViewStockTransfer() {
                                             {product.sku}
                                           </span>
                                           <span
-                                            className={`stock ${
-                                              product.stock > 0
+                                            className={`stock ${product.stock > 0
                                                 ? "in-stock"
                                                 : "out-of-stock"
-                                            }`}
+                                              }`}
                                           >
                                             {product.stock > 0
                                               ? `Stock: ${product.stock}`
@@ -709,13 +707,12 @@ function ViewStockTransfer() {
                                               (variation) => (
                                                 <div
                                                   key={variation.id}
-                                                  className={`variation-item py-0 border rounded px-2 ${
-                                                    selectedVariations[
+                                                  className={`variation-item py-0 border rounded px-2 ${selectedVariations[
                                                       variation.id
                                                     ]
                                                       ? "selected"
                                                       : ""
-                                                  }`}
+                                                    }`}
                                                   onClick={(e) => {
                                                     if (
                                                       status !== "completed"
@@ -798,7 +795,7 @@ function ViewStockTransfer() {
                                               e.target.value
                                             )
                                           }
-                                          // disabled={status === "completed"}
+                                        // disabled={status === "completed"}
                                         />
                                       </td>
                                       <td>
@@ -814,7 +811,7 @@ function ViewStockTransfer() {
                                             handleRemoveProduct(product.id)
                                           }
                                           disabled
-                                          // disabled={status === "completed"}
+                                        // disabled={status === "completed"}
                                         >
                                           <i className="fa fa-trash"></i>
                                         </button>

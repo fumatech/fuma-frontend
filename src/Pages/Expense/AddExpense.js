@@ -1,6 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import BackButton from "../../components/BackButton";
 
 import axios from "axios";
 import Select from "react-select";
@@ -304,6 +305,7 @@ function AddExpense() {
             <div className="container-fluid">
               <div className="row mb-2">
                 <div className="col-md-6">
+                  <BackButton />
                   <h1 className=" all-heading">Add Expense</h1>
                 </div>
               </div>

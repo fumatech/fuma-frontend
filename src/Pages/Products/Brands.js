@@ -11,6 +11,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { Collapse } from "react-bootstrap";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 const Brands = () => {
   const [brands, setBrands] = useState([]);
@@ -296,7 +297,10 @@ const Brands = () => {
           <div className="container-fluid">
             <div className="row mb-2">
               <div className="col-12 col-md-6">
-                <h1 className="all-heading ">Brands</h1>
+                <div className="d-flex align-items-center">
+                  <BackButton />
+                  <h1 className="all-heading ">Brands</h1>
+                </div>
                 <span className="d-inline d-md-block sub-heading">
                   Manage Brands
                 </span>
@@ -513,84 +517,97 @@ const Brands = () => {
         </section>
 
         {/* modal */}
-        {modalType && (
-          <div
-            className="modal fade show"
-            id="brandModal"
-            tabIndex="-1"
-            role="dialog"
-            aria-labelledby="brandModalLabel"
-            aria-hidden={!modalType}
-            style={{ display: modalType ? "block" : "none" }}
-          >
-            <div className="modal-dialog" role="document">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title" id="brandModalLabel">
-                    {modalType === "add"
-                      ? "Add Brand"
-                      : modalType === "edit"
-                      ? "Edit Brand"
-                      : "View Brand"}
-                  </h5>
-                  <button
-                    type="button"
-                    className="close"
-                    onClick={closeModal}
-                    aria-label="Close"
-                  >
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div className="modal-body">
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      handleSaveBrand();
-                    }}
-                  >
-                    {(modalType === "add" || modalType === "edit") && (
-                      <div>
-                        <div className="form-group">
-                          <label htmlFor="brandName">Brand Name</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            id="brandName"
-                            value={formData.brandName}
-                            onChange={handleFormChange}
-                            placeholder="Enter brand name"
-                            required
-                          />
+        {
+          modalType && (
+            <div
+              className="modal fade show"
+              id="brandModal"
+              tabIndex="-1"
+              role="dialog"
+              aria-labelledby="brandModalLabel"
+              aria-hidden={!modalType}
+              style={{ display: modalType ? "block" : "none" }}
+            >
+              <div className="modal-dialog" role="document">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h5 className="modal-title" id="brandModalLabel">
+                      {modalType === "add"
+                        ? "Add Brand"
+                        : modalType === "edit"
+                          ? "Edit Brand"
+                          : "View Brand"}
+                    </h5>
+                    <button
+                      type="button"
+                      className="close"
+                      onClick={closeModal}
+                      aria-label="Close"
+                    >
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div className="modal-body">
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSaveBrand();
+                      }}
+                    >
+                      {(modalType === "add" || modalType === "edit") && (
+                        <div>
+                          <div className="form-group">
+                            <label htmlFor="brandName">Brand Name</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              id="brandName"
+                              value={formData.brandName}
+                              onChange={handleFormChange}
+                              placeholder="Enter brand name"
+                              required
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label htmlFor="description">Description</label>
+                            <textarea
+                              className="form-control"
+                              id="description"
+                              value={formData.description}
+                              onChange={handleFormChange}
+                              placeholder="Enter description"
+                              required
+                            ></textarea>
+                          </div>
                         </div>
-                        <div className="form-group">
-                          <label htmlFor="description">Description</label>
-                          <textarea
-                            className="form-control"
-                            id="description"
-                            value={formData.description}
-                            onChange={handleFormChange}
-                            placeholder="Enter description"
-                            required
-                          ></textarea>
-                        </div>
-                      </div>
-                    )}
+                      )}
 
-                    {modalType === "view" && currentBrand && (
-                      <div>
-                        <p>
-                          <strong>Brand Name:</strong> {currentBrand.brandName}
-                        </p>
-                        <p>
-                          <strong>Description:</strong>{" "}
-                          {currentBrand.description}
-                        </p>
-                      </div>
-                    )}
-                    <div className="modal-footer">
-                      {modalType === "add" || modalType === "edit" ? (
-                        <>
+                      {modalType === "view" && currentBrand && (
+                        <div>
+                          <p>
+                            <strong>Brand Name:</strong> {currentBrand.brandName}
+                          </p>
+                          <p>
+                            <strong>Description:</strong>{" "}
+                            {currentBrand.description}
+                          </p>
+                        </div>
+                      )}
+                      <div className="modal-footer">
+                        {modalType === "add" || modalType === "edit" ? (
+                          <>
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              onClick={closeModal}
+                            >
+                              Close
+                            </button>
+                            <button type="submit" className="btn btn-primary">
+                              Save
+                            </button>
+                          </>
+                        ) : (
                           <button
                             type="button"
                             className="btn btn-secondary"
@@ -598,28 +615,17 @@ const Brands = () => {
                           >
                             Close
                           </button>
-                          <button type="submit" className="btn btn-primary">
-                            Save
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          className="btn btn-secondary"
-                          onClick={closeModal}
-                        >
-                          Close
-                        </button>
-                      )}
-                    </div>
-                  </form>
+                        )}
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    </div>
+          )
+        }
+      </div >
+    </div >
   );
 };
 

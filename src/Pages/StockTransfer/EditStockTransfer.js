@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import BackButton from "../../components/BackButton";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Tooltip, OverlayTrigger } from "react-bootstrap";
 import DatePicker from "react-datepicker";
@@ -82,9 +83,8 @@ function EditStockTransfer() {
         // Set selected products
         if (data.stockTransferItems && data.stockTransferItems.length > 0) {
           const products = data.stockTransferItems.map((item) => ({
-            id: `${item.productId}-${
-              item.productVariationId || "no-variation"
-            }`,
+            id: `${item.productId}-${item.productVariationId || "no-variation"
+              }`,
             itemId: item.id, // ⭐ STORE DB ID
             productId: item.productId,
             productName: item.productName,
@@ -465,8 +465,9 @@ function EditStockTransfer() {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-md-6">
-                  <h1 className="all-heading">Edit Stock Transfer</h1>
+                <div className="col-md-6 d-flex align-items-center flex-wrap gap-2">
+                  <BackButton />
+                  <h1 className="all-heading mb-0">Edit Stock Transfer</h1>
                 </div>
                 {/* <div className="col-md-6 text-right">
                   <Link
@@ -645,20 +646,18 @@ function EditStockTransfer() {
                               {searchResults.map((product, index) => (
                                 <div
                                   key={product.id}
-                                  className={`product-row ${
-                                    focusedIndex === index ? "focused" : ""
-                                  } ${
-                                    (
+                                  className={`product-row ${focusedIndex === index ? "focused" : ""
+                                    } ${(
                                       product.productVariations &&
-                                      product.productVariations.length > 0
+                                        product.productVariations.length > 0
                                         ? product.productVariations.some(
-                                            (v) => selectedVariations[v.id]
-                                          )
+                                          (v) => selectedVariations[v.id]
+                                        )
                                         : selectedVariations[product.id]
                                     )
                                       ? "selected"
                                       : ""
-                                  }`}
+                                    }`}
                                   onClick={() =>
                                     !status === "completed" &&
                                     handleProductSelect(product)
@@ -682,11 +681,10 @@ function EditStockTransfer() {
                                             {product.sku}
                                           </span>
                                           <span
-                                            className={`stock ${
-                                              product.stock > 0
+                                            className={`stock ${product.stock > 0
                                                 ? "in-stock"
                                                 : "out-of-stock"
-                                            }`}
+                                              }`}
                                           >
                                             {product.stock > 0
                                               ? `Stock: ${product.stock}`
@@ -706,13 +704,12 @@ function EditStockTransfer() {
                                               (variation) => (
                                                 <div
                                                   key={variation.id}
-                                                  className={`variation-item py-0 border rounded px-2 ${
-                                                    selectedVariations[
+                                                  className={`variation-item py-0 border rounded px-2 ${selectedVariations[
                                                       variation.id
                                                     ]
                                                       ? "selected"
                                                       : ""
-                                                  }`}
+                                                    }`}
                                                   onClick={(e) => {
                                                     if (
                                                       status !== "completed"

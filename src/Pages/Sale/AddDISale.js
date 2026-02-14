@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import BackButton from "../../components/BackButton";
 import { useNavigate, Link } from "react-router-dom";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
@@ -83,11 +84,11 @@ function AddDISale() {
       prev.map((product) =>
         product.id === productId && product.variationId === variationId
           ? {
-              ...product,
-              taxRate, // Set tax rate for calculations
-              taxRateId, // Set taxRateId for backend
-              selectedTax: selectedOption || null, // Store the full tax option for display purposes
-            }
+            ...product,
+            taxRate, // Set tax rate for calculations
+            taxRateId, // Set taxRateId for backend
+            selectedTax: selectedOption || null, // Store the full tax option for display purposes
+          }
           : product
       )
     );
@@ -274,8 +275,7 @@ function AddDISale() {
   const searchProducts = async (query) => {
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
+        `${process.env.REACT_APP_BASE_URL
         }/product/search/active?query=${encodeURIComponent(query)}`
       );
       const data = await response.json();
@@ -696,6 +696,7 @@ function AddDISale() {
             <div className="container-fluid">
               <div className="row mb-2">
                 <div className="col-sm-12 d-flex align-items-center flex-wrap gap-2">
+                  <BackButton />
                   <h1 className="all-heading mb-0 me-3">Add DI Sale</h1>
                   {franchiseDetails.name && (
                     <>
@@ -865,19 +866,17 @@ function AddDISale() {
                         {searchResults.map((product, index) => (
                           <div
                             key={product.id}
-                            className={`product-row ${
-                              focusedIndex === index ? "focused" : ""
-                            } ${
-                              (
+                            className={`product-row ${focusedIndex === index ? "focused" : ""
+                              } ${(
                                 product.productVariations.length > 0
                                   ? product.productVariations.some(
-                                      (v) => selectedVariations[v.id]
-                                    )
+                                    (v) => selectedVariations[v.id]
+                                  )
                                   : selectedVariations[product.id]
                               )
                                 ? "selected"
                                 : ""
-                            }`}
+                              }`}
                             onClick={() => handleProductSelect(product)}
                           >
                             <div className="product-content flex justify-between items-start gap-4">
@@ -892,11 +891,10 @@ function AddDISale() {
                                       {product.sku}
                                     </span>
                                     <span
-                                      className={`stock ${
-                                        product.stock > 0
+                                      className={`stock ${product.stock > 0
                                           ? "in-stock"
                                           : "out-of-stock"
-                                      }`}
+                                        }`}
                                     >
                                       {product.stock > 0
                                         ? `Stock: ${product.stock}`
@@ -915,11 +913,10 @@ function AddDISale() {
                                       (variation) => (
                                         <div
                                           key={variation.id}
-                                          className={`variation-item py-0 border rounded px-2 ${
-                                            selectedVariations[variation.id]
+                                          className={`variation-item py-0 border rounded px-2 ${selectedVariations[variation.id]
                                               ? "selected"
                                               : ""
-                                          }`}
+                                            }`}
                                           onClick={(e) => {
                                             e.stopPropagation(); // Prevents parent onClick
                                             handleVariationSelect(
@@ -1157,15 +1154,15 @@ function AddDISale() {
                                 className="display_currency"
                               >
                                 {discountType === "Percentage" &&
-                                discountAmount &&
-                                subtotalAmount
+                                  discountAmount &&
+                                  subtotalAmount
                                   ? (
-                                      (parseFloat(discountAmount) / 100) *
-                                      parseFloat(subtotalAmount)
-                                    ).toFixed(2)
+                                    (parseFloat(discountAmount) / 100) *
+                                    parseFloat(subtotalAmount)
+                                  ).toFixed(2)
                                   : discountAmount
-                                  ? parseFloat(discountAmount).toFixed(2)
-                                  : "0.00"}
+                                    ? parseFloat(discountAmount).toFixed(2)
+                                    : "0.00"}
                               </span>
                             </td>
                           </tr>
@@ -1283,9 +1280,8 @@ function AddDISale() {
                           <i className="fas fa-plus"></i> Add additional
                           expenses{" "}
                           <i
-                            className={`fas ${
-                              isVisible ? "fa-chevron-up" : "fa-chevron-down"
-                            }`}
+                            className={`fas ${isVisible ? "fa-chevron-up" : "fa-chevron-down"
+                              }`}
                           ></i>
                         </button>
                       </div>

@@ -6,6 +6,7 @@ import Barcode from "react-barcode";
 import { jsPDF } from "jspdf";
 import bwipjs from "bwip-js";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 function PrintLabel() {
   const [product, setProduct] = useState(null);
@@ -399,7 +400,8 @@ function PrintLabel() {
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-sm-6">
+              <div className="col-sm-6 d-flex align-items-center">
+                <BackButton />
                 <h1>Print Labels</h1>
               </div>
             </div>
@@ -442,19 +444,17 @@ function PrintLabel() {
                         {searchResults.map((product, index) => (
                           <div
                             key={product.id}
-                            className={`product-row ${
-                              focusedIndex === index ? "focused" : ""
-                            } ${
-                              (
+                            className={`product-row ${focusedIndex === index ? "focused" : ""
+                              } ${(
                                 product.productVariations.length > 0
                                   ? product.productVariations.some(
-                                      (v) => selectedVariations[v.id]
-                                    )
+                                    (v) => selectedVariations[v.id]
+                                  )
                                   : selectedVariations[product.id]
                               )
                                 ? "selected"
                                 : ""
-                            }`}
+                              }`}
                             onClick={() => handleProductSelect(product)}
                           >
                             <div className="product-content flex justify-between items-start gap-4">
@@ -492,11 +492,10 @@ function PrintLabel() {
                                       (variation) => (
                                         <div
                                           key={variation.id}
-                                          className={`variation-item py-0 border rounded px-2 ${
-                                            selectedVariations[variation.id]
-                                              ? "selected"
-                                              : ""
-                                          }`}
+                                          className={`variation-item py-0 border rounded px-2 ${selectedVariations[variation.id]
+                                            ? "selected"
+                                            : ""
+                                            }`}
                                           onClick={(e) => {
                                             e.stopPropagation(); // Prevents parent onClick
                                             handleVariationSelect(

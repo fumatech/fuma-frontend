@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import BackButton from "../../components/BackButton";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import axios from "axios";
 import DatePicker from "react-datepicker";
@@ -94,8 +95,7 @@ function VendorViewWarrantyClaim() {
   const searchProducts = async (query) => {
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
+        `${process.env.REACT_APP_BASE_URL
         }/product/search/active?query=${encodeURIComponent(query)}`
       );
       const data = await response.json();
@@ -297,8 +297,9 @@ function VendorViewWarrantyClaim() {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-md-6">
-                  <h1 className=" all-heading">View vendor warranty claim </h1>
+                <div className="col-md-6 d-flex align-items-center flex-wrap gap-2">
+                  <BackButton />
+                  <h1 className=" all-heading mb-0">View vendor warranty claim </h1>
                 </div>
               </div>
             </div>
@@ -371,7 +372,7 @@ function VendorViewWarrantyClaim() {
                                                 type="checkbox"
                                                 checked={
                                                   selectedVariations[
-                                                    variation.id
+                                                  variation.id
                                                   ] || false
                                                 }
                                                 onChange={(e) =>

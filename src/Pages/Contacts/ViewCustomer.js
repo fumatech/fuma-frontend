@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../assets/plugins/fontawesome-free/css/all.min.css";
 import "../../assets/dist/css/adminlte.min.css";
+import BackButton from "../../components/BackButton";
 import "../AddUser.css";
 import $ from "jquery";
 import axios from "axios";
@@ -117,7 +118,7 @@ const ViewCustomer = () => {
         setEndDate(end);
         setSelectedRange(
           label ||
-            `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`
+          `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`
         );
       }
     );
@@ -855,9 +856,9 @@ const ViewCustomer = () => {
                       <td style={{ padding: "12px 15px", color: "#495057" }}>
                         {transaction.date
                           ? format(
-                              new Date(transaction.date),
-                              "dd/MM/yyyy HH:mm:ss"
-                            )
+                            new Date(transaction.date),
+                            "dd/MM/yyyy HH:mm:ss"
+                          )
                           : "N/A"}
                       </td>
                       <td style={{ padding: "12px 15px", color: "#495057" }}>
@@ -1430,7 +1431,8 @@ const ViewCustomer = () => {
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-sm-6">
+              <div className="col-sm-6 d-flex align-items-center">
+                <BackButton />
                 <h1 className="all-heading">View Customer</h1>
               </div>
             </div>
@@ -1619,17 +1621,15 @@ const ViewCustomer = () => {
                         }}
                       >
                         <i
-                          className={`fas me-2 ${
-                            customer.isActive
-                              ? "fa-check-circle text-success"
-                              : "fa-times-circle text-danger"
-                          }`}
+                          className={`fas me-2 ${customer.isActive
+                            ? "fa-check-circle text-success"
+                            : "fa-times-circle text-danger"
+                            }`}
                         ></i>
                         <strong style={{ color: "#5a5c69" }}>Status:</strong>
                         <span
-                          className={`ms-2 fw-bold ${
-                            customer.isActive ? "text-success" : "text-danger"
-                          }`}
+                          className={`ms-2 fw-bold ${customer.isActive ? "text-success" : "text-danger"
+                            }`}
                         >
                           {customer.isActive ? "Active" : "Inactive"}
                         </span>
@@ -2210,9 +2210,8 @@ const ViewCustomer = () => {
                 ].map(({ key, label, icon }) => (
                   <li key={key} className="nav-item flex-grow-1 text-center">
                     <button
-                      className={`nav-link fs-5 fw-bold py-3 px-4 text-dark ${
-                        activeTab === key ? "active" : ""
-                      } ${key}-tab`}
+                      className={`nav-link fs-5 fw-bold py-3 px-4 text-dark ${activeTab === key ? "active" : ""
+                        } ${key}-tab`}
                       onClick={() => setActiveTab(key)}
                       style={{
                         width: "100%",

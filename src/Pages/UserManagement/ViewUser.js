@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Select from "react-select";
 import { useNavigate, useParams } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -12,8 +12,9 @@ import "../../assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css
 import "../../assets/plugins/bootstrap4-duallistbox/bootstrap-duallistbox.min.css";
 import "../../assets/plugins/bs-stepper/css/bs-stepper.min.css";
 import "../../assets/plugins/dropzone/min/dropzone.min.css";
-import "../../assets/dist/css/adminlte.min.css";
+import "react-toastify/dist/ReactToastify.css";
 import "../AddUser.css";
+import BackButton from "../../components/BackButton";
 import { toast } from "react-toastify";
 
 const ViewUser = () => {
@@ -123,9 +124,9 @@ const ViewUser = () => {
     fetchDepartments();
     fetchDesignations();
     fetchPayComponents();
-  }, [id]);
+  }, [id, fetchUserData]);
 
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     try {
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/user/${id}`
@@ -219,7 +220,7 @@ const ViewUser = () => {
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
-  };
+  }, [id, locations.length]);
 
   const fetchRoles = () => {
     fetch(`${process.env.REACT_APP_BASE_URL}/role/getall`)
@@ -585,7 +586,8 @@ const ViewUser = () => {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
                   <h1 className="all-heading fs-2">View User</h1>
                 </div>
               </div>

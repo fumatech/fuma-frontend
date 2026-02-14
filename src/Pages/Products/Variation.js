@@ -12,6 +12,7 @@ import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Collapse } from "react-bootstrap";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 const Variation = () => {
   const [variations, setVariations] = useState([]);
@@ -347,7 +348,10 @@ const Variation = () => {
           <div className="container-fluid">
             <div className="row mb-2">
               <div className="col-12 col-md-6">
-                <h1>Variation</h1>
+                <div className="d-flex align-items-center">
+                  <BackButton />
+                  <h1>Variation</h1>
+                </div>
                 <span className="d-inline d-md-block">Manage Variation</span>
               </div>
             </div>
@@ -580,8 +584,8 @@ const Variation = () => {
                     {modalType === "add"
                       ? "Add Variation"
                       : modalType === "edit"
-                      ? "Edit Variation"
-                      : "View Variation"}
+                        ? "Edit Variation"
+                        : "View Variation"}
                   </h5>
                   <button
                     type="button"

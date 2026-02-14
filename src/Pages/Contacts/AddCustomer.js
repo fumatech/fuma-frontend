@@ -15,6 +15,7 @@ import "../../assets/plugins/dropzone/min/dropzone.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../AddUser.css";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 const AddCustomer = () => {
   // Basic Information
@@ -134,8 +135,7 @@ const AddCustomer = () => {
 
     try {
       const res = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
+        `${process.env.REACT_APP_BASE_URL
         }/customer/check-email?email=${encodeURIComponent(value)}`
       );
 
@@ -518,8 +518,9 @@ const AddCustomer = () => {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
-                  <h1 className="all-heading fs-2">Add Franchise</h1>
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
+                  <h1 className="all-heading fs-2">Add Customer</h1>
                 </div>
               </div>
             </div>
@@ -633,13 +634,12 @@ const AddCustomer = () => {
                             <div className="input-group">
                               <input
                                 type="text"
-                                className={`form-control ${
-                                  franchiseIdError
-                                    ? "is-invalid"
-                                    : franchiseIdValid
+                                className={`form-control ${franchiseIdError
+                                  ? "is-invalid"
+                                  : franchiseIdValid
                                     ? "is-valid"
                                     : ""
-                                }`}
+                                  }`}
                                 id="vendorId"
                                 name="vendorId"
                                 value={vendorId}

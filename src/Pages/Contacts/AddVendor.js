@@ -15,6 +15,7 @@ import "../../assets/plugins/dropzone/min/dropzone.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../AddUser.css";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 const AddVendor = () => {
   // Basic Information
@@ -408,8 +409,7 @@ const AddVendor = () => {
 
     try {
       const res = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
+        `${process.env.REACT_APP_BASE_URL
         }/vendor/check-email?email=${encodeURIComponent(value)}`
       );
 
@@ -453,7 +453,8 @@ const AddVendor = () => {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
                   <h1 className="all-heading fs-2">Add Vendor</h1>
                 </div>
               </div>
@@ -527,9 +528,8 @@ const AddVendor = () => {
                           </label>
                           <input
                             type="email"
-                            className={`form-control ${
-                              emailError ? "is-invalid" : ""
-                            }`}
+                            className={`form-control ${emailError ? "is-invalid" : ""
+                              }`}
                             id="email"
                             name="email"
                             value={email}
@@ -554,9 +554,8 @@ const AddVendor = () => {
                           </label>
                           <input
                             type="text"
-                            className={`form-control ${
-                              vendorIdError ? "is-invalid" : ""
-                            }`}
+                            className={`form-control ${vendorIdError ? "is-invalid" : ""
+                              }`}
                             id="vendorId"
                             name="vendorId"
                             value={vendorId}

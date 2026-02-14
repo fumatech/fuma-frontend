@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import BackButton from "../../components/BackButton";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../../assets/plugins/fontawesome-free/css/all.min.css";
@@ -305,44 +306,38 @@ const ListShippedWarrantyClaim = () => {
             </thead>
             <tbody>
               ${filteredShippedClaims
-                .slice(startIndex, endIndex)
-                .map(
-                  (listStockAdjustment) => `
+        .slice(startIndex, endIndex)
+        .map(
+          (listStockAdjustment) => `
                     <tr>
-                      ${
-                        columnsVisibility.date
-                          ? `<td>${listStockAdjustment.date}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.referenceNo
-                          ? `<td>${listStockAdjustment.referenceNumber}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.location
-                          ? `<td>${listStockAdjustment.businessLocation}</td>`
-                          : ""
-                      }
+                      ${columnsVisibility.date
+              ? `<td>${listStockAdjustment.date}</td>`
+              : ""
+            }
+                      ${columnsVisibility.referenceNo
+              ? `<td>${listStockAdjustment.referenceNumber}</td>`
+              : ""
+            }
+                      ${columnsVisibility.location
+              ? `<td>${listStockAdjustment.businessLocation}</td>`
+              : ""
+            }
                       ${columnsVisibility.status ? `<td>Claimed</td>` : ""}
-                      ${
-                        columnsVisibility.totalAmount
-                          ? `<td>${listStockAdjustment.totalAmount}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.reason
-                          ? `<td>${listStockAdjustment.reason}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.totalUnits
-                          ? `<td>${listStockAdjustment.totalUnits}</td>`
-                          : ""
-                      }
+                      ${columnsVisibility.totalAmount
+              ? `<td>${listStockAdjustment.totalAmount}</td>`
+              : ""
+            }
+                      ${columnsVisibility.reason
+              ? `<td>${listStockAdjustment.reason}</td>`
+              : ""
+            }
+                      ${columnsVisibility.totalUnits
+              ? `<td>${listStockAdjustment.totalUnits}</td>`
+              : ""
+            }
                     </tr>`
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
           </table>
         </body>
@@ -429,8 +424,9 @@ const ListShippedWarrantyClaim = () => {
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-12 col-md-6">
-                <h1 className="all-heading">List Shipped Warranty Claims</h1>
+              <div className="col-12 col-md-6 d-flex align-items-center flex-wrap gap-2">
+                <BackButton />
+                <h1 className="all-heading mb-0">List Shipped Warranty Claims</h1>
               </div>
             </div>
           </div>

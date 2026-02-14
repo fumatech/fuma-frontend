@@ -1,0 +1,28 @@
+.business-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+    overflow: hidden;
+}
+
+.business-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    filter: brightness(1.1);
+}
+
+.business-card .inner {
+    padding: 10px;
+}
+
+.business-card i {
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.business-card:hover i {
+    opacity: 1;
+}
+
+/* Adjust column width for 7 items to fit nicely if needed */

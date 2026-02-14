@@ -1,0 +1,24 @@
+.department-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.department-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    border-color: #007bff;
+}
+
+.department-card .card-body i {
+    transition: transform 0.3s ease;
+}
+
+.department-card:hover .card-body i {
+    transform: scale(1.1);
+}
+
+.nav-tabs .nav-link {
+    cursor: pointer;
+    font-weight: 500;
+}

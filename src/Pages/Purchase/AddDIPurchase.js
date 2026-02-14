@@ -6,6 +6,9 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import axios from "axios";
 import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "../../assets/dist/css/adminlte.min.css";
+import BackButton from "../../components/BackButton";
 
 function AddDIPurchase() {
   const navigate = useNavigate();
@@ -295,11 +298,11 @@ function AddDIPurchase() {
       prev.map((product) =>
         product.id === productId && product.variationId === variationId
           ? {
-              ...product,
-              taxRate, // Set tax rate for calculations
-              taxRateId, // Set taxRateId for backend
-              selectedTax: selectedOption || null, // Store the full tax option for display purposes
-            }
+            ...product,
+            taxRate, // Set tax rate for calculations
+            taxRateId, // Set taxRateId for backend
+            selectedTax: selectedOption || null, // Store the full tax option for display purposes
+          }
           : product
       )
     );
@@ -333,8 +336,7 @@ function AddDIPurchase() {
   const searchProducts = async (query) => {
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
+        `${process.env.REACT_APP_BASE_URL
         }/product/search/active?query=${encodeURIComponent(query)}`
       );
       const data = await response.json();
@@ -734,7 +736,8 @@ function AddDIPurchase() {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
                   <h1 className="all-heading">Add DI Purchase</h1>
                 </div>
               </div>
@@ -937,19 +940,17 @@ function AddDIPurchase() {
                         {searchResults.map((product, index) => (
                           <div
                             key={product.id}
-                            className={`product-row ${
-                              focusedIndex === index ? "focused" : ""
-                            } ${
-                              (
+                            className={`product-row ${focusedIndex === index ? "focused" : ""
+                              } ${(
                                 product.productVariations.length > 0
                                   ? product.productVariations.some(
-                                      (v) => selectedVariations[v.id]
-                                    )
+                                    (v) => selectedVariations[v.id]
+                                  )
                                   : selectedVariations[product.id]
                               )
                                 ? "selected"
                                 : ""
-                            }`}
+                              }`}
                             onClick={() => handleProductSelect(product)}
                           >
                             <div className="product-content flex justify-between items-start gap-4">
@@ -987,11 +988,10 @@ function AddDIPurchase() {
                                       (variation) => (
                                         <div
                                           key={variation.id}
-                                          className={`variation-item py-0 border rounded px-2 ${
-                                            selectedVariations[variation.id]
-                                              ? "selected"
-                                              : ""
-                                          }`}
+                                          className={`variation-item py-0 border rounded px-2 ${selectedVariations[variation.id]
+                                            ? "selected"
+                                            : ""
+                                            }`}
                                           onClick={(e) => {
                                             e.stopPropagation(); // Prevents parent onClick
                                             handleVariationSelect(
@@ -1229,15 +1229,15 @@ function AddDIPurchase() {
                                 className="display_currency"
                               >
                                 {discountType === "Percentage" &&
-                                discountAmount &&
-                                subtotalAmount
+                                  discountAmount &&
+                                  subtotalAmount
                                   ? (
-                                      (parseFloat(discountAmount) / 100) *
-                                      parseFloat(subtotalAmount)
-                                    ).toFixed(2)
+                                    (parseFloat(discountAmount) / 100) *
+                                    parseFloat(subtotalAmount)
+                                  ).toFixed(2)
                                   : discountAmount
-                                  ? parseFloat(discountAmount).toFixed(2)
-                                  : "0.00"}
+                                    ? parseFloat(discountAmount).toFixed(2)
+                                    : "0.00"}
                               </span>
                             </td>
                           </tr>
@@ -1355,9 +1355,8 @@ function AddDIPurchase() {
                           <i className="fas fa-plus"></i> Add additional
                           expenses{" "}
                           <i
-                            className={`fas ${
-                              isVisible ? "fa-chevron-up" : "fa-chevron-down"
-                            }`}
+                            className={`fas ${isVisible ? "fa-chevron-up" : "fa-chevron-down"
+                              }`}
                           ></i>
                         </button>
                       </div>

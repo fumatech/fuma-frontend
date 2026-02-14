@@ -6,6 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import axios from "axios";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 function AddPoPurchase() {
   const navigate = useNavigate();
@@ -938,7 +939,8 @@ function AddPoPurchase() {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
                   <h1 className="all-heading">Add Po Purchase</h1>
                 </div>
               </div>

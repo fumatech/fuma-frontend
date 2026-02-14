@@ -6,6 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import axios from "axios";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 function ViewDIPurchase() {
   const { id } = useParams();
@@ -285,11 +286,11 @@ function ViewDIPurchase() {
       prev.map((product) =>
         product.id === productId
           ? {
-              ...product,
-              taxRate, // Update tax rate for calculations
-              taxRateId, // Update taxRateId for backend
-              selectedTax: selectedOption || null, // Store the full tax option for display purposes
-            }
+            ...product,
+            taxRate, // Update tax rate for calculations
+            taxRateId, // Update taxRateId for backend
+            selectedTax: selectedOption || null, // Store the full tax option for display purposes
+          }
           : product
       )
     );
@@ -756,7 +757,8 @@ function ViewDIPurchase() {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
                   <h1 className="all-heading">View DI Purchase</h1>
                 </div>
               </div>
@@ -949,7 +951,7 @@ function ViewDIPurchase() {
                                                 type="checkbox"
                                                 checked={
                                                   selectedVariations[
-                                                    variation.id
+                                                  variation.id
                                                   ] || false
                                                 }
                                                 onChange={(e) =>
@@ -1372,9 +1374,8 @@ function ViewDIPurchase() {
                           <i className="fas fa-plus"></i> Add additional
                           expenses{" "}
                           <i
-                            className={`fas ${
-                              isVisible ? "fa-chevron-up" : "fa-chevron-down"
-                            }`}
+                            className={`fas ${isVisible ? "fa-chevron-up" : "fa-chevron-down"
+                              }`}
                           ></i>
                         </button>
                       </div>

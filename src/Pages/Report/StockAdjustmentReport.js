@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import BackButton from "../../components/BackButton";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../../assets/plugins/fontawesome-free/css/all.min.css";
@@ -232,9 +233,8 @@ const StockAdjustmentReport = () => {
                   {trend && (
                     <div className="d-flex align-items-center mt-1">
                       <span
-                        className={`badge ${
-                          trend > 0 ? "bg-success" : "bg-danger"
-                        } me-2`}
+                        className={`badge ${trend > 0 ? "bg-success" : "bg-danger"
+                          } me-2`}
                       >
                         <FontAwesomeIcon icon={faChartLine} className="me-1" />
                         {trend > 0 ? "+" : ""}
@@ -370,53 +370,47 @@ const StockAdjustmentReport = () => {
               ${columnsVisibility.date ? "<th>Date</th>" : ""}
               ${columnsVisibility.referenceNo ? "<th>Reference No</th>" : ""}
               ${columnsVisibility.location ? "<th>Location</th>" : ""}
-              ${
-                columnsVisibility.adjustmentType
-                  ? "<th>Adjustment Type</th>"
-                  : ""
-              }
-              ${
-                columnsVisibility.totalAmountRecovered
-                  ? "<th>Total Amount Recovered</th>"
-                  : ""
-              }
+              ${columnsVisibility.adjustmentType
+        ? "<th>Adjustment Type</th>"
+        : ""
+      }
+              ${columnsVisibility.totalAmountRecovered
+        ? "<th>Total Amount Recovered</th>"
+        : ""
+      }
               ${columnsVisibility.reason ? "<th>Reason</th>" : ""}
               ${columnsVisibility.addedBy ? "<th>Added By</th>" : ""}
             </tr>
           </thead>
           <tbody>
             ${stockAdjustmentReports
-              .slice(startIndex, endIndex)
-              .map(
-                (report) => `
+        .slice(startIndex, endIndex)
+        .map(
+          (report) => `
               <tr>
                 ${columnsVisibility.date ? `<td>${report.date}</td>` : ""}
-                ${
-                  columnsVisibility.referenceNo
-                    ? `<td>${report.referenceNumber}</td>`
-                    : ""
-                }
-                ${
-                  columnsVisibility.location
-                    ? `<td>${report.businessLocation}</td>`
-                    : ""
-                }
-                ${
-                  columnsVisibility.adjustmentType
-                    ? `<td>${report.adjustmentType}</td>`
-                    : ""
-                }
-                ${
-                  columnsVisibility.totalAmountRecovered
-                    ? `<td>${report.amountRecovered}</td>`
-                    : ""
-                }
+                ${columnsVisibility.referenceNo
+              ? `<td>${report.referenceNumber}</td>`
+              : ""
+            }
+                ${columnsVisibility.location
+              ? `<td>${report.businessLocation}</td>`
+              : ""
+            }
+                ${columnsVisibility.adjustmentType
+              ? `<td>${report.adjustmentType}</td>`
+              : ""
+            }
+                ${columnsVisibility.totalAmountRecovered
+              ? `<td>${report.amountRecovered}</td>`
+              : ""
+            }
                 ${columnsVisibility.reason ? `<td>${report.reason}</td>` : ""}
                 ${columnsVisibility.addedBy ? `<td>${report.addedBy}</td>` : ""}
               </tr>
             `
-              )
-              .join("")}
+        )
+        .join("")}
           </tbody>
         </table>
       </body>
@@ -461,8 +455,9 @@ const StockAdjustmentReport = () => {
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-sm-6">
-                <h1 className="all-heading">Stock Adjustment Report</h1>
+              <div className="col-sm-6 d-flex align-items-center flex-wrap gap-2">
+                <BackButton />
+                <h1 className="all-heading mb-0">Stock Adjustment Report</h1>
               </div>
               <div className="col-sm-6">
                 <ol className="breadcrumb float-sm-right">
@@ -495,11 +490,10 @@ const StockAdjustmentReport = () => {
                         {dateRangeOptions.map((option) => (
                           <button
                             key={option.id}
-                            className={`btn btn-sm ${
-                              dateRange === option.id
+                            className={`btn btn-sm ${dateRange === option.id
                                 ? "btn-primary"
                                 : "btn-outline-primary"
-                            }`}
+                              }`}
                             onClick={() => setDateRange(option.id)}
                             style={{
                               borderRadius: "20px",
@@ -691,13 +685,12 @@ const StockAdjustmentReport = () => {
                                     </h4>
                                     <div className="d-flex align-items-center">
                                       <span
-                                        className={`badge ${
-                                          metrics.recoveryRate > 50
+                                        className={`badge ${metrics.recoveryRate > 50
                                             ? "bg-success"
                                             : metrics.recoveryRate > 25
-                                            ? "bg-warning"
-                                            : "bg-danger"
-                                        } me-2`}
+                                              ? "bg-warning"
+                                              : "bg-danger"
+                                          } me-2`}
                                       >
                                         <FontAwesomeIcon
                                           icon={faChartLine}
@@ -772,11 +765,10 @@ const StockAdjustmentReport = () => {
                               <td>{report.referenceNumber}</td>
                               <td>
                                 <span
-                                  className={`badge ${
-                                    report.adjustmentType === "normal"
+                                  className={`badge ${report.adjustmentType === "normal"
                                       ? "bg-success"
                                       : "bg-danger"
-                                  }`}
+                                    }`}
                                 >
                                   {report.adjustmentType}
                                 </span>
@@ -785,11 +777,10 @@ const StockAdjustmentReport = () => {
                               <td>{formatCurrency(report.amountRecovered)}</td>
                               <td>
                                 <span
-                                  className={`badge ${
-                                    Number(report.amountRecovered) > 0
+                                  className={`badge ${Number(report.amountRecovered) > 0
                                       ? "bg-success"
                                       : "bg-warning"
-                                  }`}
+                                    }`}
                                 >
                                   {Number(report.amountRecovered) > 0
                                     ? "Recovered"
@@ -937,11 +928,10 @@ const StockAdjustmentReport = () => {
                                 {columnsVisibility.adjustmentType && (
                                   <td>
                                     <span
-                                      className={`badge ${
-                                        report.adjustmentType === "normal"
+                                      className={`badge ${report.adjustmentType === "normal"
                                           ? "bg-success"
                                           : "bg-danger"
-                                      }`}
+                                        }`}
                                     >
                                       {report.adjustmentType}
                                     </span>
@@ -953,11 +943,10 @@ const StockAdjustmentReport = () => {
                                 {columnsVisibility.totalAmountRecovered && (
                                   <td>
                                     <span
-                                      className={`${
-                                        Number(report.amountRecovered) > 0
+                                      className={`${Number(report.amountRecovered) > 0
                                           ? "text-success"
                                           : "text-warning"
-                                      }`}
+                                        }`}
                                     >
                                       {formatCurrency(report.amountRecovered)}
                                     </span>

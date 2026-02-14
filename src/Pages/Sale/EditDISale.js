@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import BackButton from "../../components/BackButton";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import Select from "react-select";
@@ -105,11 +106,11 @@ function EditDISale() {
       prev.map((product) =>
         product.id === productId && product.variationId === variationId
           ? {
-              ...product,
-              taxRate, // Set tax rate for calculations
-              taxRateId, // Set taxRateId for backend
-              selectedTax: selectedOption || null, // Store the full tax option for display purposes
-            }
+            ...product,
+            taxRate, // Set tax rate for calculations
+            taxRateId, // Set taxRateId for backend
+            selectedTax: selectedOption || null, // Store the full tax option for display purposes
+          }
           : product
       )
     );
@@ -448,8 +449,7 @@ function EditDISale() {
   const searchProducts = async (query) => {
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
+        `${process.env.REACT_APP_BASE_URL
         }/product/search/active?query=${encodeURIComponent(query)}`
       );
       const data = await response.json();
@@ -741,6 +741,7 @@ function EditDISale() {
             <div className="container-fluid">
               <div className="row mb-2">
                 <div className="col-sm-12 d-flex align-items-center flex-wrap gap-2">
+                  <BackButton />
                   <h1 className="all-heading mb-0 me-3">Edit DI Sale</h1>
                   <span>
                     <strong>Franchise Name:</strong> {franchiseDetails.name}
@@ -861,7 +862,7 @@ function EditDISale() {
                                                 type="checkbox"
                                                 checked={
                                                   selectedVariations[
-                                                    variation.id
+                                                  variation.id
                                                   ] || false
                                                 }
                                                 onChange={(e) =>
@@ -986,7 +987,7 @@ function EditDISale() {
                                               e.target.value
                                             )
                                           }
-                                          //  readOnly
+                                        //  readOnly
                                         />
                                       </td>
 
@@ -1005,7 +1006,7 @@ function EditDISale() {
                                               e.target.value
                                             )
                                           }
-                                          //  readOnly
+                                        //  readOnly
                                         />
                                       </td>
                                       <td>
@@ -1087,7 +1088,7 @@ function EditDISale() {
                                   name="discountType"
                                   value={discountType}
                                   onChange={handleDiscountTypeChange}
-                                  // disabled
+                                // disabled
                                 >
                                   <option value="">None</option>
                                   <option value="Fixed">Fixed</option>
@@ -1133,15 +1134,15 @@ function EditDISale() {
                                 className="display_currency"
                               >
                                 {discountType === "Percentage" &&
-                                discountAmount &&
-                                subtotalAmount
+                                  discountAmount &&
+                                  subtotalAmount
                                   ? (
-                                      (parseFloat(discountAmount) / 100) *
-                                      parseFloat(subtotalAmount)
-                                    ).toFixed(2)
+                                    (parseFloat(discountAmount) / 100) *
+                                    parseFloat(subtotalAmount)
+                                  ).toFixed(2)
                                   : discountAmount
-                                  ? parseFloat(discountAmount).toFixed(2)
-                                  : "0.00"}
+                                    ? parseFloat(discountAmount).toFixed(2)
+                                    : "0.00"}
                               </span>
                             </td>
                           </tr>
@@ -1200,7 +1201,7 @@ function EditDISale() {
                                   id="additional_notes"
                                   value={additionalNotes}
                                   onChange={handleAdditionalNotesChange}
-                                  // readOnly
+                                // readOnly
                                 />
                               </div>
                             </td>
@@ -1230,7 +1231,7 @@ function EditDISale() {
                             value={shippingDetails}
                             onChange={(e) => setShippingDetails(e.target.value)}
                             required
-                            //  readOnly
+                          //  readOnly
                           />
                         </div>
                       </div>
@@ -1249,7 +1250,7 @@ function EditDISale() {
                             value={shippingCharges}
                             onChange={(e) => setShippingCharges(e.target.value)}
                             required
-                            // readOnly
+                          // readOnly
                           />
                         </div>
                       </div>
@@ -1259,14 +1260,13 @@ function EditDISale() {
                           className="btn"
                           style={{ backgroundColor: "#0c4461", color: "white" }}
                           onClick={toggleVisibility}
-                          //  disabled
+                        //  disabled
                         >
                           <i className="fas fa-plus"></i> Add additional
                           expenses{" "}
                           <i
-                            className={`fas ${
-                              isVisible ? "fa-chevron-up" : "fa-chevron-down"
-                            }`}
+                            className={`fas ${isVisible ? "fa-chevron-up" : "fa-chevron-down"
+                              }`}
                           ></i>
                         </button>
                       </div>

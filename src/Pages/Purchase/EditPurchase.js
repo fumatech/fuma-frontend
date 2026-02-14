@@ -4,6 +4,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import BackButton from "../../components/BackButton";
 
 function EditPurchase() {
   const { id } = useParams();
@@ -552,13 +554,13 @@ function EditPurchase() {
       lineTotal:
         (product.defaultPurchasePriceExcTax -
           (product.defaultPurchasePriceExcTax * product.discountPercent) /
-            100) *
+          100) *
         product.quantity,
       profitMargin: product.profitMargin || 0,
       unitSellingPrice:
         (product.defaultPurchasePriceExcTax -
           (product.defaultPurchasePriceExcTax * product.discountPercent) /
-            100) *
+          100) *
         (1 + product.profitMargin / 100),
     }));
 
@@ -632,7 +634,8 @@ function EditPurchase() {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
                   <h1 className="all-heading">View Purchase</h1>
                 </div>
               </div>
@@ -858,7 +861,7 @@ function EditPurchase() {
                                                 type="checkbox"
                                                 checked={
                                                   selectedVariations[
-                                                    variation.id
+                                                  variation.id
                                                   ] || false
                                                 } // Pre-select variations
                                                 onChange={(e) =>
@@ -1215,9 +1218,8 @@ function EditPurchase() {
                           <i className="fas fa-plus"></i> Add additional
                           expenses{" "}
                           <i
-                            className={`fas ${
-                              isVisible ? "fa-chevron-up" : "fa-chevron-down"
-                            }`}
+                            className={`fas ${isVisible ? "fa-chevron-up" : "fa-chevron-down"
+                              }`}
                           ></i>
                         </button>
                       </div>

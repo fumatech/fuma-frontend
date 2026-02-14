@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import BackButton from "../../components/BackButton";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../../assets/plugins/fontawesome-free/css/all.min.css";
@@ -314,70 +315,60 @@ const ListStockAdjustment = () => {
                 ${columnsVisibility.date ? "<th>Date</th>" : ""}
                 ${columnsVisibility.referenceNo ? "<th>Reference No</th>" : ""}
                 ${columnsVisibility.location ? "<th>Location</th>" : ""}
-                ${
-                  columnsVisibility.adjustmentType
-                    ? "<th>Adjustment Type</th>"
-                    : ""
-                }
+                ${columnsVisibility.adjustmentType
+        ? "<th>Adjustment Type</th>"
+        : ""
+      }
                 ${columnsVisibility.totalAmount ? "<th>Total Amount</th>" : ""}
-                ${
-                  columnsVisibility.totalAmountRecovered
-                    ? "<th>Total Amount Recovered</th>"
-                    : ""
-                }
+                ${columnsVisibility.totalAmountRecovered
+        ? "<th>Total Amount Recovered</th>"
+        : ""
+      }
                 ${columnsVisibility.reason ? "<th>Reason</th>" : ""}
                 ${columnsVisibility.totalUnits ? "<th>Total Units</th>" : ""}
               </tr>
             </thead>
             <tbody>
               ${filteredStockAdjustments
-                .slice(startIndex, endIndex)
-                .map(
-                  (listStockAdjustment) => `
+        .slice(startIndex, endIndex)
+        .map(
+          (listStockAdjustment) => `
                     <tr>
-                      ${
-                        columnsVisibility.date
-                          ? `<td>${listStockAdjustment.date}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.referenceNo
-                          ? `<td>${listStockAdjustment.referenceNumber}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.location
-                          ? `<td>${listStockAdjustment.businessLocation}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.adjustmentType
-                          ? `<td>${listStockAdjustment.adjustmentType}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.totalAmount
-                          ? `<td>${listStockAdjustment.totalAmount}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.totalAmountRecovered
-                          ? `<td>${listStockAdjustment.amountRecovered}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.reason
-                          ? `<td>${listStockAdjustment.reason}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.totalUnits
-                          ? `<td>${listStockAdjustment.totalUnits}</td>`
-                          : ""
-                      }
+                      ${columnsVisibility.date
+              ? `<td>${listStockAdjustment.date}</td>`
+              : ""
+            }
+                      ${columnsVisibility.referenceNo
+              ? `<td>${listStockAdjustment.referenceNumber}</td>`
+              : ""
+            }
+                      ${columnsVisibility.location
+              ? `<td>${listStockAdjustment.businessLocation}</td>`
+              : ""
+            }
+                      ${columnsVisibility.adjustmentType
+              ? `<td>${listStockAdjustment.adjustmentType}</td>`
+              : ""
+            }
+                      ${columnsVisibility.totalAmount
+              ? `<td>${listStockAdjustment.totalAmount}</td>`
+              : ""
+            }
+                      ${columnsVisibility.totalAmountRecovered
+              ? `<td>${listStockAdjustment.amountRecovered}</td>`
+              : ""
+            }
+                      ${columnsVisibility.reason
+              ? `<td>${listStockAdjustment.reason}</td>`
+              : ""
+            }
+                      ${columnsVisibility.totalUnits
+              ? `<td>${listStockAdjustment.totalUnits}</td>`
+              : ""
+            }
                     </tr>`
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
           </table>
         </body>
@@ -465,8 +456,9 @@ const ListStockAdjustment = () => {
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-12 col-md-6">
-                <h1 className="all-heading">List Stock Adjustment</h1>
+              <div className="col-12 col-md-6 d-flex align-items-center flex-wrap gap-2">
+                <BackButton />
+                <h1 className="all-heading mb-0">List Stock Adjustment</h1>
               </div>
             </div>
           </div>
