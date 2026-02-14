@@ -760,15 +760,15 @@ const Menu = ({ userRoles }) => {
                     {hasPermission("product.add") && (
                       <li className="nav-item">
                         <Link
-                          to="/AddProduct"
-                          className={getSubMenuItemClass("AddProduct")}
+                          to="/AddProducts"
+                          className={getSubMenuItemClass("AddProducts")}
                           style={{
                             color:
-                              activeSubMenu === "AddProduct"
+                              activeSubMenu === "AddProducts"
                                 ? "#0040C1"
                                 : "#4b5565",
                             backgroundColor:
-                              activeSubMenu === "AddProduct"
+                              activeSubMenu === "AddProducts"
                                 ? "rgba(0, 64, 193, 0.08)"
                                 : "transparent",
                             paddingLeft: "52px",

@@ -242,8 +242,8 @@ function AddPoPurchase() {
                   (total, product) =>
                     total +
                     product.quantity *
-                      product.defaultPurchasePriceExcTax *
-                      (1 - product.discountPercent / 100),
+                    product.defaultPurchasePriceExcTax *
+                    (1 - product.discountPercent / 100),
                   0
                 )
                 .toFixed(2);
@@ -414,8 +414,7 @@ function AddPoPurchase() {
   const searchProducts = async (query) => {
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
+        `${process.env.REACT_APP_BASE_URL
         }/product/search/active?query=${encodeURIComponent(query)}`
       );
       const data = await response.json();
@@ -614,11 +613,11 @@ function AddPoPurchase() {
       prev.map((product) =>
         product.id === productId
           ? {
-              ...product,
-              taxRate, // Set tax rate for calculations
-              taxRateId, // Set taxRateId for backend
-              selectedTax: selectedOption || null, // Store the full tax option for display purposes
-            }
+            ...product,
+            taxRate, // Set tax rate for calculations
+            taxRateId, // Set taxRateId for backend
+            selectedTax: selectedOption || null, // Store the full tax option for display purposes
+          }
           : product
       )
     );
@@ -1141,19 +1140,17 @@ function AddPoPurchase() {
                               {searchResults.map((product, index) => (
                                 <div
                                   key={product.id}
-                                  className={`product-row ${
-                                    focusedIndex === index ? "focused" : ""
-                                  } ${
-                                    (
+                                  className={`product-row ${focusedIndex === index ? "focused" : ""
+                                    } ${(
                                       product.productVariations.length > 0
                                         ? product.productVariations.some(
-                                            (v) => selectedVariations[v.id]
-                                          )
+                                          (v) => selectedVariations[v.id]
+                                        )
                                         : selectedVariations[product.id]
                                     )
                                       ? "selected"
                                       : ""
-                                  }`}
+                                    }`}
                                   onClick={() => handleProductSelect(product)}
                                 >
                                   <div className="product-content flex justify-between items-start gap-4">
@@ -1168,11 +1165,10 @@ function AddPoPurchase() {
                                             {product.sku}
                                           </span>
                                           <span
-                                            className={`stock ${
-                                              product.stock > 0
-                                                ? "in-stock"
-                                                : "out-of-stock"
-                                            }`}
+                                            className={`stock ${product.stock > 0
+                                              ? "in-stock"
+                                              : "out-of-stock"
+                                              }`}
                                           >
                                             {product.stock > 0
                                               ? `Stock: ${product.stock}`
@@ -1191,13 +1187,12 @@ function AddPoPurchase() {
                                             (variation) => (
                                               <div
                                                 key={variation.id}
-                                                className={`variation-item py-0 border rounded px-2 ${
-                                                  selectedVariations[
-                                                    variation.id
-                                                  ]
-                                                    ? "selected"
-                                                    : ""
-                                                }`}
+                                                className={`variation-item py-0 border rounded px-2 ${selectedVariations[
+                                                  variation.id
+                                                ]
+                                                  ? "selected"
+                                                  : ""
+                                                  }`}
                                                 onClick={(e) => {
                                                   e.stopPropagation(); // Prevents parent onClick
                                                   handleVariationSelect(
@@ -1445,15 +1440,15 @@ function AddPoPurchase() {
                                 className="display_currency"
                               >
                                 {discountType === "Percentage" &&
-                                discountAmount &&
-                                subtotalAmount
+                                  discountAmount &&
+                                  subtotalAmount
                                   ? (
-                                      (parseFloat(discountAmount) / 100) *
-                                      parseFloat(subtotalAmount)
-                                    ).toFixed(2)
+                                    (parseFloat(discountAmount) / 100) *
+                                    parseFloat(subtotalAmount)
+                                  ).toFixed(2)
                                   : discountAmount
-                                  ? parseFloat(discountAmount).toFixed(2)
-                                  : "0.00"}
+                                    ? parseFloat(discountAmount).toFixed(2)
+                                    : "0.00"}
                               </span>
                             </td>
                           </tr>
@@ -1571,9 +1566,8 @@ function AddPoPurchase() {
                           <i className="fas fa-plus"></i> Add additional
                           expenses{" "}
                           <i
-                            className={`fas ${
-                              isVisible ? "fa-chevron-up" : "fa-chevron-down"
-                            }`}
+                            className={`fas ${isVisible ? "fa-chevron-up" : "fa-chevron-down"
+                              }`}
                           ></i>
                         </button>
                       </div>
