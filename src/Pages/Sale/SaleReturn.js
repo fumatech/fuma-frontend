@@ -11,6 +11,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
+import BackButton from "../../components/BackButton";
 
 const SaleReturn = () => {
   const [viewOrders, setViewOrders] = useState([]);
@@ -276,11 +277,14 @@ const SaleReturn = () => {
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-12 col-md-6">
-                <h1 className="all-heading">List Sale Returns</h1>
-                <span className="d-inline d-md-block sub-heading">
-                  Manage Sale Returns
-                </span>
+              <div className="col-12 col-md-6 d-flex align-items-center flex-wrap gap-2">
+                <BackButton />
+                <div>
+                  <h1 className="all-heading mb-0">List Sale Returns</h1>
+                  <span className="d-inline d-md-block sub-heading">
+                    Manage Sale Returns
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -483,8 +487,8 @@ const SaleReturn = () => {
                     {modalType === "view"
                       ? "View Order"
                       : modalType === "accept"
-                      ? "Accept Order"
-                      : "Reject Order"}
+                        ? "Accept Order"
+                        : "Reject Order"}
                   </h5>
                   <button
                     type="button"

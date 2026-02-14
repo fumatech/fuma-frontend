@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 // Create axios instance with base URL and headers
 const api = axios.create({
@@ -46,7 +47,7 @@ const ExpenseCategories = () => {
       toast.error("Failed to fetch categories");
       setLoading(false);
     }
-  
+
     // Add jQuery script at the bottom
     const script = document.createElement("script");
     script.src = "js/JqueryContent.js";
@@ -164,7 +165,7 @@ const ExpenseCategories = () => {
       "Expense Code": category.expenseCode,
       "Parent Expense": category.parentExpense
         ? categories.find((c) => c.id === category.parentExpense.id)
-            ?.expenseName || ""
+          ?.expenseName || ""
         : "None",
       Description: category.description || "",
     }));
@@ -177,8 +178,7 @@ const ExpenseCategories = () => {
           headers
             .map(
               (header) =>
-                `"${
-                  row[header] ? row[header].toString().replace(/"/g, '""') : ""
+                `"${row[header] ? row[header].toString().replace(/"/g, '""') : ""
                 }"`
             )
             .join(",")
@@ -241,6 +241,7 @@ const ExpenseCategories = () => {
           <div className="container-fluid">
             <div className="row mb-2">
               <div className="col-12 col-md-6">
+                <BackButton />
                 <h1 className="all-heading">Expenses categories</h1>
               </div>
             </div>
@@ -485,9 +486,8 @@ const ExpenseCategories = () => {
                           </div>
                         </div>
                         <div
-                          className={`form-group ${
-                            addAsSubCat ? "" : "d-none"
-                          }`}
+                          className={`form-group ${addAsSubCat ? "" : "d-none"
+                            }`}
                           id="parent_cat_div"
                         >
                           <label htmlFor="parent_id">

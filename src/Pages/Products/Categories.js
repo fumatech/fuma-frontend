@@ -11,6 +11,7 @@ import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { Collapse } from "react-bootstrap";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -245,8 +246,8 @@ const Categories = () => {
           categoryToEdit.parentCategory === "None"
             ? ""
             : flattenedCategories.find(
-                (cat) => cat.categoryName === categoryToEdit.parentCategory
-              )?.id || "",
+              (cat) => cat.categoryName === categoryToEdit.parentCategory
+            )?.id || "",
       });
       setModalType("edit");
       setModalVisible(true);
@@ -356,7 +357,8 @@ const Categories = () => {
       <div className="content-wrapper">
         <section className="content">
           <div className="container-fluid">
-            <div className="col-sm-6">
+            <div className="col-sm-6 d-flex align-items-center">
+              <BackButton />
               <h1>Categories</h1>
             </div>
           </div>
@@ -569,11 +571,10 @@ const Categories = () => {
                                   <td
                                     className="text-center"
                                     style={{
-                                      paddingLeft: `${
-                                        (cat.categoryName.split("/").length -
-                                          1) *
+                                      paddingLeft: `${(cat.categoryName.split("/").length -
+                                        1) *
                                         20
-                                      }px`,
+                                        }px`,
                                     }}
                                   >
                                     {cat.categoryName}
@@ -589,11 +590,10 @@ const Categories = () => {
                                   <td
                                     className="text-center"
                                     style={{
-                                      paddingLeft: `${
-                                        (cat.categoryName.split("/").length -
-                                          1) *
+                                      paddingLeft: `${(cat.categoryName.split("/").length -
+                                        1) *
                                         20
-                                      }px`,
+                                        }px`,
                                     }}
                                   >
                                     {cat.parentCategory}

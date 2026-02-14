@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom"; // Add this import
 import axios from "axios";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 function ViewList() {
   const { productId } = useParams();
@@ -133,7 +134,8 @@ function ViewList() {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
                   <h1>View Product</h1>
                 </div>
               </div>
@@ -289,12 +291,11 @@ function ViewList() {
                                               <td>{variation.subSku}</td>
                                               <td>
                                                 {stockData[variation.id] !==
-                                                undefined
-                                                  ? `${
-                                                      stockData[variation.id]
-                                                    } ${getUnitName(
-                                                      product.unit
-                                                    )}`
+                                                  undefined
+                                                  ? `${stockData[variation.id]
+                                                  } ${getUnitName(
+                                                    product.unit
+                                                  )}`
                                                   : 0}
                                               </td>
                                               <td>
@@ -388,9 +389,9 @@ function ViewList() {
                                               <td>
                                                 {item.defaultSellingPrice
                                                   ? (
-                                                      item.defaultSellingPrice *
-                                                      1
-                                                    ).toFixed(2)
+                                                    item.defaultSellingPrice *
+                                                    1
+                                                  ).toFixed(2)
                                                   : "N/A"}
                                               </td>
                                             </tr>
@@ -414,22 +415,21 @@ function ViewList() {
                                               </td>
                                               <td>
                                                 {stockData[variation.id] !==
-                                                undefined
-                                                  ? `${
-                                                      stockData[variation.id]
-                                                    } ${getUnitName(
-                                                      product.unit
-                                                    )}`
+                                                  undefined
+                                                  ? `${stockData[variation.id]
+                                                  } ${getUnitName(
+                                                    product.unit
+                                                  )}`
                                                   : 0}
                                               </td>
                                               <td>
                                                 {variation.defaultSellingPrice &&
-                                                stockData[variation.id] !==
+                                                  stockData[variation.id] !==
                                                   undefined
                                                   ? (
-                                                      variation.defaultSellingPrice *
-                                                      stockData[variation.id]
-                                                    ).toFixed(2)
+                                                    variation.defaultSellingPrice *
+                                                    stockData[variation.id]
+                                                  ).toFixed(2)
                                                   : "N/A"}
                                               </td>
                                             </tr>

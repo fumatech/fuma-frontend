@@ -128,6 +128,7 @@ import Detailed from "./Pages/Report/Detailed";
 import InputTaxPurchase from "./Pages/Report/InputTaxPurchase";
 import OutputTaxSales from "./Pages/Report/OutputTaxSales";
 import ExpenseTax from "./Pages/Report/ExpenseTax";
+import Reporting from "./Pages/Report/Reporting";
 import ListStockAdjustment from "./Pages/StockAdjustment/ListStockAdjustment";
 import Accounts from "./Pages/Payment/Accounts";
 import AccountTypes from "./Pages/Payment/AccountTypes";
@@ -1635,6 +1636,7 @@ const App = () => {
                     }
                   />
                   {/* <Route path="/" element={<div>No Access</div>} /> */}
+                  <Route path="/Reporting" element={<Reporting />} />
                 </Routes>
               </Layout>
             }

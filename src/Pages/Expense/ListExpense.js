@@ -14,6 +14,7 @@ import $ from "jquery";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Dropdown, DropdownButton } from "react-bootstrap";
+import BackButton from "../../components/BackButton";
 import { toast } from "react-toastify";
 
 const ListExpense = () => {
@@ -267,23 +268,20 @@ const ListExpense = () => {
                 ${columnsVisibility.action ? "<th>Action</th>" : ""}
                 ${columnsVisibility.date ? "<th>Date</th>" : ""}
                 ${columnsVisibility.referenceNo ? "<th>Reference No</th>" : ""}
-                ${
-                  columnsVisibility.recurringDetails
-                    ? "<th>Recurring Details</th>"
-                    : ""
-                }
-                ${
-                  columnsVisibility.expenseCategory
-                    ? "<th>Expense Category</th>"
-                    : ""
-                }
+                ${columnsVisibility.recurringDetails
+        ? "<th>Recurring Details</th>"
+        : ""
+      }
+                ${columnsVisibility.expenseCategory
+        ? "<th>Expense Category</th>"
+        : ""
+      }
                 ${columnsVisibility.subCategory ? "<th>Sub Category</th>" : ""}
                 ${columnsVisibility.location ? "<th>Location</th>" : ""}
-                ${
-                  columnsVisibility.paymentStatus
-                    ? "<th>Payment Status</th>"
-                    : ""
-                }
+                ${columnsVisibility.paymentStatus
+        ? "<th>Payment Status</th>"
+        : ""
+      }
                 ${columnsVisibility.tax ? "<th>Tax</th>" : ""}
                 ${columnsVisibility.totalAmount ? "<th>Total Amount</th>" : ""}
                 ${columnsVisibility.paymentDue ? "<th>Payment Due</th>" : ""}
@@ -295,85 +293,72 @@ const ListExpense = () => {
             </thead>
             <tbody>
               ${filteredExpense
-                .slice(startIndex, endIndex)
-                .map(
-                  (expenses) => `
+        .slice(startIndex, endIndex)
+        .map(
+          (expenses) => `
                 <tr>
-                  ${
-                    columnsVisibility.action
-                      ? `<td>
+                  ${columnsVisibility.action
+              ? `<td>
                     <button class="btn btn-edit btn-sm mr-2">Edit</button>
                     <button class="btn btn-view btn-sm mr-2">View</button>
                     <button class="btn btn-delete btn-sm">Delete</button>
                   </td>`
-                      : ""
-                  }
+              : ""
+            }
                   ${columnsVisibility.date ? `<td>${expenses.date}</td>` : ""}
-                  ${
-                    columnsVisibility.referenceNo
-                      ? `<td>${expenses.referenceNo}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.recurringDetails
-                      ? `<td>${expenses.recurringDetails}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.expenseCategory
-                      ? `<td>${expenses.expenseCategory}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.subCategory
-                      ? `<td>${expenses.subCategory}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.location
-                      ? `<td>${expenses.location}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.paymentStatus
-                      ? `<td>${expenses.paymentStatus}</td>`
-                      : ""
-                  }
+                  ${columnsVisibility.referenceNo
+              ? `<td>${expenses.referenceNo}</td>`
+              : ""
+            }
+                  ${columnsVisibility.recurringDetails
+              ? `<td>${expenses.recurringDetails}</td>`
+              : ""
+            }
+                  ${columnsVisibility.expenseCategory
+              ? `<td>${expenses.expenseCategory}</td>`
+              : ""
+            }
+                  ${columnsVisibility.subCategory
+              ? `<td>${expenses.subCategory}</td>`
+              : ""
+            }
+                  ${columnsVisibility.location
+              ? `<td>${expenses.location}</td>`
+              : ""
+            }
+                  ${columnsVisibility.paymentStatus
+              ? `<td>${expenses.paymentStatus}</td>`
+              : ""
+            }
                   ${columnsVisibility.tax ? `<td>${expenses.tax}</td>` : ""}
-                  ${
-                    columnsVisibility.totalAmount
-                      ? `<td>${expenses.totalAmount}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.paymentDue
-                      ? `<td>${expenses.paymentDue}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.expenseFor
-                      ? `<td>${expenses.expenseFor}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.contact
-                      ? `<td>${expenses.contact}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.expenseNote
-                      ? `<td>${expenses.expenseNote}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.addedBy
-                      ? `<td>${expenses.addedBy}</td>`
-                      : ""
-                  }
+                  ${columnsVisibility.totalAmount
+              ? `<td>${expenses.totalAmount}</td>`
+              : ""
+            }
+                  ${columnsVisibility.paymentDue
+              ? `<td>${expenses.paymentDue}</td>`
+              : ""
+            }
+                  ${columnsVisibility.expenseFor
+              ? `<td>${expenses.expenseFor}</td>`
+              : ""
+            }
+                  ${columnsVisibility.contact
+              ? `<td>${expenses.contact}</td>`
+              : ""
+            }
+                  ${columnsVisibility.expenseNote
+              ? `<td>${expenses.expenseNote}</td>`
+              : ""
+            }
+                  ${columnsVisibility.addedBy
+              ? `<td>${expenses.addedBy}</td>`
+              : ""
+            }
                 </tr>
               `
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
           </table>
         </body>
@@ -653,6 +638,7 @@ const ListExpense = () => {
           <div className="container-fluid">
             <div className="row mb-2">
               <div className="col-12 col-md-6">
+                <BackButton />
                 <h1 className=" all-heading">Manage Expenses</h1>
               </div>
             </div>
@@ -1017,8 +1003,8 @@ const ListExpense = () => {
                     {modalType === "add"
                       ? "Add expense"
                       : modalType === "edit"
-                      ? "Edit expense"
-                      : "View expense"}
+                        ? "Edit expense"
+                        : "View expense"}
                   </h5>
                   <button
                     type="button"

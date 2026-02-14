@@ -14,6 +14,7 @@ import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 const ReturnPurchase = () => {
   const [purchases, setPurchases] = useState([]);
@@ -56,7 +57,7 @@ const ReturnPurchase = () => {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-  
+
       if (Array.isArray(data)) {
         const sortedData = data.sort((a, b) => b.id - a.id);
         setPurchases(sortedData);
@@ -68,7 +69,7 @@ const ReturnPurchase = () => {
       console.error("Error fetching purchases:", error);
       setPurchases([]);
     }
-  
+
     // Add jQuery script at the bottom
     const script = document.createElement("script");
     script.src = "js/JqueryContent.js";
@@ -333,83 +334,71 @@ const ReturnPurchase = () => {
           <table>
             <thead>
               <tr>
-                ${
-                  columnsVisibility.purchaseReturnId ? "<th>Return No</th>" : ""
-                }
+                ${columnsVisibility.purchaseReturnId ? "<th>Return No</th>" : ""
+      }
                 ${columnsVisibility.date ? "<th>Date</th>" : ""}
-                ${
-                  columnsVisibility.referenceNumber ? "<th>Invoice No</th>" : ""
-                }
-                ${
-                  columnsVisibility.referenceNumber
-                    ? "<th>Reference No</th>"
-                    : ""
-                }
+                ${columnsVisibility.referenceNumber ? "<th>Invoice No</th>" : ""
+      }
+                ${columnsVisibility.referenceNumber
+        ? "<th>Reference No</th>"
+        : ""
+      }
                 ${columnsVisibility.vendor ? "<th>Vendor</th>" : ""}
                 ${columnsVisibility.totalItems ? "<th>Total Items</th>" : ""}
                 <th>Total Amount</th>
                 <th>Payment Status</th>
                 <th>Amount Due</th>
-                ${
-                  columnsVisibility.additionalNotes
-                    ? "<th>Additional Notes</th>"
-                    : ""
-                }
+                ${columnsVisibility.additionalNotes
+        ? "<th>Additional Notes</th>"
+        : ""
+      }
                 ${columnsVisibility.addedBy ? "<th>Added By</th>" : ""}
               </tr>
             </thead>
             <tbody>
               ${purchases
-                .map(
-                  (purchase) => `
+        .map(
+          (purchase) => `
                 <tr>
-                  ${
-                    columnsVisibility.purchaseReturnId
-                      ? `<td>${purchase.purchaseReturnId}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.date
-                      ? `<td>${purchase.orderDate}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.referenceNumber
-                      ? `<td>${purchase.invoiceNumber || "N/A"}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.referenceNumber
-                      ? `<td>${purchase.referenceNumber}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.vendor
-                      ? `<td>${purchase.vendor}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.totalItems
-                      ? `<td>${purchase.totalItems}</td>`
-                      : ""
-                  }
+                  ${columnsVisibility.purchaseReturnId
+              ? `<td>${purchase.purchaseReturnId}</td>`
+              : ""
+            }
+                  ${columnsVisibility.date
+              ? `<td>${purchase.orderDate}</td>`
+              : ""
+            }
+                  ${columnsVisibility.referenceNumber
+              ? `<td>${purchase.invoiceNumber || "N/A"}</td>`
+              : ""
+            }
+                  ${columnsVisibility.referenceNumber
+              ? `<td>${purchase.referenceNumber}</td>`
+              : ""
+            }
+                  ${columnsVisibility.vendor
+              ? `<td>${purchase.vendor}</td>`
+              : ""
+            }
+                  ${columnsVisibility.totalItems
+              ? `<td>${purchase.totalItems}</td>`
+              : ""
+            }
                   <td>₹${purchase.totalAmount || 0}</td>
                   <td>${getStatusText(purchase.status)}</td>
                   <td>₹${calculateAmountDue(purchase)}</td>
-                  ${
-                    columnsVisibility.additionalNotes
-                      ? `<td>${purchase.additionalNotes || ""}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.addedBy
-                      ? `<td>${purchase.addedBy}</td>`
-                      : ""
-                  }
+                  ${columnsVisibility.additionalNotes
+              ? `<td>${purchase.additionalNotes || ""}</td>`
+              : ""
+            }
+                  ${columnsVisibility.addedBy
+              ? `<td>${purchase.addedBy}</td>`
+              : ""
+            }
                 </tr>
               `
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
           </table>
         </body>
@@ -452,7 +441,8 @@ const ReturnPurchase = () => {
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-12 col-md-6">
+              <div className="col-12 col-md-6 d-flex align-items-center">
+                <BackButton />
                 <h1 className="all-heading">List Purchase Return</h1>
                 <span className="d-inline d-md-block sub-heading">
                   Manage Purchase Returns
@@ -647,16 +637,16 @@ const ReturnPurchase = () => {
 
                                 {(purchase.status === 3 ||
                                   purchase.status === 4) && (
-                                  <Dropdown.Item
-                                    as="button"
-                                    onClick={() => downloadReceipt(purchase)}
-                                  >
-                                    <div className="d-inline-block w-100 btn-download justify-content-center text-secondary">
-                                      <i className="fa fa-download me-3"></i>
-                                      <span>Download Receipt</span>
-                                    </div>
-                                  </Dropdown.Item>
-                                )}
+                                    <Dropdown.Item
+                                      as="button"
+                                      onClick={() => downloadReceipt(purchase)}
+                                    >
+                                      <div className="d-inline-block w-100 btn-download justify-content-center text-secondary">
+                                        <i className="fa fa-download me-3"></i>
+                                        <span>Download Receipt</span>
+                                      </div>
+                                    </Dropdown.Item>
+                                  )}
                               </DropdownButton>
                             </td>
                           )}
@@ -671,14 +661,14 @@ const ReturnPurchase = () => {
                               {purchase.status === 0
                                 ? "Pending"
                                 : purchase.status === 1
-                                ? "Accepted"
-                                : purchase.status === 2
-                                ? "Rejected"
-                                : purchase.status === 3
-                                ? "Refunded"
-                                : purchase.status === 4
-                                ? "Credit Note Issued"
-                                : "Unknown"}
+                                  ? "Accepted"
+                                  : purchase.status === 2
+                                    ? "Rejected"
+                                    : purchase.status === 3
+                                      ? "Refunded"
+                                      : purchase.status === 4
+                                        ? "Credit Note Issued"
+                                        : "Unknown"}
                             </td>
                           )}
                           {columnsVisibility.referenceNumber && (
@@ -706,11 +696,10 @@ const ReturnPurchase = () => {
                             <td>
                               {purchase.receipt ? (
                                 <a
-                                  href={`${
-                                    process.env.REACT_APP_BASE_URL
-                                  }/files/download/${purchase.receipt
-                                    .split("/")
-                                    .pop()}`}
+                                  href={`${process.env.REACT_APP_BASE_URL
+                                    }/files/download/${purchase.receipt
+                                      .split("/")
+                                      .pop()}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                 >

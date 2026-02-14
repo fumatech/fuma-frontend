@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import BackButton from "../../components/BackButton";
 import { useParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { Link, useNavigate } from "react-router-dom";
@@ -340,8 +341,9 @@ function EditSaleReturnOrder() {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
-                  <h1 className="all-heading"> Accept Sale Return</h1>
+                <div className="col-sm-12 d-flex align-items-center flex-wrap gap-2">
+                  <BackButton />
+                  <h1 className="all-heading mb-0 me-3"> Accept Sale Return</h1>
                 </div>
               </div>
             </div>
@@ -459,7 +461,7 @@ function EditSaleReturnOrder() {
                                                 type="checkbox"
                                                 checked={
                                                   selectedVariations[
-                                                    variation.id
+                                                  variation.id
                                                   ] || false
                                                 }
                                                 onChange={(e) =>

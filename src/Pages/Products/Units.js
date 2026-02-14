@@ -12,6 +12,7 @@ import * as XLSX from "xlsx";
 import $ from "jquery";
 import { Collapse } from "react-bootstrap";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 function Units({ userRoles }) {
   const [units, setUnits] = useState([]);
@@ -202,31 +203,28 @@ function Units({ userRoles }) {
               <tr>
                 ${columnsVisibility.name ? "<th>Name</th>" : ""}
                 ${columnsVisibility.shortName ? "<th>Short Name</th>" : ""}
-                ${
-                  columnsVisibility.allowDecimal ? "<th>Allow Decimal</th>" : ""
-                }
+                ${columnsVisibility.allowDecimal ? "<th>Allow Decimal</th>" : ""
+      }
               </tr>
             </thead>
             <tbody>
               ${filteredUnits
-                .slice(startIndex, endIndex)
-                .map(
-                  (unit) => `
+        .slice(startIndex, endIndex)
+        .map(
+          (unit) => `
                   <tr>
                     ${columnsVisibility.name ? `<td>${unit.name}</td>` : ""}
-                    ${
-                      columnsVisibility.shortName
-                        ? `<td>${unit.shortName}</td>`
-                        : ""
-                    }
-                    ${
-                      columnsVisibility.allowDecimal
-                        ? `<td>${unit.allowDecimal ? "Yes" : "No"}</td>`
-                        : ""
-                    }
+                    ${columnsVisibility.shortName
+              ? `<td>${unit.shortName}</td>`
+              : ""
+            }
+                    ${columnsVisibility.allowDecimal
+              ? `<td>${unit.allowDecimal ? "Yes" : "No"}</td>`
+              : ""
+            }
                   </tr>`
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
           </table>
         </body>
@@ -367,7 +365,10 @@ function Units({ userRoles }) {
           <div className="container-fluid">
             <div className="row mb-2">
               <div className="col-12 col-md-6">
-                <h1 className="all-heading ">Units</h1>
+                <div className="d-flex align-items-center">
+                  <BackButton />
+                  <h1 className="all-heading ">Units</h1>
+                </div>
                 <span className="d-inline d-md-block sub-heading">
                   Manage Units
                 </span>
@@ -613,8 +614,8 @@ function Units({ userRoles }) {
                     {modalType === "add"
                       ? "Add Unit"
                       : modalType === "edit"
-                      ? "Edit Unit"
-                      : "View Unit"}
+                        ? "Edit Unit"
+                        : "View Unit"}
                   </h5>
                   <button
                     type="button"

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import BackButton from "../../components/BackButton";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import axios from "axios";
 import DatePicker from "react-datepicker";
@@ -91,8 +92,7 @@ function ViewStockAdjustment() {
   const searchProducts = async (query) => {
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
+        `${process.env.REACT_APP_BASE_URL
         }/product/search/active?query=${encodeURIComponent(query)}`
       );
       const data = await response.json();
@@ -258,8 +258,9 @@ function ViewStockAdjustment() {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-md-6">
-                  <h1 className=" all-heading">View Stock Adjustment</h1>
+                <div className="col-md-6 d-flex align-items-center flex-wrap gap-2">
+                  <BackButton />
+                  <h1 className=" all-heading mb-0">View Stock Adjustment</h1>
                 </div>
               </div>
             </div>
@@ -370,7 +371,7 @@ function ViewStockAdjustment() {
                                                 type="checkbox"
                                                 checked={
                                                   selectedVariations[
-                                                    variation.id
+                                                  variation.id
                                                   ] || false
                                                 }
                                                 onChange={(e) =>

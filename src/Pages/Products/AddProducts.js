@@ -5,6 +5,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min";
 import axios from "axios";
 import Select from "react-select";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 function AddProducts() {
   const formRef = useRef(null);
@@ -190,12 +191,12 @@ function AddProducts() {
     const updatedVariations = variations.map((variation) => {
       const updatedRows = Array.isArray(variation.rows)
         ? variation.rows.map((row) => {
-            const excTaxPrice = parseFloat(row.defaultPurchasePriceExcTax) || 0;
-            const newIncTaxPrice = calculateIncTaxFromExc(excTaxPrice);
-            row.defaultPurchasePriceIncTax = newIncTaxPrice.toFixed(2);
-            row.defaultSellingPrice = calculateDefaultSellingPriceForRow(row);
-            return row;
-          })
+          const excTaxPrice = parseFloat(row.defaultPurchasePriceExcTax) || 0;
+          const newIncTaxPrice = calculateIncTaxFromExc(excTaxPrice);
+          row.defaultPurchasePriceIncTax = newIncTaxPrice.toFixed(2);
+          row.defaultSellingPrice = calculateDefaultSellingPriceForRow(row);
+          return row;
+        })
         : [];
       return { ...variation, rows: updatedRows };
     });
@@ -527,7 +528,7 @@ function AddProducts() {
         defaultSellingPrice: variation.defaultSellingPrice,
         defaultPurchasePriceExcTax:
           variation.defaultPurchasePriceExcTax &&
-          !isNaN(variation.defaultPurchasePriceExcTax)
+            !isNaN(variation.defaultPurchasePriceExcTax)
             ? parseFloat(variation.defaultPurchasePriceExcTax)
             : 0,
       });
@@ -702,8 +703,7 @@ function AddProducts() {
   const checkIfSkuExists = async (sku) => {
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
+        `${process.env.REACT_APP_BASE_URL
         }/product/skuExists?sku=${encodeURIComponent(sku)}`
       );
       const data = await response.json();
@@ -838,7 +838,8 @@ function AddProducts() {
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
-                <div className="col-sm-6">
+                <div className="col-sm-6 d-flex align-items-center">
+                  <BackButton />
                   <h1>Add Products</h1>
                 </div>
               </div>
@@ -1498,9 +1499,9 @@ function AddProducts() {
                                                   const selectedValues =
                                                     selectedOptions
                                                       ? selectedOptions.map(
-                                                          (option) =>
-                                                            option.value
-                                                        )
+                                                        (option) =>
+                                                          option.value
+                                                      )
                                                       : [];
                                                   handleVariationChange(
                                                     {
@@ -1751,10 +1752,10 @@ function AddProducts() {
                                       {product.productName} (SKU: {product.sku})
                                       <span className="badge badge-primary badge-pill">
                                         {product.defaultSellingPrice &&
-                                        !isNaN(product.defaultSellingPrice)
+                                          !isNaN(product.defaultSellingPrice)
                                           ? product.defaultSellingPrice.toFixed(
-                                              2
-                                            )
+                                            2
+                                          )
                                           : "N/A"}
                                       </span>
                                     </li>
@@ -1866,13 +1867,13 @@ function AddProducts() {
                                     type="text"
                                     value={
                                       netTotalAmount &&
-                                      !isNaN(netTotalAmount) &&
-                                      profitMargin &&
-                                      !isNaN(profitMargin)
+                                        !isNaN(netTotalAmount) &&
+                                        profitMargin &&
+                                        !isNaN(profitMargin)
                                         ? Number(
-                                            netTotalAmount *
-                                              (1 + profitMargin / 100)
-                                          ).toFixed(2)
+                                          netTotalAmount *
+                                          (1 + profitMargin / 100)
+                                        ).toFixed(2)
                                         : "0.00"
                                     }
                                     readOnly

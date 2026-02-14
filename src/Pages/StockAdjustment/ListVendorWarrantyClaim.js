@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import BackButton from "../../components/BackButton";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../../assets/plugins/fontawesome-free/css/all.min.css";
@@ -181,12 +182,12 @@ const ListVendorWarrantyClaim = () => {
         listStockAdjustment.status === 0
           ? "Pending"
           : listStockAdjustment.status === 1
-          ? "Accepted"
-          : listStockAdjustment.status === 2
-          ? "Rejected"
-          : listStockAdjustment.status === 3
-          ? "Shipped"
-          : "Unknown",
+            ? "Accepted"
+            : listStockAdjustment.status === 2
+              ? "Rejected"
+              : listStockAdjustment.status === 3
+                ? "Shipped"
+                : "Unknown",
       TotalAmount: listStockAdjustment.totalAmount,
       Reason: listStockAdjustment.reason,
       TotalUnits: listStockAdjustment.totalUnits,
@@ -221,12 +222,12 @@ const ListVendorWarrantyClaim = () => {
           listStockAdjustment.status === 0
             ? "Pending"
             : listStockAdjustment.status === 1
-            ? "Accepted"
-            : listStockAdjustment.status === 2
-            ? "Rejected"
-            : listStockAdjustment.status === 3
-            ? "Shipped"
-            : "Unknown",
+              ? "Accepted"
+              : listStockAdjustment.status === 2
+                ? "Rejected"
+                : listStockAdjustment.status === 3
+                  ? "Shipped"
+                  : "Unknown",
         TotalAmount: listStockAdjustment.totalAmount,
         Reason: listStockAdjustment.reason,
         TotalUnits: listStockAdjustment.totalUnits,
@@ -259,12 +260,12 @@ const ListVendorWarrantyClaim = () => {
         adjustment.status === 0
           ? "Pending"
           : adjustment.status === 1
-          ? "Accepted"
-          : adjustment.status === 2
-          ? "Rejected"
-          : adjustment.status === 3
-          ? "Shipped"
-          : "Unknown",
+            ? "Accepted"
+            : adjustment.status === 2
+              ? "Rejected"
+              : adjustment.status === 3
+                ? "Shipped"
+                : "Unknown",
         adjustment.totalAmount,
         adjustment.reason,
         adjustment.totalUnits,
@@ -341,58 +342,50 @@ const ListVendorWarrantyClaim = () => {
             </thead>
             <tbody>
               ${filteredVendorClaims
-                .slice(startIndex, endIndex)
-                .map(
-                  (listStockAdjustment) => `
+        .slice(startIndex, endIndex)
+        .map(
+          (listStockAdjustment) => `
                     <tr>
-                      ${
-                        columnsVisibility.date
-                          ? `<td>${listStockAdjustment.date}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.referenceNo
-                          ? `<td>${listStockAdjustment.referenceNumber}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.vendor
-                          ? `<td>${listStockAdjustment.vendor}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.status
-                          ? `<td>${
-                              listStockAdjustment.status === 0
-                                ? "Pending"
-                                : listStockAdjustment.status === 1
-                                ? "Accepted"
-                                : listStockAdjustment.status === 2
-                                ? "Rejected"
-                                : listStockAdjustment.status === 3
-                                ? "Shipped"
-                                : "Unknown"
-                            }</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.totalAmount
-                          ? `<td>${listStockAdjustment.totalAmount}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.reason
-                          ? `<td>${listStockAdjustment.reason}</td>`
-                          : ""
-                      }
-                      ${
-                        columnsVisibility.totalUnits
-                          ? `<td>${listStockAdjustment.totalUnits}</td>`
-                          : ""
-                      }
+                      ${columnsVisibility.date
+              ? `<td>${listStockAdjustment.date}</td>`
+              : ""
+            }
+                      ${columnsVisibility.referenceNo
+              ? `<td>${listStockAdjustment.referenceNumber}</td>`
+              : ""
+            }
+                      ${columnsVisibility.vendor
+              ? `<td>${listStockAdjustment.vendor}</td>`
+              : ""
+            }
+                      ${columnsVisibility.status
+              ? `<td>${listStockAdjustment.status === 0
+                ? "Pending"
+                : listStockAdjustment.status === 1
+                  ? "Accepted"
+                  : listStockAdjustment.status === 2
+                    ? "Rejected"
+                    : listStockAdjustment.status === 3
+                      ? "Shipped"
+                      : "Unknown"
+              }</td>`
+              : ""
+            }
+                      ${columnsVisibility.totalAmount
+              ? `<td>${listStockAdjustment.totalAmount}</td>`
+              : ""
+            }
+                      ${columnsVisibility.reason
+              ? `<td>${listStockAdjustment.reason}</td>`
+              : ""
+            }
+                      ${columnsVisibility.totalUnits
+              ? `<td>${listStockAdjustment.totalUnits}</td>`
+              : ""
+            }
                     </tr>`
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
           </table>
         </body>
@@ -517,8 +510,9 @@ const ListVendorWarrantyClaim = () => {
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-12 col-md-6">
-                <h1 className="all-heading">List Vendor Warranty Claim</h1>
+              <div className="col-12 col-md-6 d-flex align-items-center flex-wrap gap-2">
+                <BackButton />
+                <h1 className="all-heading mb-0">List Vendor Warranty Claim</h1>
               </div>
             </div>
           </div>
@@ -803,12 +797,12 @@ const ListVendorWarrantyClaim = () => {
                                 {listStockAdjustment.status === 0
                                   ? "Pending"
                                   : listStockAdjustment.status === 1
-                                  ? "Accepted"
-                                  : listStockAdjustment.status === 2
-                                  ? "Rejected"
-                                  : listStockAdjustment.status === 3
-                                  ? "Shipped"
-                                  : "Unknown"}
+                                    ? "Accepted"
+                                    : listStockAdjustment.status === 2
+                                      ? "Rejected"
+                                      : listStockAdjustment.status === 3
+                                        ? "Shipped"
+                                        : "Unknown"}
                               </td>
                             )}
 

@@ -1,5 +1,6 @@
 // ViewSaleReturn.js
 import React, { useState, useEffect } from "react";
+import BackButton from "../../components/BackButton";
 import { useNavigate, useParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -207,8 +208,9 @@ function ViewSaleReturn() {
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-sm-6">
-                <h1 className="all-heading">View Sale Return</h1>
+              <div className="col-sm-12 d-flex align-items-center flex-wrap gap-2">
+                <BackButton />
+                <h1 className="all-heading mb-0 me-3">View Sale Return</h1>
               </div>
             </div>
           </div>

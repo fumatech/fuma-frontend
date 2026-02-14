@@ -15,6 +15,7 @@ import "bootstrap-daterangepicker"; // Import Date Range Picker JS
 import moment from "moment";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
 
 const ViewVendor = () => {
   const [purchases, setPurchases] = useState([]);
@@ -114,7 +115,7 @@ const ViewVendor = () => {
         setEndDate(end);
         setSelectedRange(
           label ||
-            `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`
+          `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")} `
         );
       }
     );
@@ -154,7 +155,7 @@ const ViewVendor = () => {
       try {
         // Fetch purchases data
         const purchaseResponse = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/purchase-combined-orders/getbyvendor/${vendor.firmName}`
+          `${process.env.REACT_APP_BASE_URL} /purchase-combined-orders/getbyvendor / ${vendor.firmName} `
         );
         const purchasesData = purchaseResponse.data[vendor.firmName] || [];
 
@@ -171,7 +172,7 @@ const ViewVendor = () => {
           allStocks.map(async (stock) => {
             try {
               const productResponse = await axios.get(
-                `${process.env.REACT_APP_BASE_URL}/product/get/${stock.productId}`
+                `${process.env.REACT_APP_BASE_URL} /product/get / ${stock.productId} `
               );
               const product = productResponse.data;
 
@@ -196,7 +197,7 @@ const ViewVendor = () => {
         );
         // Fetch payment data
         const paymentResponse = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/payment-account/getbyvendor/${vendor.firmName}`
+          `${process.env.REACT_APP_BASE_URL} /payment-account/getbyvendor / ${vendor.firmName} `
         );
         const vendorPayments = paymentResponse.data[vendor.firmName] || [];
 
@@ -213,7 +214,7 @@ const ViewVendor = () => {
     }
   };
   const groupedStockTransactions = stockTransactions.reduce((acc, stock) => {
-    const key = `${stock.productName}-${stock.variationValue}`;
+    const key = `${stock.productName} -${stock.variationValue} `;
 
     if (!acc[key]) {
       acc[key] = { ...stock, quantity: stock.quantity ?? 0 };
@@ -235,7 +236,7 @@ const ViewVendor = () => {
 
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/payment-account/transaction/update/${selectedTransaction.id}`,
+        `${process.env.REACT_APP_BASE_URL} /payment-account/transaction / update / ${selectedTransaction.id} `,
         {
           method: "PUT",
           headers: {
@@ -324,7 +325,7 @@ const ViewVendor = () => {
 
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/payment-account/transaction/${accountId}`, // ✅ Ensure numeric ID
+        `${process.env.REACT_APP_BASE_URL} /payment-account/transaction / ${accountId} `, // ✅ Ensure numeric ID
         {
           method: "POST",
           headers: {
@@ -359,7 +360,7 @@ const ViewVendor = () => {
   // Fetch payment methods
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_BASE_URL}/payment-method/active-names`)
+      .get(`${process.env.REACT_APP_BASE_URL} /payment-method/active - names`)
       .then((response) => {
         setPaymentMethods(response.data); // Store fetched methods
       })
@@ -370,7 +371,7 @@ const ViewVendor = () => {
   // Fetch payment accounts
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_BASE_URL}/payment-account/getall`)
+      .get(`${process.env.REACT_APP_BASE_URL} /payment-account/getall`)
       .then((response) => {
         // Filter active accounts (status === 1)
         const activeAccounts = response.data.filter(
@@ -397,7 +398,7 @@ const ViewVendor = () => {
   const fetchVendorData = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/vendor/${id}`
+        `${process.env.REACT_APP_BASE_URL} /vendor/${id} `
       );
       if (!response.data) throw new Error("Vendor not found");
       // console.log(response.data);
@@ -562,9 +563,9 @@ const ViewVendor = () => {
                     {" "}
                     {purchase.purchaseDate
                       ? format(
-                          new Date(purchase.purchaseDate),
-                          "dd/MM/yyyy HH:mm:ss"
-                        )
+                        new Date(purchase.purchaseDate),
+                        "dd/MM/yyyy HH:mm:ss"
+                      )
                       : "N/A"}
                   </td>
                   <td>{purchase.referenceNumber || "N/A"}</td>
@@ -593,20 +594,20 @@ const ViewVendor = () => {
   const handleViewClick = (id, purchasePoOrderId) => {
     if (purchasePoOrderId) {
       // Navigate to ViewPoSale if orderId is present
-      navigate(`/ViewPoPurchaseOrder/${id}`);
+      navigate(`/ ViewPoPurchaseOrder / ${id} `);
     } else {
       // Navigate to ViewDISale if orderId is not present
-      navigate(`/ViewDIPurchase/${id}`);
+      navigate(`/ ViewDIPurchase / ${id} `);
     }
   };
 
   const handleEditClick = (id, purchasePoOrderId) => {
     if (purchasePoOrderId) {
       // Navigate to ViewPoSale if orderId is present
-      navigate(`/EditPoPurchaseOrder/${id}`);
+      navigate(`/ EditPoPurchaseOrder / ${id} `);
     } else {
       // Navigate to ViewDISale if orderId is not present
-      navigate(`/EditDIPurchase/${id}`);
+      navigate(`/ EditDIPurchase / ${id} `);
     }
   };
   const handlePaymentView = (transaction) => {
@@ -873,9 +874,9 @@ const ViewVendor = () => {
                       <td style={{ padding: "12px 15px", color: "#495057" }}>
                         {transaction.date
                           ? format(
-                              new Date(transaction.date),
-                              "dd/MM/yyyy HH:mm:ss"
-                            )
+                            new Date(transaction.date),
+                            "dd/MM/yyyy HH:mm:ss"
+                          )
                           : "N/A"}
                       </td>
                       <td style={{ padding: "12px 15px", color: "#495057" }}>
@@ -954,7 +955,7 @@ const ViewVendor = () => {
             <tbody>
               {stockArray.length > 0 ? (
                 stockArray.map((stock) => (
-                  <tr key={`${stock.productName}-${stock.variationValue}`}>
+                  <tr key={`${stock.productName} -${stock.variationValue} `}>
                     <td>{stock.productName}</td>
                     <td>{stock.variationValue}</td>
                     <td>{stock.quantity}</td>
@@ -1044,12 +1045,12 @@ const ViewVendor = () => {
       taxPayerId = "",
     } = vendor;
     const bankFields = [
-      `Account Holder Name:${accountHolderName}`,
-      `Account Number:${accountNumber}`,
-      `Bank Name:${bankName}`,
-      `IFSC:${ifsc}`,
-      `Branch:${branch}`,
-      `Tax Payer ID:${taxPayerId}`,
+      `Account Holder Name:${accountHolderName} `,
+      `Account Number:${accountNumber} `,
+      `Bank Name:${bankName} `,
+      `IFSC:${ifsc} `,
+      `Branch:${branch} `,
+      `Tax Payer ID:${taxPayerId} `,
     ];
 
     const renderRow = (label, value, icon = null) => (
@@ -1078,7 +1079,7 @@ const ViewVendor = () => {
         >
           {icon && (
             <i
-              className={`fas fa-${icon} me-2`}
+              className={`fas fa - ${icon} me - 2`}
               style={{ color: "#2c5e9e", width: "20px" }}
             ></i>
           )}
@@ -1180,7 +1181,7 @@ const ViewVendor = () => {
             </h3>
             {renderRow(
               "Full Name",
-              `${prefix} ${firstname} ${lastname}`.trim(),
+              `${prefix} ${firstname} ${lastname} `.trim(),
               "user"
             )}
             {renderRow("Vendor ID", vendorId, "id-badge")}
@@ -1442,8 +1443,9 @@ const ViewVendor = () => {
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-sm-6">
-                <h1 className="all-heading">View Vendor</h1>
+              <div className="col-sm-6 d-flex align-items-center">
+                <BackButton />
+                <h1 className="all-heading fs-2">View Vendor</h1>
               </div>
             </div>
           </div>
@@ -1629,17 +1631,15 @@ const ViewVendor = () => {
                         }}
                       >
                         <i
-                          className={`fas me-2 ${
-                            vendor.isActive
-                              ? "fa-check-circle text-success"
-                              : "fa-times-circle text-danger"
-                          }`}
+                          className={`fas me - 2 ${vendor.isActive
+                            ? "fa-check-circle text-success"
+                            : "fa-times-circle text-danger"
+                            } `}
                         ></i>
                         <strong style={{ color: "#5a5c69" }}>Status:</strong>
                         <span
-                          className={`ms-2 fw-bold ${
-                            vendor.isActive ? "text-success" : "text-danger"
-                          }`}
+                          className={`ms - 2 fw - bold ${vendor.isActive ? "text-success" : "text-danger"
+                            } `}
                         >
                           {vendor.isActive ? "Active" : "Inactive"}
                         </span>
@@ -2219,9 +2219,8 @@ const ViewVendor = () => {
                 ].map(({ key, label, icon }) => (
                   <li key={key} className="nav-item flex-grow-1 text-center">
                     <button
-                      className={`nav-link fs-5 fw-bold py-3 px-4 text-dark ${
-                        activeTab === key ? "active" : ""
-                      } ${key}-tab`}
+                      className={`nav - link fs - 5 fw - bold py - 3 px - 4 text - dark ${activeTab === key ? "active" : ""
+                        } ${key} -tab`}
                       onClick={() => setActiveTab(key)}
                       style={{
                         width: "100%",
@@ -2240,7 +2239,7 @@ const ViewVendor = () => {
                         (e.target.style.backgroundColor = "transparent")
                       }
                     >
-                      <i className={`${icon} me-2`}></i>
+                      <i className={`${icon} me - 2`}></i>
                       {label}
                     </button>
                   </li>

@@ -1,6 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import BackButton from "../../components/BackButton";
 import axios from "axios";
 import Select from "react-select";
 import { toast } from "react-toastify";
@@ -396,6 +397,7 @@ function EditExpense() {
             <div className="container-fluid">
               <div className="row mb-2">
                 <div className="col-md-6">
+                  <BackButton />
                   <h1 className="all-heading">Edit Expense</h1>
                 </div>
               </div>
@@ -597,8 +599,8 @@ function EditExpense() {
                                   {file
                                     ? file.name
                                     : existingFile
-                                    ? "Existing file"
-                                    : "No file selected"}
+                                      ? "Existing file"
+                                      : "No file selected"}
                                 </div>
                               </div>
                               <div className="input-group-append">

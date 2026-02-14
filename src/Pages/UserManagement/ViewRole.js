@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import queryString from "query-string";
+import BackButton from "../../components/BackButton";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 
@@ -58,7 +59,7 @@ const PermissionGroup = ({ prefix, permissions, selectedPermissions }) => (
   </div>
 );
 
-const ViewRoles = () => {
+const ViewRole = () => {
   const [roleName, setRoleName] = useState("");
   const [permissions, setPermissions] = useState({});
   const [selectedPermissions, setSelectedPermissions] = useState({});
@@ -138,8 +139,9 @@ const ViewRoles = () => {
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-sm-6">
-                <h1>View Role</h1>
+              <div className="col-sm-6 d-flex align-items-center">
+                <BackButton />
+                <h1 className="all-heading fs-2">View Role</h1>
               </div>
             </div>
             <div className="card cardHover rounded-3 border-0">
@@ -184,4 +186,4 @@ const ViewRoles = () => {
   );
 };
 
-export default ViewRoles;
+export default ViewRole;

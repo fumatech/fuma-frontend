@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import BackButton from "../../components/BackButton";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -337,76 +338,65 @@ const ListStockTransfer = () => {
               <tr>
                 ${columnsVisibility.data ? "<th>Data</th>" : ""}
                 ${columnsVisibility.referenceNo ? "<th>Reference No</th>" : ""}
-                ${
-                  columnsVisibility.locationFrom
-                    ? "<th>Location (From)</th>"
-                    : ""
-                }
+                ${columnsVisibility.locationFrom
+        ? "<th>Location (From)</th>"
+        : ""
+      }
                 ${columnsVisibility.locationTo ? "<th>Location (To)</th>" : ""}
                 ${columnsVisibility.status ? "<th>Status</th>" : ""}
-                ${
-                  columnsVisibility.shippingCharges
-                    ? "<th>Shipping Charges</th>"
-                    : ""
-                }
+                ${columnsVisibility.shippingCharges
+        ? "<th>Shipping Charges</th>"
+        : ""
+      }
                 ${columnsVisibility.totalAmount ? "<th>Total Amount</th>" : ""}
-                ${
-                  columnsVisibility.additionalNotes
-                    ? "<th>Additional Notes</th>"
-                    : ""
-                }
+                ${columnsVisibility.additionalNotes
+        ? "<th>Additional Notes</th>"
+        : ""
+      }
               </tr>
             </thead>
             <tbody>
               ${filteredStockTransfers
-                .slice(startIndex, endIndex)
-                .map(
-                  (StockTransfer) => `
+        .slice(startIndex, endIndex)
+        .map(
+          (StockTransfer) => `
                 <tr>
-                  ${
-                    columnsVisibility.data
-                      ? `<td>${StockTransfer.data}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.referenceNo
-                      ? `<td>${StockTransfer.referenceNo}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.locationFrom
-                      ? `<td>${StockTransfer.locationFrom}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.locationTo
-                      ? `<td>${StockTransfer.locationTo}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.status
-                      ? `<td>${StockTransfer.status}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.shippingCharges
-                      ? `<td>${StockTransfer.shippingCharges}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.totalAmount
-                      ? `<td>${StockTransfer.totalAmount}</td>`
-                      : ""
-                  }
-                  ${
-                    columnsVisibility.additionalNotes
-                      ? `<td>${StockTransfer.additionalNotes}</td>`
-                      : ""
-                  }
+                  ${columnsVisibility.data
+              ? `<td>${StockTransfer.data}</td>`
+              : ""
+            }
+                  ${columnsVisibility.referenceNo
+              ? `<td>${StockTransfer.referenceNo}</td>`
+              : ""
+            }
+                  ${columnsVisibility.locationFrom
+              ? `<td>${StockTransfer.locationFrom}</td>`
+              : ""
+            }
+                  ${columnsVisibility.locationTo
+              ? `<td>${StockTransfer.locationTo}</td>`
+              : ""
+            }
+                  ${columnsVisibility.status
+              ? `<td>${StockTransfer.status}</td>`
+              : ""
+            }
+                  ${columnsVisibility.shippingCharges
+              ? `<td>${StockTransfer.shippingCharges}</td>`
+              : ""
+            }
+                  ${columnsVisibility.totalAmount
+              ? `<td>${StockTransfer.totalAmount}</td>`
+              : ""
+            }
+                  ${columnsVisibility.additionalNotes
+              ? `<td>${StockTransfer.additionalNotes}</td>`
+              : ""
+            }
                 </tr>
               `
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
           </table>
         </body>
@@ -509,8 +499,9 @@ const ListStockTransfer = () => {
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">
-              <div className="col-12 col-md-6">
-                <h1 className="all-heading">Stock Transfer</h1>
+              <div className="col-12 col-md-6 d-flex align-items-center flex-wrap gap-2">
+                <BackButton />
+                <h1 className="all-heading mb-0">Stock Transfer</h1>
               </div>
             </div>
           </div>
