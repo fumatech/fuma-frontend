@@ -207,8 +207,7 @@ function EditAcceptedOrder() {
   const searchProducts = async (query) => {
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
+        `${process.env.REACT_APP_BASE_URL
         }/product/search/active?query=${encodeURIComponent(query)}`
       );
       const data = await response.json();
@@ -271,6 +270,27 @@ function EditAcceptedOrder() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate shipping quantities against ordered quantities and available stock
+    for (const item of selectedProducts) {
+      const stockKey = item.productVariationId || item.productId;
+      const currentStockLevel = currentStocks[stockKey] || 0;
+
+      if (item.updatedQuantity > item.quantity) {
+        toast.error(`Shipping quantity for ${item.productName} (${item.updatedQuantity}) cannot exceed ordered quantity (${item.quantity})`);
+        return;
+      }
+
+      if (item.updatedQuantity > currentStockLevel) {
+        toast.error(`Insufficient stock for ${item.productName}. Available: ${currentStockLevel}, Requested: ${item.updatedQuantity}`);
+        return;
+      }
+
+      if (item.updatedQuantity < 0) {
+        toast.error(`Shipping quantity for ${item.productName} cannot be negative.`);
+        return;
+      }
+    }
+
     // Prepare the order items with both orderQuantity and updatedShipQuantity
     const franchiseOrderItems = selectedProducts.map((product) => ({
       productId: product.productId,
@@ -303,6 +323,7 @@ function EditAcceptedOrder() {
       additionalNotes,
       franchiseOrderItems,
     };
+
 
     // console.log(payload);
 
@@ -512,7 +533,7 @@ function EditAcceptedOrder() {
                                                 type="checkbox"
                                                 checked={
                                                   selectedVariations[
-                                                    variation.id
+                                                  variation.id
                                                   ] || false
                                                 }
                                                 onChange={(e) =>
@@ -573,7 +594,7 @@ function EditAcceptedOrder() {
                                       </td>
                                       <td>
                                         {currentStocks[stockKey] !==
-                                        undefined ? (
+                                          undefined ? (
                                           <span className="badge bg-primary">
                                             {currentStocks[stockKey]}
                                           </span>
