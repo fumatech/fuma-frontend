@@ -97,6 +97,8 @@ function AddSoSale() {
   const [totalAmountIncTaxAndDiscount, setTotalAmountIncTaxAndDiscount] =
     useState(0);
   const [finalPurchaseAmount, setFinalPurchaseAmount] = useState(0);
+  const [currentStocks, setCurrentStocks] = useState({});
+
 
   const [userEmail, setUserEmail] = useState(null);
   const [userName, setUserName] = useState("");
@@ -361,6 +363,44 @@ function AddSoSale() {
       0
     );
     setTotalUnits(newTotalUnits);
+  }, [selectedProducts]);
+
+  useEffect(() => {
+    const fetchCurrentStocks = async () => {
+      const stockData = {};
+      for (const product of selectedProducts) {
+        try {
+          let response;
+          const productId = product.productId || product.id; // Corrected ID usage
+          const variationId = product.productVariationId || product.variationId;
+
+          if (variationId) {
+            response = await fetch(
+              `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock-byvariation/${variationId}`
+            );
+          } else {
+            response = await fetch(
+              `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/${productId}`
+            );
+          }
+
+          if (response.ok) {
+            const stock = await response.json();
+            stockData[variationId || productId] = stock;
+          } else {
+            stockData[variationId || productId] = 0;
+          }
+        } catch (error) {
+          console.error("Error fetching stock:", error);
+          stockData[product.productVariationId || product.productId] = 0;
+        }
+      }
+      setCurrentStocks(stockData);
+    };
+
+    if (selectedProducts.length > 0) {
+      fetchCurrentStocks();
+    }
   }, [selectedProducts]);
 
   useEffect(() => {
@@ -752,6 +792,23 @@ function AddSoSale() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate stock before submitting
+    for (const product of selectedProducts) {
+      const stockKey = product.productVariationId || product.productId || product.id;
+      const availableStock = currentStocks[stockKey] || 0;
+
+      if (product.quantity > availableStock) {
+        toast.error(`Insufficient stock for ${product.productName || product.name}. Available: ${availableStock}, Requested: ${product.quantity}`);
+        return; // Stop submission
+      }
+
+      if (product.quantity <= 0) {
+        toast.error(`Quantity for ${product.productName || product.name} must be greater than zero.`);
+        return;
+      }
+    }
+
 
     // Format dates to ISO string if valid
     const formattedPurchaseDate = purchaseDate
@@ -1160,8 +1217,8 @@ function AddSoSale() {
                                           </span>
                                           <span
                                             className={`stock ${product.stock > 0
-                                                ? "in-stock"
-                                                : "out-of-stock"
+                                              ? "in-stock"
+                                              : "out-of-stock"
                                               }`}
                                           >
                                             {product.stock > 0
@@ -1182,10 +1239,10 @@ function AddSoSale() {
                                               <div
                                                 key={variation.id}
                                                 className={`variation-item py-0 border rounded px-2 ${selectedVariations[
-                                                    variation.id
-                                                  ]
-                                                    ? "selected"
-                                                    : ""
+                                                  variation.id
+                                                ]
+                                                  ? "selected"
+                                                  : ""
                                                   }`}
                                                 onClick={(e) => {
                                                   e.stopPropagation(); // Prevents parent onClick
