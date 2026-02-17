@@ -77,15 +77,7 @@ function Permission() {
               <div className="col-sm-6">
                 <h1 className="all-heading">Manage Permissions</h1>
               </div>
-              <div className="col-sm-6 text-end">
-                <button
-                  className="btn btn-primary btn-lg rounded-3 shadow-sm"
-                  onClick={handleSyncAll}
-                >
-                  <i className="fas fa-sync pe-2"></i>
-                  Sync All Standard Permissions
-                </button>
-              </div>
+
             </div>
           </div>
         </section>
@@ -94,17 +86,7 @@ function Permission() {
           <div className="container-fluid">
             <div className="card card-default rounded-4 border-0 cardHover">
               <div className="card-header border-0 bg-white pt-3">
-                <div className="row">
-                  <div className="col-md-4">
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Search module..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                </div>
+
               </div>
               <div className="card-body p-0">
                 <div className="table-responsive">
