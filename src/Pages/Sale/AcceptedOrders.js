@@ -61,7 +61,7 @@ const AcceptedOrders = () => {
     const fetchAcceptedOrders = async () => {
       try {
         const response = await fetch(
-          `https://fusionmastertech.com:8443/franchisepurchaseorder/getAcceptedOrders`
+          `${process.env.REACT_APP_BASE_URL}/franchisepurchaseorder/getAcceptedOrders`
         );
         if (!response.ok) throw new Error("Network response was not ok");
 
@@ -317,7 +317,7 @@ const AcceptedOrders = () => {
 
     try {
       const response = await fetch(
-        `https://fusionmastertech.com:8443/franchisepurchaseorder/updateDispatchStatus/${currentOrder.id}`,
+        `${process.env.REACT_APP_BASE_URL}/franchisepurchaseorder/updateDispatchStatus/${currentOrder.id}`,
         {
           method: "PUT",
           headers: {
@@ -363,7 +363,7 @@ const AcceptedOrders = () => {
 
     try {
       const response = await fetch(
-        `https://fusionmastertech.com:8443/franchisepurchaseorder/updateStatus/${order.id}`,
+        `${process.env.REACT_APP_BASE_URL}/franchisepurchaseorder/updateStatus/${order.id}`,
         {
           method: "PUT",
           headers: {
@@ -375,7 +375,7 @@ const AcceptedOrders = () => {
 
       if (response.ok) {
         const updatedOrders = await fetch(
-          `https://fusionmastertech.com:8443/franchisepurchaseorder/getAcceptedOrders`
+          `${process.env.REACT_APP_BASE_URL}/franchisepurchaseorder/getAcceptedOrders`
         );
         const data = await updatedOrders.json();
         if (Array.isArray(data)) {
@@ -399,7 +399,7 @@ const AcceptedOrders = () => {
 
     try {
       const response = await fetch(
-        `https://fusionmastertech.com:8443/franchisepurchaseorder/updateStatus/${order.id}`,
+        `${process.env.REACT_APP_BASE_URL}/franchisepurchaseorder/updateStatus/${order.id}`,
         {
           method: "PUT",
           headers: {
@@ -411,7 +411,7 @@ const AcceptedOrders = () => {
 
       if (response.ok) {
         const updatedOrders = await fetch(
-          `https://fusionmastertech.com:8443/franchisepurchaseorder/getAcceptedOrders`
+          `${process.env.REACT_APP_BASE_URL}/franchisepurchaseorder/getAcceptedOrders`
         );
         const data = await updatedOrders.json();
         if (Array.isArray(data)) {

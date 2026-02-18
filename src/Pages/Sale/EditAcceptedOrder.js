@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 function EditAcceptedOrder() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const BASE_URL = process.env.REACT_APP_BASE_URL;
   const [currentStocks, setCurrentStocks] = useState({});
   const [vendor, setVendor] = useState("");
   const [franchiseName, setFranchiseName] = useState("");
@@ -31,6 +32,23 @@ function EditAcceptedOrder() {
   const [initialQuantities, setInitialQuantities] = useState({});
   const [updatedTotalUnits, setUpdatedTotalUnits] = useState(0);
   const [userEmail, setUserEmail] = useState("");
+
+  const getStockLookupMeta = (product) => {
+    const hasRealVariation =
+      !!product.productVariationId && !!(product.variationValue || product.productVariationName);
+
+    if (hasRealVariation) {
+      return {
+        key: `v_${product.productVariationId}`,
+        url: `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/${product.productId}/${product.productVariationId}`,
+      };
+    }
+
+    return {
+      key: `p_${product.productId}`,
+      url: `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/${product.productId}`,
+    };
+  };
   useEffect(() => {
     const email = sessionStorage.getItem("userEmail");
     if (email) {
@@ -54,24 +72,15 @@ function EditAcceptedOrder() {
 
       for (const product of productsData) {
         try {
-          let response;
-          if (product.productVariationId) {
-            // Fetch stock for variation
-            response = await fetch(
-              `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock-byvariation/${product.productVariationId}`
-            );
-          } else {
-            // Fetch stock for base product
-            response = await fetch(
-              `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/${product.id}`
-            );
-          }
+          const { key, url } = getStockLookupMeta(product);
+          const response = await fetch(url);
 
           const stock = await response.json();
-          stockData[product.productVariationId || product.id] = stock;
+          stockData[key] = stock;
         } catch (error) {
           console.error("Error fetching stock:", error);
-          stockData[product.productVariationId || product.id] = 0;
+          const { key } = getStockLookupMeta(product);
+          stockData[key] = 0;
         }
       }
 
@@ -86,7 +95,7 @@ function EditAcceptedOrder() {
     const fetchPurchaseData = async () => {
       try {
         const response = await fetch(
-          `https://fusionmastertech.com:8443/franchisepurchaseorder/get/${id}`
+          `${BASE_URL}/franchisepurchaseorder/get/${id}`
         );
 
         if (!response.ok) {
@@ -272,7 +281,7 @@ function EditAcceptedOrder() {
 
     // Validate shipping quantities against ordered quantities and available stock
     for (const item of selectedProducts) {
-      const stockKey = item.productVariationId || item.productId;
+      const { key: stockKey } = getStockLookupMeta(item);
       const currentStockLevel = currentStocks[stockKey] || 0;
 
       if (item.updatedQuantity > item.quantity) {
@@ -329,7 +338,7 @@ function EditAcceptedOrder() {
 
     try {
       const response = await fetch(
-        `https://fusionmastertech.com:8443/franchisepurchaseorder/update/${id}`,
+        `${BASE_URL}/franchisepurchaseorder/update/${id}`,
         {
           method: "PUT",
           headers: {
@@ -348,7 +357,7 @@ function EditAcceptedOrder() {
 
         // Update the purchaseStatus
         const statusResponse = await fetch(
-          `https://fusionmastertech.com:8443/franchisepurchaseorder/updateStatus/${id}`,
+          `${BASE_URL}/franchisepurchaseorder/updateStatus/${id}`,
           {
             method: "PUT",
             headers: {
@@ -583,8 +592,7 @@ function EditAcceptedOrder() {
                               </thead>
                               <tbody>
                                 {selectedProducts.map((product, index) => {
-                                  const stockKey =
-                                    product.productVariationId || product.id;
+                                  const { key: stockKey } = getStockLookupMeta(product);
                                   return (
                                     <tr key={product.id}>
                                       <td>{index + 1}</td>
