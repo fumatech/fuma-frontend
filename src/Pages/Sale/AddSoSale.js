@@ -109,6 +109,78 @@ function AddSoSale() {
     mobile: "",
   });
 
+  const normalizeVariationId = (value) => {
+    if (value === null || value === undefined) return null;
+    const text = String(value).trim().toLowerCase();
+    if (!text || text === "null" || text === "undefined" || text === "na" || text === "n/a") {
+      return null;
+    }
+    const parsed = Number(text);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  };
+
+  const normalizeVariationLabel = (value) => {
+    if (value === null || value === undefined) return null;
+    const text = String(value).trim();
+    if (!text) return null;
+    const normalized = text.toLowerCase();
+    if (normalized === "null" || normalized === "undefined" || normalized === "na" || normalized === "n/a") {
+      return null;
+    }
+    return text;
+  };
+
+  const normalizeProductId = (value) => {
+    if (value === null || value === undefined) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  };
+
+  const getStockLookupMeta = (product) => {
+    const productId = normalizeProductId(product.productId || product.id);
+    if (productId === null) {
+      return {
+        key: "p_invalid",
+        url: `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/0`,
+        variationId: null,
+      };
+    }
+    const variationId = normalizeVariationId(
+      product.productVariationId || product.variationId
+    );
+    const variationLabel = normalizeVariationLabel(
+      product.variationName || product.productVariationName || product.variationValue
+    );
+    const hasRealVariation = variationId !== null && variationLabel !== null;
+
+    if (hasRealVariation) {
+      return {
+        key: `v_${variationId}`,
+        url: `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/${productId}/${variationId}`,
+        variationId,
+        productId,
+      };
+    }
+
+    return {
+      key: `p_${productId}`,
+      url: `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/${productId}`,
+      variationId: null,
+      productId,
+    };
+  };
+
+  const getResolvedVariationId = (product) => {
+    const variationId = normalizeVariationId(
+      product.productVariationId || product.variationId
+    );
+    const variationLabel = normalizeVariationLabel(
+      product.variationName || product.productVariationName || product.variationValue
+    );
+    const hasRealVariation = variationId !== null && variationLabel !== null;
+    return hasRealVariation ? variationId : null;
+  };
+
   useEffect(() => {
     axios
       .get(
@@ -370,29 +442,19 @@ function AddSoSale() {
       const stockData = {};
       for (const product of selectedProducts) {
         try {
-          let response;
-          const productId = product.productId || product.id; // Corrected ID usage
-          const variationId = product.productVariationId || product.variationId;
-
-          if (variationId) {
-            response = await fetch(
-              `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock-byvariation/${variationId}`
-            );
-          } else {
-            response = await fetch(
-              `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/${productId}`
-            );
-          }
+          const { key, url } = getStockLookupMeta(product);
+          const response = await fetch(url);
 
           if (response.ok) {
             const stock = await response.json();
-            stockData[variationId || productId] = stock;
+            stockData[key] = stock;
           } else {
-            stockData[variationId || productId] = 0;
+            stockData[key] = 0;
           }
         } catch (error) {
           console.error("Error fetching stock:", error);
-          stockData[product.productVariationId || product.productId] = 0;
+          const { key } = getStockLookupMeta(product);
+          stockData[key] = 0;
         }
       }
       setCurrentStocks(stockData);
@@ -795,7 +857,11 @@ function AddSoSale() {
 
     // Validate stock before submitting
     for (const product of selectedProducts) {
-      const stockKey = product.productVariationId || product.productId || product.id;
+      const { key: stockKey, productId } = getStockLookupMeta(product);
+      if (!productId) {
+        toast.error(`Invalid product mapping for ${product.productName || product.name || "selected item"}.`);
+        return;
+      }
       const availableStock = currentStocks[stockKey] || 0;
 
       if (product.quantity > availableStock) {
@@ -833,6 +899,7 @@ function AddSoSale() {
     ];
 
     const purchaseItems = selectedProducts.map((product) => {
+      const resolvedVariationId = getResolvedVariationId(product);
       const unitCostBeforeDiscount =
         parseFloat(product.defaultPurchasePriceExcTax) || 0;
       const discountPercent = parseFloat(product.discountPercent) || 0;
@@ -864,12 +931,18 @@ function AddSoSale() {
         (1 + profitMargin / 100)
       ).toFixed(2);
 
+      const resolvedVariationName = normalizeVariationLabel(
+        product.variationName || product.productVariationName || product.variationValue
+      );
+
       return {
-        productId: product.productId,
+        productId: normalizeProductId(product.productId || product.id),
         productName: product.productName,
         productSku: product.sku,
-        productVariationId: product.productVariationId,
-        productVariationName: product.variationName,
+        productVariationId: resolvedVariationId,
+        productVariationName: resolvedVariationId
+          ? resolvedVariationName
+          : null,
         quantity: product.quantity,
         unitCostBeforeDiscount: unitCostBeforeDiscount,
         discountPercent: discountPercent,
@@ -882,7 +955,7 @@ function AddSoSale() {
         profitAmount: profitAmount,
         unitSellingPrice: unitSellingPriceIncTax,
       };
-    });
+    }).filter((item) => item.productId);
 
     const productStocks = purchaseItems.map((item) => ({
       productId: item.productId,
@@ -937,7 +1010,7 @@ function AddSoSale() {
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error details:", errorData);
-        toast.error("Failed to save order");
+        toast.error(errorData.message || "Failed to save order");
         return;
       }
 

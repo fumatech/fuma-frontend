@@ -56,7 +56,7 @@ const ListSoSale = () => {
     cities: [],
     states: [],
   });
-  
+
   const [activeFilters, setActiveFilters] = useState({
     startDate: "",
     endDate: "",
@@ -65,7 +65,7 @@ const ListSoSale = () => {
     city: "",
     state: "",
   });
-  
+
   const [filteredPurchases, setFilteredPurchases] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
   const [companyLogo, setCompanyLogo] = useState(null);
@@ -77,53 +77,107 @@ const ListSoSale = () => {
     script.src = "js/JqueryContent.js";
     script.async = true;
     document.body.appendChild(script);
-  
+
     const fetchPurchases = async () => {
       try {
-        const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/sale-so-order/getall`
+        let data = [];
+        const summaryResponse = await fetch(
+          `${process.env.REACT_APP_BASE_URL}/sale-so-order/getall-summary`
         );
-  
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
+
+        if (summaryResponse.ok) {
+          data = await summaryResponse.json();
+        } else {
+          const response = await fetch(
+            `${process.env.REACT_APP_BASE_URL}/sale-so-order/getall`
+          );
+
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+
+          data = await response.json();
         }
-  
-        const data = await response.json();
-  
+
         console.log(data);
         const sortedData = data.sort((a, b) => b.id - a.id);
-  
-        const updatedPurchases = await Promise.all(
-          sortedData.map(async (purchase) => {
-            try {
-              const customerRes = await fetch(
-                `${process.env.REACT_APP_BASE_URL}/customer/${purchase.customerId}`
-              );
-  
-              if (!customerRes.ok) throw new Error("Customer not found");
-  
-              const customer = await customerRes.json();
-  
-              return {
-                ...purchase,
-                franchiseName: customer.franchiseName || "",
-                city: customer.city || "",
-                state: customer.state || "",
-                customerData: customer // Store full customer data for invoice
-              };
-            } catch (err) {
-              console.error("Error fetching customer:", err);
-              return {
-                ...purchase,
-                franchiseName: "N/A",
-                city: "N/A",
-                state: "N/A",
-                customerData: null
-              };
-            }
-          })
-        );
-  
+
+        const toNumber = (value) => {
+          if (value === null || value === undefined) return null;
+          const normalized =
+            typeof value === "string"
+              ? value.replace(/[,\s]/g, "")
+              : value;
+          const parsed = Number(normalized);
+          return Number.isFinite(parsed) ? parsed : null;
+        };
+
+        const updatedPurchases = sortedData.map((purchase) => {
+          const lineItems =
+            purchase?.saleSoProducts ||
+            purchase?.saleProducts ||
+            purchase?.products ||
+            [];
+
+          let resolvedQty =
+            toNumber(purchase?.totalItems) ??
+            toNumber(purchase?.totalSaleItems) ??
+            toNumber(purchase?.totalSoldQty) ??
+            toNumber(purchase?.soldQty);
+
+          if (resolvedQty == null && Array.isArray(lineItems)) {
+            resolvedQty = lineItems.reduce((sum, item) => {
+              const qty =
+                toNumber(item?.quantity) ??
+                toNumber(item?.saleQty) ??
+                toNumber(item?.qty) ??
+                0;
+              return sum + qty;
+            }, 0);
+          }
+
+          let resolvedAmount =
+            toNumber(purchase?.netTotalAmount) ??
+            toNumber(purchase?.totalAmount) ??
+            toNumber(purchase?.finalAmount) ??
+            toNumber(purchase?.grandTotal) ??
+            toNumber(purchase?.amount);
+
+          if (resolvedAmount == null && Array.isArray(lineItems)) {
+            resolvedAmount = lineItems.reduce((sum, item) => {
+              const itemAmount =
+                toNumber(item?.netAmount) ??
+                toNumber(item?.totalAmount) ??
+                toNumber(item?.amount) ??
+                null;
+
+              if (itemAmount != null) return sum + itemAmount;
+
+              const qty =
+                toNumber(item?.quantity) ??
+                toNumber(item?.saleQty) ??
+                toNumber(item?.qty) ??
+                0;
+              const price =
+                toNumber(item?.rate) ??
+                toNumber(item?.price) ??
+                toNumber(item?.unitPrice) ??
+                0;
+              return sum + qty * price;
+            }, 0);
+          }
+
+          return {
+            ...purchase,
+            franchiseName: purchase.franchiseName || purchase.franchise || "N/A",
+            city: purchase.city || "N/A",
+            state: purchase.state || "N/A",
+            customerData: purchase.customerData || purchase.customer || null,
+            totalItems: resolvedQty ?? 0,
+            netTotalAmount: resolvedAmount ?? 0,
+          };
+        });
+
         setPurchases(updatedPurchases);
         setFilteredPurchases(updatedPurchases);
       } catch (error) {
@@ -132,9 +186,9 @@ const ListSoSale = () => {
         setFilteredPurchases([]);
       }
     };
-  
+
     fetchPurchases();
-  
+
     // Optional: Cleanup function to remove script when component unmounts
     return () => {
       if (script.parentNode) {
@@ -150,40 +204,40 @@ const ListSoSale = () => {
         console.log("Fetching logo from:", `${BASE_URL}/file/get-all`);
         const response = await axios.get(`${BASE_URL}/file/get-all`);
         const files = response.data || [];
-        
+
         console.log("Files from API:", files);
-        
+
         const logoFile = files.find(file => {
           if (!file.image) return false;
-          
+
           const fileName = file.image.split("/").pop();
           const isImage = /\.(jpg|jfif|jpeg|png|gif)$/i.test(fileName);
-          
-          return isImage && (fileName.toLowerCase().includes('logo') || 
-                 fileName.toLowerCase().includes('company') || 
-                 fileName.toLowerCase().includes('fuma') ||
-                 true);
+
+          return isImage && (fileName.toLowerCase().includes('logo') ||
+            fileName.toLowerCase().includes('company') ||
+            fileName.toLowerCase().includes('fuma') ||
+            true);
         });
-        
+
         if (logoFile && logoFile.image) {
           console.log("Found logo file:", logoFile);
-          
+
           const logoUrl = `${BASE_URL}${logoFile.image}`;
           console.log("Logo URL:", logoUrl);
-          
+
           setCompanyLogo(logoUrl);
-          
+
           try {
             const imageResponse = await fetch(logoUrl);
             const blob = await imageResponse.blob();
-            
+
             const base64String = await new Promise((resolve, reject) => {
               const reader = new FileReader();
               reader.onloadend = () => resolve(reader.result);
               reader.onerror = reject;
               reader.readAsDataURL(blob);
             });
-            
+
             console.log("Logo converted to base64 successfully");
             setCompanyLogo(base64String);
           } catch (conversionError) {
@@ -204,20 +258,20 @@ const ListSoSale = () => {
         console.log("Fetching business details from:", `${BASE_URL}/business-details/getall`);
         const businessRes = await axios.get(`${BASE_URL}/business-details/getall`);
         const businessData = businessRes.data || [];
-        
+
         if (businessData.length > 0) {
           console.log("Found business details:", businessData[0]);
           setBusinessDetails(businessData[0]);
         } else {
           console.log("No business details found");
         }
-        
+
       } catch (error) {
         console.error("Failed to fetch logo or business details:", error);
         setCompanyLogo("https://via.placeholder.com/150x50/0d6efd/ffffff?text=FUMA+Logo");
       }
     };
-    
+
     fetchLogoAndBusinessDetails();
   }, [BASE_URL]);
 
@@ -228,7 +282,7 @@ const ListSoSale = () => {
       const locations = [...new Set(purchases.map(item => item.location))].filter(Boolean);
       const cities = [...new Set(purchases.map(item => item.city))].filter(Boolean);
       const states = [...new Set(purchases.map(item => item.state))].filter(Boolean);
-      
+
       setFilterValues({
         franchiseNames,
         locations,
@@ -242,13 +296,13 @@ const ListSoSale = () => {
   useEffect(() => {
     const filteredData = purchases.filter((purchase) => {
       const purchaseDate = new Date(purchase.orderDate);
-      
+
       let dateMatch = true;
       if (activeFilters.startDate && activeFilters.endDate) {
         const startDate = new Date(activeFilters.startDate);
         const endDate = new Date(activeFilters.endDate);
         endDate.setHours(23, 59, 59, 999);
-        
+
         dateMatch = purchaseDate >= startDate && purchaseDate <= endDate;
       } else if (activeFilters.startDate) {
         const startDate = new Date(activeFilters.startDate);
@@ -258,22 +312,22 @@ const ListSoSale = () => {
         endDate.setHours(23, 59, 59, 999);
         dateMatch = purchaseDate <= endDate;
       }
-      
-      const franchiseNameMatch = activeFilters.franchiseName === "" || 
+
+      const franchiseNameMatch = activeFilters.franchiseName === "" ||
         purchase.franchiseName === activeFilters.franchiseName;
-      
-      const locationMatch = activeFilters.location === "" || 
+
+      const locationMatch = activeFilters.location === "" ||
         purchase.location === activeFilters.location;
-      
-      const cityMatch = activeFilters.city === "" || 
+
+      const cityMatch = activeFilters.city === "" ||
         purchase.city === activeFilters.city;
-      
-      const stateMatch = activeFilters.state === "" || 
+
+      const stateMatch = activeFilters.state === "" ||
         purchase.state === activeFilters.state;
-      
+
       return dateMatch && franchiseNameMatch && locationMatch && cityMatch && stateMatch;
     });
-    
+
     setFilteredPurchases(filteredData);
   }, [activeFilters, purchases]);
 
@@ -312,7 +366,7 @@ const ListSoSale = () => {
   };
 
   const handleDeleteClick = (id, franchisePurchaseOrderId) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
+    if (window.confirm("Are you sure you want to delete this sale?")) {
       fetch(`${process.env.REACT_APP_BASE_URL}/sale-so-order/delete/${id}`, {
         method: "DELETE",
       })
@@ -321,32 +375,12 @@ const ListSoSale = () => {
             setPurchases((prevPurchases) =>
               prevPurchases.filter((purchase) => purchase.id !== id)
             );
-
-            fetch(
-              `${process.env.REACT_APP_BASE_URL}/franchisepurchaseorder/updateStatusByOrderId/${franchisePurchaseOrderId}`,
-              {
-                method: "PUT",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ status: 3 }),
-              }
-            )
-              .then((res) => {
-                if (res.ok) {
-                  alert("Sale So Order deleted successfully!");
-                } else {
-                  alert("Failed to delete");
-                }
-              })
-              .catch((error) =>
-                console.error("Error updating order status:", error)
-              );
+            alert("Sale So Order deleted successfully!");
           } else {
-            alert("Failed to delete product.");
+            alert("Failed to delete sale.");
           }
         })
-        .catch((error) => console.error("Error deleting product:", error));
+        .catch((error) => console.error("Error deleting sale:", error));
     }
   };
 
@@ -457,14 +491,14 @@ const ListSoSale = () => {
 
     const convertLessThanThousand = (n) => {
       if (n === 0) return '';
-      
+
       let result = '';
-      
+
       if (Math.floor(n / 100) > 0) {
         result += ones[Math.floor(n / 100)] + ' Hundred ';
         n %= 100;
       }
-      
+
       if (n >= 20) {
         result += tens[Math.floor(n / 10)] + ' ';
         n %= 10;
@@ -472,60 +506,60 @@ const ListSoSale = () => {
         result += teens[n - 10] + ' ';
         return result;
       }
-      
+
       if (n > 0) {
         result += ones[n] + ' ';
       }
-      
+
       return result;
     };
 
     const convertIndianNumber = (n) => {
       if (n === 0) return 'Zero';
-      
+
       let result = '';
       let index = 0;
-      
+
       // Handle lakhs and crores (Indian numbering system)
       if (n >= 10000000) {
         const crores = Math.floor(n / 10000000);
         result += convertLessThanThousand(crores) + 'Crore ';
         n %= 10000000;
       }
-      
+
       if (n >= 100000) {
         const lakhs = Math.floor(n / 100000);
         result += convertLessThanThousand(lakhs) + 'Lakh ';
         n %= 100000;
       }
-      
+
       if (n >= 1000) {
         const thousands = Math.floor(n / 1000);
         result += convertLessThanThousand(thousands) + 'Thousand ';
         n %= 1000;
       }
-      
+
       if (n > 0) {
         result += convertLessThanThousand(n);
       }
-      
+
       return result.trim();
     };
 
     // Handle decimal part
     const integerPart = Math.floor(num);
     const decimalPart = Math.round((num - integerPart) * 100);
-    
+
     let result = convertIndianNumber(integerPart);
-    
+
     if (result === '') {
       result = 'Zero';
     }
-    
+
     if (decimalPart > 0) {
       result += ' and ' + convertLessThanThousand(decimalPart).trim() + ' Paise';
     }
-    
+
     return result + ' Only';
   };
 
@@ -560,9 +594,9 @@ const ListSoSale = () => {
             </thead>
             <tbody>
               ${filteredPurchases
-                .slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage)
-                .map(
-                  (purchase) => `
+        .slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage)
+        .map(
+          (purchase) => `
                 <tr>
                   ${columnsVisibility.date ? `<td>${purchase.orderDate}</td>` : ""}
                   ${columnsVisibility.referenceNumber ? `<td>${purchase.referenceNumber}</td>` : ""}
@@ -573,8 +607,8 @@ const ListSoSale = () => {
                   ${columnsVisibility.addedBy ? `<td>${purchase.addedBy}</td>` : ""}
                 </tr>
               `
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
           </table>
         </body>
@@ -604,35 +638,60 @@ const ListSoSale = () => {
   const endIndex = startIndex + entriesPerPage;
   const purchase = filteredPurchases.slice(startIndex, endIndex);
 
-const handlePrintInvoice = (purchaseItem) => {
+  const handlePrintInvoice = async (purchaseRow) => {
     // Ask user if they want invoice with logo
     const withLogo = window.confirm("Do you want to print invoice with company logo?");
-    
+
     const printWindow = window.open("", "_blank", "width=800,height=900");
-  
+
+    let purchaseItem = purchaseRow;
+    try {
+      if (!purchaseItem.saleSoItem || purchaseItem.saleSoItem.length === 0 || !purchaseItem.shippingSoDetails) {
+        const orderRes = await fetch(`${process.env.REACT_APP_BASE_URL}/sale-so-order/get/${purchaseItem.id}`);
+        if (orderRes.ok) {
+          const fullOrder = await orderRes.json();
+          purchaseItem = { ...purchaseItem, ...fullOrder };
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching full order details for invoice:", err);
+    }
+
     // Calculate values
     const subtotal =
       purchaseItem.saleSoItem?.reduce(
         (sum, item) => sum + (item.quantity * item.unitSellingPrice),
         0
       ) || 0;
-    
+
     const tax = purchaseItem.taxAmount || 0;
     const discount = purchaseItem.discountAmount || 0;
     const shippingCharges = purchaseItem.shippingSoDetails?.[0]?.shippingCharges || 0;
-    
+
     // Calculate total
     const taxableAmount = subtotal - discount;
     const total = taxableAmount + tax + shippingCharges;
-    
+
     // Get customer data
-    const customer = purchaseItem.customerData || {};
-    
+    let customerData = purchaseItem.customerData || purchaseItem.customer || null;
+    if (!customerData && purchaseItem.customerId) {
+      try {
+        const customerRes = await fetch(`${process.env.REACT_APP_BASE_URL}/customer/${purchaseItem.customerId}`);
+        if (customerRes.ok) {
+          customerData = await customerRes.json();
+          purchaseItem = { ...purchaseItem, customerData };
+        }
+      } catch (err) {
+        console.error("Error fetching customer details for invoice:", err);
+      }
+    }
+    const customer = customerData || {};
+
     // Get business details
     const business = businessDetails || {};
-    
+
     // Logo HTML - conditionally include based on user choice
-    const logoHtml = withLogo && companyLogo 
+    const logoHtml = withLogo && companyLogo
       ? `<img src="${companyLogo}" alt="Company Logo" style="max-width: 380px; max-height: 180px; width: auto; height: auto; object-fit: contain; background: transparent; mix-blend-mode: multiply;" onerror="this.style.display='none'; this.parentNode.innerHTML='<p style=\'margin: 0; font-weight: bold; font-size: 16px;\'>${business.name || 'KIOT LOGO'}</p>';" />`
       : `<p style="margin: 0; font-weight: bold; font-size: 22px;">${business.name || 'KIOT LOGO'}</p>`;
 
@@ -641,17 +700,17 @@ const handlePrintInvoice = (purchaseItem) => {
     const itemRows = items.length;
     const additionalRows = 3; // For tax, discount, shipping rows
     const totalTableRows = itemRows + additionalRows;
-    
+
     // Calculate space needed for the table
     const rowHeight = 24; // Approximate height per row in pixels
     const tableHeight = Math.max(150, totalTableRows * rowHeight); // Minimum 150px
-    
+
     // Calculate remaining space for footer
     const pageHeight = 1123; // A4 height in pixels (297mm ≈ 1123px at 96dpi)
     const headerHeight = 200; // Approximate height of header sections
     const footerHeight = 220; // Approximate height of footer section
     const tableSpace = pageHeight - headerHeight - footerHeight - 50; // 50px buffer
-    
+
     // Adjust empty rows based on available space
     const emptyRowsNeeded = Math.max(0, Math.floor((tableSpace - (itemRows * rowHeight)) / rowHeight));
     const maxEmptyRows = 10; // Limit maximum empty rows
@@ -1058,16 +1117,16 @@ const handlePrintInvoice = (purchaseItem) => {
                   </thead>
                   <tbody>
                     ${(() => {
-                      const rows = [];
-                      
-                      items.forEach((item, index) => {
-                        const itemTotal = ((item.quantity || 0) * (item.unitSellingPrice || 0));
-                        const itemDiscount = itemTotal * (item.discountPercent || 0) / 100;
-                        const itemAfterDiscount = itemTotal - itemDiscount;
-                        const itemTax = item.taxAmount || 0;
-                        const rateInclTax = itemAfterDiscount + itemTax;
-                        
-                        rows.push(`
+        const rows = [];
+
+        items.forEach((item, index) => {
+          const itemTotal = ((item.quantity || 0) * (item.unitSellingPrice || 0));
+          const itemDiscount = itemTotal * (item.discountPercent || 0) / 100;
+          const itemAfterDiscount = itemTotal - itemDiscount;
+          const itemTax = item.taxAmount || 0;
+          const rateInclTax = itemAfterDiscount + itemTax;
+
+          rows.push(`
                           <tr>
                             <td>${index + 1}</td>
                             <td>${item.productName || "N/A"}</td>
@@ -1080,12 +1139,12 @@ const handlePrintInvoice = (purchaseItem) => {
                             <td style="text-align: right;">₹${itemTotal.toFixed(2)}</td>
                           </tr>
                         `);
-                      });
-                      
-                      // Dynamically calculate empty rows based on available space
-                      const actualEmptyRows = Math.min(emptyRowsNeeded, maxEmptyRows);
-                      for (let i = 0; i < actualEmptyRows; i++) {
-                        rows.push(`
+        });
+
+        // Dynamically calculate empty rows based on available space
+        const actualEmptyRows = Math.min(emptyRowsNeeded, maxEmptyRows);
+        for (let i = 0; i < actualEmptyRows; i++) {
+          rows.push(`
                           <tr>
                             <td>${items.length + i + 1}</td>
                             <td>&nbsp;</td>
@@ -1098,49 +1157,49 @@ const handlePrintInvoice = (purchaseItem) => {
                             <td>&nbsp;</td>
                           </tr>
                         `);
-                      }
-                      
-                      // Add tax row based on tax type
-                      if (tax > 0) {
-                        const taxType = purchaseItem.purchaseTax || "IGST";
-                        rows.push(`
+        }
+
+        // Add tax row based on tax type
+        if (tax > 0) {
+          const taxType = purchaseItem.purchaseTax || "IGST";
+          rows.push(`
                           <tr>
                             <td colspan="8" style="text-align: right; font-weight: bold; border-top: 1px solid #333;">${taxType}</td>
                             <td style="text-align: right; border-top: 1px solid #333;">₹${tax.toFixed(2)}</td>
                           </tr>
                         `);
-                      }
-                      
-                      // Add overall discount row if exists
-                      if (discount > 0) {
-                        rows.push(`
+        }
+
+        // Add overall discount row if exists
+        if (discount > 0) {
+          rows.push(`
                           <tr>
                             <td colspan="8" style="text-align: right; font-weight: bold; border-top: 1px solid #333;">Overall Discount</td>
                             <td style="text-align: right; border-top: 1px solid #333;">- ₹${discount.toFixed(2)}</td>
                           </tr>
                         `);
-                      }
-                      
-                      // Add shipping charges row if exists
-                      if (shippingCharges > 0) {
-                        rows.push(`
+        }
+
+        // Add shipping charges row if exists
+        if (shippingCharges > 0) {
+          rows.push(`
                           <tr>
                             <td colspan="8" style="text-align: right; font-weight: bold; border-top: 1px solid #333;">Shipping Charges</td>
                             <td style="text-align: right; border-top: 1px solid #333;">₹${shippingCharges.toFixed(2)}</td>
                           </tr>
                         `);
-                      }
-                      
-                      // Add total row
-                      rows.push(`
+        }
+
+        // Add total row
+        rows.push(`
                         <tr>
                           <td colspan="8" style="text-align: right; font-weight: bold; border-top: 2px solid #000; font-size: 13px;">Total</td>
                           <td style="text-align: right; font-weight: bold; border-top: 2px solid #000; font-size: 13px;">₹${total.toFixed(2)}</td>
                         </tr>
                       `);
-                      
-                      return rows.join('');
-                    })()}
+
+        return rows.join('');
+      })()}
                   </tbody>
                 </table>
               </div>
@@ -1191,10 +1250,10 @@ const handlePrintInvoice = (purchaseItem) => {
         </body>
       </html>
     `;
-  
+
     printWindow.document.write(invoiceContent);
     printWindow.document.close();
-    
+
     setTimeout(() => {
       printWindow.print();
     }, 1000);
@@ -1538,10 +1597,10 @@ const handlePrintInvoice = (purchaseItem) => {
                               {purchaseItem.status === 1
                                 ? "Ordered"
                                 : purchaseItem.status === 2
-                                ? "Pending"
-                                : purchaseItem.status === 3
-                                ? "Received"
-                                : "Unknown"}
+                                  ? "Pending"
+                                  : purchaseItem.status === 3
+                                    ? "Received"
+                                    : "Unknown"}
                             </td>
                           )}
                           {columnsVisibility.purchasePoOrderId && (
@@ -1577,7 +1636,7 @@ const handlePrintInvoice = (purchaseItem) => {
                   </table>
                 </div>
               </div>
-            </div>  
+            </div>
           </div>
         </section>
       </div>

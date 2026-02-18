@@ -13,7 +13,7 @@ const ContactLogin = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [currentContact, setCurrentContact] = useState(null);
   const [formData, setFormData] = useState({
-    type: "Customer",
+    type: "Franchise",
     userName: "",
     name: "",
     email: "",
@@ -57,7 +57,7 @@ const ContactLogin = () => {
   const openAddModal = () => {
     setCurrentContact(null);
     setFormData({
-      type: "Customer",
+      type: "Franchise",
       userName: "",
       name: "",
       email: "",
@@ -251,8 +251,8 @@ const ContactLogin = () => {
                         onChange={(e) => setContactFilter(e.target.value)}
                       >
                         <option value="All">All</option>
-                        <option value="Customer">Customer</option>
-                        <option value="Supplier">Supplier</option>
+                        <option value="Franchise">Franchise</option>
+                        <option value="Vendor">Vendor</option>
                         <option value="Walk-in Customer">
                           Walk-in Customer
                         </option>
@@ -463,8 +463,8 @@ const ContactLogin = () => {
                         onChange={handleInputChange}
                         required
                       >
-                        <option value="Customer">Customer</option>
-                        <option value="Supplier">Supplier</option>
+                        <option value="Franchise">Franchise</option>
+                        <option value="Vendor">Vendor</option>
                         <option value="Walk-in Customer">
                           Walk-in Customer
                         </option>

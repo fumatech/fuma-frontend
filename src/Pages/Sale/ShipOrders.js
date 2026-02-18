@@ -71,7 +71,7 @@ const ShipOrders = () => {
     const fetchShipOrders = async () => {
       try {
         const response = await fetch(
-          `https://fusionmastertech.com:8443/franchisepurchaseorder/getShipOrders`
+          `${process.env.REACT_APP_BASE_URL}/franchisepurchaseorder/getShipOrders`
         );
         // console.log(response.data);
         if (!response.ok) throw new Error("Network response was not ok");
@@ -332,7 +332,7 @@ const ShipOrders = () => {
   const fetchShipOrders = async () => {
     try {
       const response = await fetch(
-        `https://fusionmastertech.com:8443/franchisepurchaseorder/getShipOrders`
+        `${process.env.REACT_APP_BASE_URL}/franchisepurchaseorder/getShipOrders`
       );
       if (!response.ok) throw new Error("Network response was not ok");
 
