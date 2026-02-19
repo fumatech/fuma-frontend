@@ -170,6 +170,8 @@ function AddSoSale() {
     };
   };
 
+
+
   const getResolvedVariationId = (product) => {
     const variationId = normalizeVariationId(
       product.productVariationId || product.variationId
@@ -180,6 +182,8 @@ function AddSoSale() {
     const hasRealVariation = variationId !== null && variationLabel !== null;
     return hasRealVariation ? variationId : null;
   };
+
+
 
   useEffect(() => {
     axios
@@ -198,6 +202,8 @@ function AddSoSale() {
     // If no tax selected, set both taxRate and taxRateId to 0 and null respectively
     const taxRateId = selectedOption ? selectedOption.value : null;
     const taxRate = selectedOption ? selectedOption.rate : 0; // Use rate for calculations
+
+
 
     // Update both the taxRate (for calculations) and taxRateId (for backend)
     setSelectedProducts((prev) =>
