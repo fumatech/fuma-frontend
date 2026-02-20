@@ -25,30 +25,68 @@ function PurchaseOrder() {
   const [userName, setUserName] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [vendorSearchTerm, setVendorSearchTerm] = useState(""); // for vendor search
+
+  const normalizeId = (value) => {
+    if (value === null || value === undefined || value === "") return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  };
+
+  const getProductId = (product) =>
+    normalizeId(product?.productId ?? product?.id);
+
+  const hasRealVariationLabel = (product) => {
+    const raw =
+      product?.variationValue ??
+      product?.productVariationName ??
+      product?.variationName;
+    if (raw === null || raw === undefined) return false;
+    const text = String(raw).trim().toLowerCase();
+    return text !== "" && text !== "n/a" && text !== "na" && text !== "null" && text !== "undefined";
+  };
+
+  const getVariationId = (product) => {
+    const variationId = normalizeId(
+      product?.productVariationId ?? product?.variationId
+    );
+    if (!variationId) return null;
+    return hasRealVariationLabel(product) ? variationId : null;
+  };
+
+  const getStockKey = (product) => {
+    const variationId = getVariationId(product);
+    const productId = getProductId(product);
+    if (variationId) return `v_${variationId}`;
+    return productId ? `p_${productId}` : "p_invalid";
+  };
+
+  const getStockUrl = (product) => {
+    const productId = getProductId(product);
+    const variationId = getVariationId(product);
+    if (!productId) {
+      return `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/0`;
+    }
+    if (variationId) {
+      return `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/${productId}/${variationId}`;
+    }
+    return `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/${productId}`;
+  };
+
   useEffect(() => {
     const fetchCurrentStocks = async () => {
       const stockData = {};
 
       for (const product of selectedProducts) {
         try {
-          let response;
-          if (product.variationId) {
-            // Fetch stock for variation
-            response = await fetch(
-              `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock-byvariation/${product.variationId}`
-            );
-          } else {
-            // Fetch stock for base product
-            response = await fetch(
-              `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/${product.id}`
-            );
+          const response = await fetch(getStockUrl(product));
+          if (!response.ok) {
+            throw new Error(`Failed stock lookup for ${getStockKey(product)}`);
           }
-
           const stock = await response.json();
-          stockData[product.variationId || product.id] = stock;
+          stockData[getStockKey(product)] = Number(stock) || 0;
         } catch (error) {
           console.error("Error fetching stock:", error);
-          stockData[product.variationId || product.id] = 0;
+          stockData[getStockKey(product)] = 0;
         }
       }
 
@@ -169,10 +207,11 @@ function PurchaseOrder() {
       updateSelectedProducts(product, newSelectedVariations);
     } else {
       // For single products
-      const isSelected = selectedVariations[product.id];
+      const productIdKey = getProductId(product);
+      const isSelected = selectedVariations[productIdKey];
       const newSelectedVariations = {
         ...selectedVariations,
-        [product.id]: !isSelected,
+        [productIdKey]: !isSelected,
       };
       setSelectedVariations(newSelectedVariations);
       updateSelectedProducts(product, newSelectedVariations);
@@ -198,16 +237,21 @@ function PurchaseOrder() {
 
       // Remove all variations of this product first
       setSelectedProducts((prev) =>
-        prev.filter((p) => p.id !== product.id || !p.variationId)
+        prev.filter(
+          (p) =>
+            getProductId(p) !== getProductId(product) || !getVariationId(p)
+        )
       );
 
       // Add selected variations
       if (selectedVars.length > 0) {
         const newProducts = selectedVars.map((variation) => ({
-          id: product.id,
+          id: getProductId(product),
+          productId: getProductId(product),
           productName: product.productName,
           sku: product.sku,
-          variationId: variation.id,
+          variationId: normalizeId(variation.id),
+          productVariationId: normalizeId(variation.id),
           variationValue: variation.variationValue,
           quantity: 1,
         }));
@@ -215,15 +259,19 @@ function PurchaseOrder() {
       }
     } else {
       // For single products
-      if (variations[product.id]) {
+      if (variations[getProductId(product)]) {
         // Add product if selected
         if (
-          !selectedProducts.some((p) => p.id === product.id && !p.variationId)
+          !selectedProducts.some(
+            (p) =>
+              getProductId(p) === getProductId(product) && !getVariationId(p)
+          )
         ) {
           setSelectedProducts((prev) => [
             ...prev,
             {
-              id: product.id,
+              id: getProductId(product),
+              productId: getProductId(product),
               productName: product.productName,
               sku: product.sku,
               quantity: 1,
@@ -233,7 +281,12 @@ function PurchaseOrder() {
       } else {
         // Remove product if deselected
         setSelectedProducts((prev) =>
-          prev.filter((p) => !(p.id === product.id && !p.variationId))
+          prev.filter(
+            (p) =>
+              !(
+                getProductId(p) === getProductId(product) && !getVariationId(p)
+              )
+          )
         );
       }
     }
@@ -242,8 +295,11 @@ function PurchaseOrder() {
   const handleRemoveProduct = (productId, variationId) => {
     setSelectedProducts((prev) =>
       prev.filter(
-        (product) =>
-          !(product.id === productId && product.variationId === variationId)
+        (product) => {
+          const pId = getProductId(product);
+          const vId = getVariationId(product);
+          return !(pId === normalizeId(productId) && vId === normalizeId(variationId));
+        }
       )
     );
     // Also update selectedVariations
@@ -257,7 +313,8 @@ function PurchaseOrder() {
   const handleQuantityChange = (productId, variationId, value) => {
     setSelectedProducts((prev) =>
       prev.map((product) =>
-        product.id === productId && product.variationId === variationId
+        getProductId(product) === normalizeId(productId) &&
+        getVariationId(product) === normalizeId(variationId)
           ? { ...product, quantity: Math.max(1, parseInt(value) || 1) }
           : product
       )
@@ -287,10 +344,10 @@ function PurchaseOrder() {
     const formattedDeliveryDate = deliveryDate.toISOString().split("T")[0];
 
     const orderItems = selectedProducts.map((product) => ({
-      productId: product.id,
+      productId: getProductId(product),
       productName: product.productName,
       productSku: product.sku,
-      productVariationId: product.variationId,
+      productVariationId: getVariationId(product),
       productVariationName: product.variationValue,
       quantity: product.quantity,
     }));
@@ -622,8 +679,8 @@ function PurchaseOrder() {
                         <tbody>
                           {selectedProducts.map((product, index) => (
                             <tr
-                              key={`${product.id}-${
-                                product.variationId || "base"
+                              key={`${getProductId(product)}-${
+                                getVariationId(product) || "base"
                               }`}
                             >
                               <td>{index + 1}</td>
@@ -632,12 +689,9 @@ function PurchaseOrder() {
                               </td>
                               <td>{product.variationValue || "N/A"}</td>
                               <td>
-                                {currentStocks[
-                                  product.variationId || product.id
-                                ] !== undefined
-                                  ? currentStocks[
-                                      product.variationId || product.id
-                                    ]
+                                {currentStocks[getStockKey(product)] !==
+                                undefined
+                                  ? currentStocks[getStockKey(product)]
                                   : "Loading..."}
                               </td>
                               <td>
@@ -654,8 +708,8 @@ function PurchaseOrder() {
                                     const input = e.target.value.trim();
                                     if (input === "") {
                                       handleQuantityChange(
-                                        product.id,
-                                        product.variationId,
+                                        getProductId(product),
+                                        getVariationId(product),
                                         ""
                                       );
                                       return;
@@ -663,8 +717,8 @@ function PurchaseOrder() {
                                     const regex = /^[1-9][0-9]*$/;
                                     if (regex.test(input)) {
                                       handleQuantityChange(
-                                        product.id,
-                                        product.variationId,
+                                        getProductId(product),
+                                        getVariationId(product),
                                         input
                                       );
                                     } else {
@@ -681,8 +735,8 @@ function PurchaseOrder() {
                                   className="btn btn-danger btn-sm"
                                   onClick={() =>
                                     handleRemoveProduct(
-                                      product.id,
-                                      product.variationId
+                                      getProductId(product),
+                                      getVariationId(product)
                                     )
                                   }
                                 >
