@@ -1078,6 +1078,18 @@ function AddSoSale() {
                                 placeholder="Please Select"
                                 isSearchable
                                 className="form-select"
+                                menuPortalTarget={document.body}
+                                menuPosition="fixed"
+                                styles={{
+                                  menuPortal: (base) => ({
+                                    ...base,
+                                    zIndex: 9999,
+                                  }),
+                                  menu: (base) => ({
+                                    ...base,
+                                    zIndex: 9999,
+                                  }),
+                                }}
                               />
                             </div>
                           </div>
