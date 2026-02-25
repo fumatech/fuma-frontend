@@ -34,6 +34,19 @@ const AllPayrollGroups = () => {
   useEffect(() => {
     fetchPayrolls();
     fetchLocations();
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
+    // Cleanup function
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
 
   const fetchLocations = async () => {
@@ -208,7 +221,7 @@ const AllPayrollGroups = () => {
 
   return (
     <>
-      <div className="card cardHover rounded-4 border-0">
+      <div className=" cardHover rounded-4 border-0">
         <div className="text-right p-3">
           <div className="card-body">
             <div className="row mb-3 d-flex align-items-center">

@@ -25,6 +25,19 @@ function Designations({ userRoles }) {
   const [currentPage, setCurrentPage] = useState(1);
   useEffect(() => {
     fetchDesignations();
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
+    // Cleanup function
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
 
   const fetchDesignations = async () => {
@@ -197,7 +210,7 @@ function Designations({ userRoles }) {
 
         <section className="content">
           <div className="container-fluid">
-            <div className="card cardHover rounded-4 border-0">
+            <div className=" cardHover rounded-4 border-0">
               <div className="text-right">
                 <button
                   className="btn btn-add"
@@ -298,7 +311,7 @@ function Designations({ userRoles }) {
                     <div className="tw-py-2 tw-align-middle sm:tw-px-5">
                       <div className="table-responsive">
                         <div id="table-container">
-                          <table className="table table-bordered table-striped">
+                          <table id="example1" className="table table-bordered table-striped">
                             <thead>
                               <tr>
                                 {columnsVisibility.designation && (

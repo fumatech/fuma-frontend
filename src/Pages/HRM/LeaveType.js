@@ -30,22 +30,35 @@ function LeaveType({ userRoles }) {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetch all leave types
-  useEffect(() => {
-    const fetchLeaveTypes = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/leave/getall`
-        );
-        setLeaveTypes(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-    fetchLeaveTypes();
-  }, []);
+// Fetch all leave types
+useEffect(() => {
+  const fetchLeaveTypes = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/leave/getall`
+      );
+      setLeaveTypes(response.data);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+  fetchLeaveTypes();
+
+  // Add jQuery script at the bottom
+  const script = document.createElement("script");
+  script.src = "js/JqueryContent.js";
+  script.async = true;
+  document.body.appendChild(script);
+
+  // Cleanup function
+  return () => {
+    if (script.parentNode) {
+      script.parentNode.removeChild(script);
+    }
+  };
+}, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -182,7 +195,17 @@ function LeaveType({ userRoles }) {
     doc.save("leave_types.pdf");
   };
 
-  // ... (keep toggleColumn, handleEntriesChange functions the same)
+  const toggleColumn = (column) => {
+    setColumnsVisibility((prev) => ({
+      ...prev,
+      [column]: !prev[column],
+    }));
+  };
+
+  const handleDropdownItemClick = (col, e) => {
+    e.stopPropagation();
+    toggleColumn(col);
+  };
 
   const handleEdit = (leaveType) => {
     setCurrentLeaveType({
@@ -194,6 +217,11 @@ function LeaveType({ userRoles }) {
     setIsEditMode(true);
     setIsModalOpen(true);
   };
+    // Handle entries per page change
+    const handleEntriesChange = (e) => {
+      setEntriesPerPage(Number(e.target.value));
+      setCurrentPage(1);
+    };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this leave type?")) {
@@ -230,7 +258,8 @@ function LeaveType({ userRoles }) {
 
         <section className="content">
           <div className="container-fluid">
-            <div className="card cardHover rounded-4 border-0">
+            <div className=" cardHover rounded-4 border-0">
+            <div className="row mb-3 d-flex align-items-center">
               <div className="text-right">
                 <button
                   className="btn btn-add"
@@ -241,15 +270,100 @@ function LeaveType({ userRoles }) {
                 >
                   Add
                 </button>
+            
               </div>
-              <div className="card-body">
+              <div className="col-12 col-md-auto form-group mb-2 d-flex align-items-center text-bold mt-2 mb-2 mr-2">
+                  <label htmlFor="entriesPerPage" className="mb-0 mr-2">
+                    Show
+                  </label>
+                  <select
+                    id="entriesPerPage"
+                    className="form-control form-control-sm mr-2"
+                    value={entriesPerPage}
+                    onChange={handleEntriesChange}
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                  Entries
+                </div>
+
+                <div className="col d-flex flex-wrap align-items-center">
+                  <button
+                    onClick={exportCSV}
+                    className="btn Export-Btn mt-2 mb-2 mr-2"
+                  >
+                    <i className="fa fa-file-csv"></i> Export CSV
+                  </button>
+                  <button
+                    onClick={exportExcel}
+                    className="btn Export-Btn mt-2 mb-2 mr-2"
+                  >
+                    <i className="fa fa-file-excel"></i> Export Excel
+                  </button>
+                  <button
+                    onClick={printData}
+                    className="btn Export-Btn mt-2 mb-2 mr-2"
+                  >
+                    <i className="fa fa-print"></i> Print
+                  </button>
+                  <button
+                    onClick={exportPDF}
+                    className="btn Export-Btn mt-2 mb-2 mr-2"
+                  >
+                    <i className="fa fa-file-pdf"></i> Export PDF
+                  </button>
+
+                  <div className="dropdown mt-lg-2 mb-lg-2">
+                    <button
+                      className="btn Export-Btn dropdown-toggle"
+                      type="button"
+                      id="dropdownMenuButton"
+                      data-toggle="dropdown"
+                      aria-haspopup="true"
+                      aria-expanded="false"
+                    >
+                      <i className="fa fa-columns"></i> Column Visibility
+                    </button>
+                    <div
+                      className="dropdown-menu"
+                      aria-labelledby="dropdownMenuButton"
+                    >
+                      {Object.keys(columnsVisibility).map((col) => (
+                        <div
+                          key={col}
+                          className="dropdown-item d-flex align-items-center"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={columnsVisibility[col]}
+                            onChange={() => toggleColumn(col)}
+                            className="mr-2"
+                          />
+                          <span
+                            className="btn border-0 bg-transparent p-0 m-0"
+                            onClick={(e) => handleDropdownItemClick(col, e)}
+                          >
+                            {col.replace(/([A-Z])/g, " $1").toUpperCase()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                </div>
+
+
+              
                 {/* ... (keep the export buttons and table header the same) */}
                 <div className="tw-flow-root tw-border-gray-200">
                   <div className="">
                     <div className="tw-py-2 tw-align-middle sm:tw-px-5">
                       <div className="table-responsive">
                         <div id="table-container">
-                          <table className="table table-bordered table-striped">
+                          <table  id="example1" className="table table-bordered table-striped">
                             <thead>
                               <tr>
                                 {columnsVisibility.type && <th>Leave Type</th>}
@@ -301,12 +415,15 @@ function LeaveType({ userRoles }) {
                     </div>
                   </div>
                 </div>
-              </div>
+              
             </div>
           </div>
 
-          {/* Add/Edit Leave Type Modal */}
-          {isModalOpen && (
+        
+        </section>
+      </div>
+        {/* Add/Edit Leave Type Modal */}
+        {isModalOpen && (
             <>
               <div
                 className="modal fade show"
@@ -471,8 +588,6 @@ function LeaveType({ userRoles }) {
               </div>
             </>
           )}
-        </section>
-      </div>
     </div>
   );
 }

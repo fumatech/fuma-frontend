@@ -966,7 +966,7 @@ function AddSoSale() {
     const productStocks = purchaseItems.map((item) => ({
       productId: item.productId,
       variationId: item.productVariationId || null,
-      price: parseFloat(item.unitSellingPrice), // ✅ CORRECT VALUE
+      price: parseFloat(item.unitSellingPrice),
       quantity: item.quantity,
       transactionType: "so_sale",
       date: new Date().toISOString().split("T")[0],

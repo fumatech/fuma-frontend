@@ -34,6 +34,19 @@ const PayComponents = () => {
       .get(`${process.env.REACT_APP_BASE_URL}/user/getall`)
       .then((res) => setEmployees(res.data))
       .catch(() => toast.error("Failed to load employees"));
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
+    // Cleanup function
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
 
   // Toggle column visibility
@@ -183,7 +196,7 @@ const PayComponents = () => {
 
   return (
     <>
-      <div className="card cardHover rounded-4 border-0">
+      <div className=" cardHover rounded-4 border-0">
         <div className="text-right p-3">
           <button className="btn btn-add" onClick={() => openModal()}>
             <i className="fas fa-plus"></i> Add
@@ -191,7 +204,7 @@ const PayComponents = () => {
           <div className="card-body">
             {/* Table and other components */}
             <div className="table-responsive">
-              <table className="table table-bordered table-hover">
+              <table id="example1" className="table table-bordered table-hover">
                 <thead>
                   <tr>
                     {columnsVisibility.description && <th>Description</th>}
@@ -215,13 +228,15 @@ const PayComponents = () => {
                       {columnsVisibility.applicableDate && (
                         <td>{formatDate(comp.applicableDate)}</td>
                       )}
-                      <td>
-                        {comp.employeeId && comp.employeeId.length > 0
-                          ? comp.employeeId
-                              .map((id) => employeeMap[id] || "")
-                              .join(", ")
-                          : "All"}
-                      </td>
+                      {columnsVisibility.employee && (
+                        <td>
+                          {comp.employeeId && comp.employeeId.length > 0
+                            ? comp.employeeId
+                                .map((id) => employeeMap[id] || "")
+                                .join(", ")
+                            : "All"}
+                        </td>
+                      )}
 
                       {columnsVisibility.actions && (
                         <td>

@@ -72,10 +72,24 @@ const AllPayrolls = () => {
       console.error("Failed to load business details", error);
     }
   };
+  
 
   useEffect(() => {
     fetchPaymentAccounts();
     fetchBusinesses();
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
+    // Cleanup function
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
   const getBusinessName = () => {
     return businesses.length > 0 ? businesses[0].name : "-";
@@ -315,7 +329,7 @@ const AllPayrolls = () => {
 
   return (
     <>
-      <div className="card cardHover rounded-4 border-0">
+      <div className=" cardHover rounded-4 border-0">
         <div className="text-right p-3">
           <button className="btn btn-add" onClick={() => openModal()}>
             <i className="fas fa-plus"></i> Add

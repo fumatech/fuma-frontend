@@ -32,6 +32,19 @@ function SalesTargets({ userRoles }) {
   useEffect(() => {
     fetchUsers();
     fetchTargets();
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
+    // Cleanup function
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
 
   const fetchUsers = async () => {
@@ -223,7 +236,7 @@ function SalesTargets({ userRoles }) {
                     <div className="tw-py-2 tw-align-middle sm:tw-px-5">
                       <div className="table-responsive">
                         <div id="table-container">
-                          <table className="table table-bordered table-striped">
+                          <table id="example1" className="table table-bordered table-striped">
                             <thead>
                               <tr>
                                 {columnsVisibility.user && <th>User</th>}

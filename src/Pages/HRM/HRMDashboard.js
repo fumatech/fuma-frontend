@@ -1,8 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUsers } from "@fortawesome/free-solid-svg-icons";
-import { Button } from "react-bootstrap";
+import {
+  faUsers,
+  faUserCheck,
+  faUserClock,
+  faCalendarCheck,
+  faMoneyBillWave,
+  faUmbrellaBeach,
+  faBriefcase,
+  faUserTie,
+  faChartLine,
+  faArrowUp,
+  faArrowDown,
+  faCircleCheck,
+  faCircleExclamation,
+  faClock,
+  faPercent,
+  faRupeeSign,
+} from "@fortawesome/free-solid-svg-icons";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import axios from "axios";
+import { toast } from "react-toastify";
 import Leave from "./Leave";
 import LeaveType from "./LeaveType";
 import Designations from "./Designations";
@@ -12,13 +47,6 @@ import Holiday from "./Holiday";
 import Attendance from "./Attendance";
 import Payroll from "./payroll";
 import HRMSettings from "./HRMSettings";
-import { saveAs } from "file-saver";
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
-import * as XLSX from "xlsx";
-import { toast } from "react-toastify";
-
-const Settings = () => <div>Settings Content</div>;
 
 const tabsData = [
   { id: "leave-type", label: "Leave Type", component: <LeaveType /> },
@@ -31,105 +59,308 @@ const tabsData = [
   { id: "sales-targets", label: "Sales Targets", component: <SalesTargets /> },
   { id: "HRMSettings", label: "Settings", component: <HRMSettings /> },
 ];
+
 const HRMTabComponent = () => {
   const navigate = useNavigate();
-
   const [activeTab, setActiveTab] = useState(null);
+  const [dashboardData, setDashboardData] = useState({
+    employees: [],
+    attendance: [],
+    leaves: [],
+    payrolls: [],
+    holidays: [],
+    departments: [],
+    designations: [],
+    leaveTypes: [],
+  });
+  const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  const activeTabData = tabsData.find((tab) => tab.id === activeTab);
-  const [entriesPerPage, setEntriesPerPage] = useState(25);
-  const [currentPage, setCurrentPage] = useState(1);
-  const startIndex = (currentPage - 1) * entriesPerPage;
-  const endIndex = startIndex + entriesPerPage;
-  const handleEntriesChange = (e) => {
-    setEntriesPerPage(Number(e.target.value));
-    setCurrentPage(1); // Reset to the first page when entries per page changes
+  // Colors for charts
+  const COLORS = {
+    primary: "#4361ee",
+    secondary: "#3f37c9",
+    success: "#4cc9f0",
+    warning: "#f72585",
+    info: "#4895ef",
+    danger: "#e63946",
+    light: "#f8f9fa",
+    dark: "#212529",
+    purple: "#7209b7",
+    teal: "#06d6a0",
+    orange: "#fb8500",
+    chart1: ["#4361ee", "#3f37c9", "#4cc9f0", "#f72585", "#7209b7", "#fb8500"],
   };
 
-  // Add this state at the top of your component with other states
-  const [employees, setEmployees] = useState([]); // Initialize with your employee data
+  // Fetch all dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        const [
+          employeesRes,
+          attendanceRes,
+          leavesRes,
+          payrollsRes,
+          holidaysRes,
+          departmentsRes,
+          designationsRes,
+          leaveTypesRes,
+        ] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BASE_URL}/user/getall`),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/attendance/getall`),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/add-leave/getall`),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/payroll/employee-wise`),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/holiday/getall`),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/department/getall`),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/designation/getall`),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/leave/getall`),
+        ]);
 
-  const exportCSV = () => {
-    const csvData = employees.map((employee) => ({
-      "First Name": employee.firstName,
-      "Last Name": employee.lastName,
-      Email: employee.email,
-      // Add other employee fields as needed
-    }));
+        setDashboardData({
+          employees: employeesRes.data || [],
+          attendance: attendanceRes.data || [],
+          leaves: leavesRes.data || [],
+          payrolls: payrollsRes.data || [],
+          holidays: holidaysRes.data || [],
+          departments: departmentsRes.data || [],
+          designations: designationsRes.data || [],
+          leaveTypes: leaveTypesRes.data || [],
+        });
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+        toast.error("Failed to load dashboard data");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    const csv = [
-      ["First Name", "Last Name", "Email" /* other headers */],
-      ...csvData.map((row) => Object.values(row)),
-    ]
-      .map((row) => row.join(","))
-      .join("\n");
+    fetchDashboardData();
+  }, []);
 
-    const blob = new Blob([csv], { type: "text/csv" });
-    saveAs(blob, "employees.csv");
+  // Calculate statistics
+  const stats = {
+    totalEmployees: dashboardData.employees.length,
+    activeEmployees: dashboardData.employees.filter((e) => e.isActive).length,
+    presentToday: dashboardData.attendance.filter(
+      (a) =>
+        new Date(a.inTime).toDateString() === new Date().toDateString() &&
+        a.status === "PRESENT"
+    ).length,
+    onLeave: dashboardData.leaves.filter(
+      (l) =>
+        l.status === 1 &&
+        new Date(l.startDate) <= new Date() &&
+        new Date(l.endDate) >= new Date()
+    ).length,
+    pendingLeaves: dashboardData.leaves.filter((l) => l.status === 0).length,
+    totalDepartments: dashboardData.departments.length,
+    totalDesignations: dashboardData.designations.length,
+    upcomingHolidays: dashboardData.holidays.filter(
+      (h) => new Date(h.startDate) >= new Date()
+    ).length,
+    totalPayrolls: dashboardData.payrolls.length,
+    totalPayrollAmount: dashboardData.payrolls.reduce(
+      (sum, p) => sum + (p.total || 0),
+      0
+    ),
   };
 
-  const exportExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(employees);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Employees");
-    XLSX.writeFile(wb, "employees.xlsx");
+  // Attendance trend data (last 7 days)
+  const attendanceTrend = () => {
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toDateString();
+
+      const present = dashboardData.attendance.filter(
+        (a) =>
+          new Date(a.inTime).toDateString() === dateStr &&
+          a.status === "PRESENT"
+      ).length;
+
+      days.push({
+        day: date.toLocaleDateString("en-US", { weekday: "short" }),
+        present,
+        absent: stats.totalEmployees - present,
+        date: dateStr,
+      });
+    }
+    return days;
   };
 
-  const exportPDF = () => {
-    const doc = new jsPDF();
-    doc.autoTable({
-      head: [["First Name", "Last Name", "Email" /* other headers */]],
-      body: employees.map((employee) => [
-        employee.firstName,
-        employee.lastName,
-        employee.email,
-        // Add other employee fields as needed
-      ]),
+  // Department distribution
+  const departmentData = () => {
+    const deptMap = new Map();
+    dashboardData.employees.forEach((emp) => {
+      const dept = dashboardData.departments.find(
+        (d) => d.id === emp.departmentId
+      );
+      const deptName = dept ? dept.department : "Unassigned";
+      deptMap.set(deptName, (deptMap.get(deptName) || 0) + 1);
     });
-    doc.save("employees.pdf");
+
+    return Array.from(deptMap, ([name, value]) => ({ name, value }));
   };
 
-  const printData = () => {
-    const printWindow = window.open("", "", "height=800,width=1200");
-    printWindow.document.write("<html><head><title>Print</title>");
-    printWindow.document.write(
-      '<link rel="stylesheet" href="httpss://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">'
-    );
-    printWindow.document.write("</head><body >");
-    printWindow.document.write(
-      document.getElementById("table-container").innerHTML
-    );
-    printWindow.document.write("</body></html>");
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
+  // Leave status data
+  const leaveStatusData = () => {
+    const approved = dashboardData.leaves.filter((l) => l.status === 1).length;
+    const pending = dashboardData.leaves.filter((l) => l.status === 0).length;
+    const rejected = dashboardData.leaves.filter((l) => l.status === 2).length;
+
+    return [
+      { name: "Approved", value: approved, color: COLORS.success },
+      { name: "Pending", value: pending, color: COLORS.warning },
+      { name: "Rejected", value: rejected, color: COLORS.danger },
+    ];
   };
+
+  // Monthly payroll trend
+  const monthlyPayrollData = () => {
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const monthlyData = months.map((month, index) => {
+      const monthPayrolls = dashboardData.payrolls.filter(
+        (p) => p.month - 1 === index
+      );
+      const total = monthPayrolls.reduce((sum, p) => sum + (p.total || 0), 0);
+      return {
+        month,
+        amount: total,
+      };
+    });
+    return monthlyData;
+  };
+
+  // Holiday calendar data
+  const upcomingHolidays = () => {
+    return dashboardData.holidays
+      .filter((h) => new Date(h.startDate) >= new Date())
+      .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+      .slice(0, 5);
+  };
+
+  // Recent activities
+  const recentActivities = () => {
+    const activities = [];
+
+    // Add recent leaves
+    dashboardData.leaves.slice(0, 3).forEach((leave) => {
+      const employee = dashboardData.employees.find(
+        (e) => e.id === leave.employee
+      );
+      activities.push({
+        type: "leave",
+        title: "Leave Request",
+        description: `${employee?.firstname || "Employee"} requested leave`,
+        date: new Date(leave.startDate),
+        status: leave.status,
+      });
+    });
+
+    // Add recent attendance
+    dashboardData.attendance.slice(0, 3).forEach((att) => {
+      const employee = dashboardData.employees.find(
+        (e) => e.id === att.employeeId
+      );
+      activities.push({
+        type: "attendance",
+        title: "Clock In",
+        description: `${employee?.firstname || "Employee"} clocked in`,
+        date: new Date(att.inTime),
+        status: "present",
+      });
+    });
+
+    return activities.sort((a, b) => b.date - a.date).slice(0, 5);
+  };
+
+  if (loading) {
+    return (
+      <div className="wrapper">
+        <div className="content-wrapper">
+          <div className="content">
+            <div className="container-fluid">
+              <div className="text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="sr-only">Loading...</span>
+                </div>
+                <p className="mt-2">Loading dashboard data...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="wrapper">
       <div className="content-wrapper">
-        <div
-          className="card"
-          style={{
-            borderRadius: "10px",
-            border: "none",
-            backgroundColor: "#f8f9fa",
-            //marginTop: "15px",
-            padding: "5px 5px",
-          }}
-        >
-          <div className="p-2">
+        {/* Header with Tabs */}
+        <div className="content-header">
+          <div className="container-fluid">
+            <div className="row mb-2">
+              <div className="col-sm-6">
+                <h1 className="all-heading m-0">HRM Dashboard</h1>
+                <span className="text-muted">
+                  Welcome back! Here's what's happening with your HRM today.
+                </span>
+              </div>
+              <div className="col-sm-6">
+                <div className="float-sm-right">
+                  <div className="btn-group">
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={() => {
+                        setSelectedMonth(new Date().getMonth());
+                        setSelectedYear(new Date().getFullYear());
+                      }}
+                    >
+                      <i className="fas fa-sync-alt mr-1"></i> Refresh
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs Navigation */}
+        <div className="container-fluid mb-4">
+          <div
+            className="card"
+            style={{
+              borderRadius: "15px",
+              border: "none",
+              backgroundColor: "#f8f9fa",
+              padding: "10px 15px",
+            }}
+          >
             <ul
               className="nav"
               style={{
                 display: "flex",
                 alignItems: "center",
-                padding: "0px",
-                whiteSpace: "nowrap",
-                overflowX: "auto",
+                flexWrap: "wrap",
+                gap: "5px",
               }}
             >
-              {/* HRM Icon + Label */}
               <li
                 style={{
                   fontWeight: "bold",
@@ -139,30 +370,26 @@ const HRMTabComponent = () => {
                   alignItems: "center",
                 }}
               >
-                <FontAwesomeIcon
-                  icon={faUsers}
-                  style={{ marginRight: "5px" }}
-                />
+                <FontAwesomeIcon icon={faUsers} style={{ marginRight: "5px" }} />
                 <Link
                   to="/HRMDashboard"
                   onClick={(e) => {
                     e.preventDefault();
-                    setActiveTab(null); // Reset active tab
-                    navigate("/HRMDashboard", { replace: true }); // Navigate without adding to history
-                    window.scrollTo(0, 0); // Scroll to top
+                    setActiveTab(null);
+                    navigate("/HRMDashboard", { replace: true });
                   }}
-                  style={{ textDecoration: "none", color: "#6c757d" }}
+                  style={{
+                    textDecoration: "none",
+                    color: "#6c757d",
+                    fontSize: "14px",
+                  }}
                 >
-                  HRM
+                  Dashboard
                 </Link>
               </li>
-              {/* Tab Links */}
+
               {tabsData.map(({ id, label }) => (
-                <li
-                  className="nav-item"
-                  key={id}
-                  style={{ marginRight: "4px" }}
-                >
+                <li className="nav-item" key={id}>
                   <button
                     className={`nav-link ${activeTab === id ? "active" : ""}`}
                     onClick={() => setActiveTab(activeTab === id ? null : id)}
@@ -170,9 +397,11 @@ const HRMTabComponent = () => {
                       background: "none",
                       border: "none",
                       fontSize: "13px",
-                      color: activeTab === id ? "#007bff" : "#6c757d",
-                      fontWeight: activeTab === id ? "bold" : "normal",
-                      transition: "color 0.3s ease",
+                      padding: "8px 12px",
+                      color: activeTab === id ? "#4361ee" : "#6c757d",
+                      fontWeight: activeTab === id ? "600" : "400",
+                      borderRadius: "8px",
+                      transition: "all 0.3s ease",
                       cursor: "pointer",
                       outline: "none",
                     }}
@@ -184,591 +413,530 @@ const HRMTabComponent = () => {
             </ul>
           </div>
         </div>
-        {/* Content Section - Only shown when a tab is active */}
-        {activeTab && (
-          <div className="card-body">{activeTabData?.component}</div>
-        )}
-        {/* Dashboard Content - Only shown when no tab is active */}
-        {!activeTab && (
-          <section className="content">
-            <div className="row justify-content-around">
-              <div
-                className=" card col-md-3 col-sm-6 col-xs-12 text-center   "
-                style={{
-                  height: "150px",
-                }}
-              >
-                {" "}
-                <div className="row d-flex">
-                  <div className=" col-12 box-header d-flex gap-3 justify-content-start align-items-center mt-3">
-                    <i className="fas fa-bullseye ms-2"></i>
-                    <h3 className="box-title m-0">My Leaves</h3>
-                  </div>{" "}
-                  <div className="col-12 mt-4">
-                    <Button className=" btn btn-success btn-lg">
-                      My Payrolls
-                    </Button>
-                  </div>
-                </div>
-              </div>
 
-              <div className="card col-md-4 col-sm-6 col-xs-12 col-custom  ">
-                <div className="tw-mb-4 tw-transition-all lg:tw-col-span-2 tw-duration-200 tw-bg-white tw-shadow-sm tw-rounded-xl tw-ring-1 hover:tw-shadow-md tw-ring-gray-200">
-                  <div className="tw-p-2 sm:tw-p-3">
-                    <div className="box-header">
-                      <i className="fas fa-bullseye"></i>
-                      <h3 className="box-title">My sales targets</h3>
-                    </div>
-                    <div className="tw-flow-root tw-border-gray-200">
-                      <div className="">
-                        <div className="tw-py-2 tw-align-middle sm:tw-px-5">
-                          <div className="">
-                            <table className="table no-margin">
-                              <thead>
-                                <tr>
-                                  <td>
-                                    <strong>Target achieved last month:</strong>
-                                    <h4 className="text-success">$ 0.00</h4>
-                                  </td>
-                                  <td>
-                                    <strong>Target achieved this month:</strong>
-                                    <h4 className="text-success">$ 0.00</h4>
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <th>Targets</th>
-                                  <th>Commission Percent</th>
-                                </tr>
-                                <tr>
-                                  <td colSpan="2" className="text-center">
-                                    No data
-                                  </td>
-                                </tr>
-                              </thead>
-                            </table>
-                          </div>
-                        </div>
+        {/* Content Section */}
+        {activeTab ? (
+          <div className="container-fluid">
+            <div className="card shadow-sm border-0">
+              <div className="card-body">{tabsData.find((t) => t.id === activeTab)?.component}</div>
+            </div>
+          </div>
+        ) : (
+          <div className="container-fluid">
+            {/* Statistics Cards */}
+            <div className="row">
+              {/* Total Employees Card */}
+              <div className="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div
+                  className="card h-100 border-0 shadow-sm"
+                  style={{
+                    background: "linear-gradient(135deg, #4361ee 0%, #3f37c9 100%)",
+                    borderRadius: "15px",
+                  }}
+                >
+                  <div className="card-body">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 className="text-white text-uppercase mb-2" style={{ opacity: 0.9 }}>
+                          Total Employees
+                        </h6>
+                        <h2 className="text-white mb-0">{stats.totalEmployees}</h2>
+                        <small className="text-white-50">
+                          {stats.activeEmployees} Active
+                        </small>
                       </div>
+                      <div
+                        className="rounded-circle bg-white p-3"
+                        style={{ opacity: 0.2 }}
+                      >
+                        <FontAwesomeIcon icon={faUsers} size="2x" color="white" />
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <span className="text-white small">
+                        <FontAwesomeIcon icon={faArrowUp} className="mr-1" />
+                        +12% from last month
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="card col-md-4 col-sm-6 col-xs-12 col-custom">
-                <div className="tw-mb-4 tw-transition-all lg:tw-col-span-2 tw-duration-200 tw-bg-white tw-shadow-sm tw-rounded-xl tw-ring-1 hover:tw-shadow-md tw-ring-gray-200">
-                  <div className="tw-p-2 sm:tw-p-3">
-                    <div className="box-header">
-                      <i className="fas fa-birthday-cake"></i>
-                      <h3 className="box-title">Birthdays</h3>
-                    </div>
-                    <div className="tw-flow-root tw-border-gray-200">
-                      <div className="">
-                        <div className="tw-py-2 tw-align-middle sm:tw-px-5">
-                          <div className="">
-                            <table className="table no-margin">
-                              <tbody>
-                                <tr>
-                                  <th className="bg-light-gray" colSpan="3">
-                                    Today
-                                  </th>
-                                </tr>
-                                <tr>
-                                  <td colSpan="3" className="text-center">
-                                    No data
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td colSpan="3">&nbsp;</td>
-                                </tr>
-                                <tr>
-                                  <th className="bg-light-gray" colSpan="3">
-                                    Upcoming
-                                  </th>
-                                </tr>
-                                <tr>
-                                  <td colSpan="3" className="text-center">
-                                    No data
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
+              {/* Present Today Card */}
+              <div className="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div
+                  className="card h-100 border-0 shadow-sm"
+                  style={{
+                    background: "linear-gradient(135deg, #06d6a0 0%, #05b386 100%)",
+                    borderRadius: "15px",
+                  }}
+                >
+                  <div className="card-body">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 className="text-white text-uppercase mb-2" style={{ opacity: 0.9 }}>
+                          Present Today
+                        </h6>
+                        <h2 className="text-white mb-0">{stats.presentToday}</h2>
+                        <small className="text-white-50">
+                          {((stats.presentToday / stats.totalEmployees) * 100).toFixed(1)}% Attendance
+                        </small>
                       </div>
+                      <div
+                        className="rounded-circle bg-white p-3"
+                        style={{ opacity: 0.2 }}
+                      >
+                        <FontAwesomeIcon icon={faUserCheck} size="2x" color="white" />
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <span className="text-white small">
+                        <FontAwesomeIcon icon={faArrowUp} className="mr-1" />
+                        {stats.totalEmployees - stats.presentToday} absent
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* On Leave Card */}
+              <div className="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div
+                  className="card h-100 border-0 shadow-sm"
+                  style={{
+                    background: "linear-gradient(135deg, #fb8500 0%, #f37200 100%)",
+                    borderRadius: "15px",
+                  }}
+                >
+                  <div className="card-body">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 className="text-white text-uppercase mb-2" style={{ opacity: 0.9 }}>
+                          On Leave
+                        </h6>
+                        <h2 className="text-white mb-0">{stats.onLeave}</h2>
+                        <small className="text-white-50">
+                          {stats.pendingLeaves} Pending
+                        </small>
+                      </div>
+                      <div
+                        className="rounded-circle bg-white p-3"
+                        style={{ opacity: 0.2 }}
+                      >
+                        <FontAwesomeIcon icon={faUserClock} size="2x" color="white" />
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <span className="text-white small">
+                        <FontAwesomeIcon icon={faArrowDown} className="mr-1" />
+                        -5% from yesterday
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payroll Card */}
+              <div className="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div
+                  className="card h-100 border-0 shadow-sm"
+                  style={{
+                    background: "linear-gradient(135deg, #7209b7 0%, #560bad 100%)",
+                    borderRadius: "15px",
+                  }}
+                >
+                  <div className="card-body">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 className="text-white text-uppercase mb-2" style={{ opacity: 0.9 }}>
+                          Payroll Amount
+                        </h6>
+                        <h2 className="text-white mb-0">
+                          ₹{(stats.totalPayrollAmount / 100000).toFixed(1)}L
+                        </h2>
+                        <small className="text-white-50">
+                          {stats.totalPayrolls} Payrolls
+                        </small>
+                      </div>
+                      <div
+                        className="rounded-circle bg-white p-3"
+                        style={{ opacity: 0.2 }}
+                      >
+                        <FontAwesomeIcon icon={faMoneyBillWave} size="2x" color="white" />
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <span className="text-white small">
+                        <FontAwesomeIcon icon={faPercent} className="mr-1" />
+                        85% Paid
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <hr />
-
-            <div className="row  justify-content-between ">
-              <div className=" card col-md-3 col-sm-6 col-xs-12 col-custom ">
-                <div className="tw-mb-4 tw-transition-all lg:tw-col-span-2 tw-duration-200 tw-bg-white tw-shadow-sm tw-rounded-xl tw-ring-1 hover:tw-shadow-md tw-ring-gray-200">
-                  <div className="tw-p-2 sm:tw-p-3">
-                    <div className="box-header">
-                      <i className="fas fa-users"></i>
-                      <h3 className="box-title">Users</h3>
-                    </div>
-                    <div className="tw-flow-root tw-border-gray-200">
-                      <div className="">
-                        <div className="tw-py-2 tw-align-middle sm:tw-px-5">
-                          <table className="table no-margin">
-                            <tbody>
-                              <tr>
-                                <th className="bg-light-gray" colSpan="2">
-                                  Today
-                                </th>
-                              </tr>
-                              <tr>
-                                <td colSpan="2" className="text-center">
-                                  No data
-                                </td>
-                              </tr>
-                              <tr>
-                                <td colSpan="2">&nbsp;</td>
-                              </tr>
-                              <tr>
-                                <th className="bg-light-gray" colSpan="2">
-                                  Upcoming
-                                </th>
-                              </tr>
-                              <tr>
-                                <td colSpan="2" className="text-center">
-                                  No data
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
+            {/* Charts Row 1 */}
+            <div className="row">
+              {/* Attendance Trend Chart */}
+              <div className="col-lg-8 col-md-12 mb-4">
+                <div className="card shadow-sm border-0 h-100">
+                  <div className="card-header bg-white border-0">
+                    <h5 className="mb-0">
+                      <FontAwesomeIcon icon={faChartLine} className="mr-2 text-primary" />
+                      Attendance Trend (Last 7 Days)
+                    </h5>
+                  </div>
+                  <div className="card-body">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <AreaChart data={attendanceTrend()}>
+                        <defs>
+                          <linearGradient id="colorPresent" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.8} />
+                            <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0.1} />
+                          </linearGradient>
+                          <linearGradient id="colorAbsent" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={COLORS.danger} stopOpacity={0.8} />
+                            <stop offset="95%" stopColor={COLORS.danger} stopOpacity={0.1} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                        <XAxis dataKey="day" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Area
+                          type="monotone"
+                          dataKey="present"
+                          stroke={COLORS.primary}
+                          fill="url(#colorPresent)"
+                          name="Present"
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="absent"
+                          stroke={COLORS.danger}
+                          fill="url(#colorAbsent)"
+                          name="Absent"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
               </div>
 
-              <div className=" card col-md-4 col-sm-6 col-xs-12 col-custom">
-                <div className="tw-mb-4 tw-transition-all lg:tw-col-span-2 tw-duration-200 tw-bg-white tw-shadow-sm tw-rounded-xl tw-ring-1 hover:tw-shadow-md tw-ring-gray-200">
-                  <div className="tw-p-2 sm:tw-p-3">
-                    <div className="box-header">
-                      <i className="fas fa-user-times"></i>
-                      <h3 className="box-title">Leaves</h3>
-                    </div>
-                    <div className="tw-flow-root tw-border-gray-200">
-                      <div className="">
-                        <div className="tw-py-2 tw-align-middle sm:tw-px-5">
-                          <table className="table no-margin">
-                            <tbody>
-                              <tr>
-                                <th className="bg-light-gray" colSpan="2">
-                                  Today
-                                </th>
-                              </tr>
-                              <tr>
-                                <td colSpan="2" className="text-center">
-                                  No data
-                                </td>
-                              </tr>
-                              <tr>
-                                <td colSpan="2">&nbsp;</td>
-                              </tr>
-                              <tr>
-                                <th className="bg-light-gray" colSpan="2">
-                                  Upcoming
-                                </th>
-                              </tr>
-                              <tr>
-                                <td colSpan="2" className="text-center">
-                                  No data
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
+              {/* Leave Status Pie Chart */}
+              <div className="col-lg-4 col-md-12 mb-4">
+                <div className="card shadow-sm border-0 h-100">
+                  <div className="card-header bg-white border-0">
+                    <h5 className="mb-0">
+                      <FontAwesomeIcon icon={faUserClock} className="mr-2 text-warning" />
+                      Leave Status
+                    </h5>
                   </div>
-                </div>
-              </div>
-
-              <div className=" card col-md-4 col-sm-6 col-xs-12 col-custom">
-                <div className="tw-mb-4 tw-transition-all lg:tw-col-span-2 tw-duration-200 tw-bg-white tw-shadow-sm tw-rounded-xl tw-ring-1 hover:tw-shadow-md tw-ring-gray-200">
-                  <div className="tw-p-2 sm:tw-p-3">
-                    <div className="box-header">
-                      <i className="fas fa-suitcase-rolling"></i>
-                      <h3 className="box-title">Holidays</h3>
-                    </div>
-                    <div className="tw-flow-root tw-border-gray-200">
-                      <div className="">
-                        <div className="tw-py-2 tw-align-middle sm:tw-px-5">
-                          <div className="">
-                            <table className="table no-margin">
-                              <tbody>
-                                <tr>
-                                  <th className="bg-light-gray" colSpan="3">
-                                    Today
-                                  </th>
-                                </tr>
-                                <tr>
-                                  <td colSpan="3" className="text-center">
-                                    No data
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td colSpan="3">&nbsp;</td>
-                                </tr>
-                                <tr>
-                                  <th className="bg-light-gray" colSpan="3">
-                                    Upcoming
-                                  </th>
-                                </tr>
-                                <tr>
-                                  <td colSpan="3" className="text-center">
-                                    No data
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="row row-custom justify-content-evenly mt-4">
-              <div className=" card col-md-4 col-sm-6 col-xs-12 col-custom">
-                <div className="tw-mb-4 tw-transition-all lg:tw-col-span-2 tw-duration-200 tw-bg-white tw-shadow-sm tw-rounded-xl tw-ring-1 hover:tw-shadow-md tw-ring-gray-200">
-                  <div className="tw-p-2 sm:tw-p-3">
-                    <div className="box-header">
-                      <i className="fas fa-user-check"></i>
-                      <h3 className="box-title">Today's Attendance</h3>
-                    </div>
-                    <div className="tw-flow-root tw-border-gray-200">
-                      <div className="">
-                        <div className="tw-py-2 tw-align-middle sm:tw-px-5">
-                          <table className="table no-margin">
-                            <thead>
-                              <tr>
-                                <th>Employee</th>
-                                <th>Clock In</th>
-                                <th>Clock Out</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <td colSpan="3" className="text-center">
-                                  No data
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="col-lg-7 col-md-8 col-sm-12 col-xs-12">
-                <div className="tw-mb-4 tw-transition-all lg:tw-col-span-2 tw-duration-200 tw-bg-white tw-shadow-sm tw-rounded-xl tw-ring-1 hover:tw-shadow-md tw-ring-gray-200">
-                  <div className="tw-p-2 sm:tw-p-3">
-                    <div className="box-header">
-                      <i className="fas fa-bullseye"></i>
-                      <h3 className="box-title">Sales targets</h3>
-                    </div>
-                    <div className="tw-flow-root tw-border-gray-200">
-                      <div className="">
-                        <div className="tw-py-2 tw-align-middle sm:tw-px-5">
+                  <div className="card-body">
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie
+                          data={leaveStatusData()}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={80}
+                          paddingAngle={5}
+                          dataKey="value"
+                          label={({ name, percent }) => 
+                            `${name} ${(percent * 100).toFixed(0)}%`
+                          }
+                        >
+                          {leaveStatusData().map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="d-flex justify-content-around mt-3">
+                      {leaveStatusData().map((item, idx) => (
+                        <div key={idx} className="text-center">
                           <div
-                            id="sales_targets_table_wrapper"
-                            className="dataTables_wrapper form-inline dt-bootstrap no-footer"
-                          >
-                            <div className="row mb-3 d-flex align-items-center">
-                              <div className="col-12 col-md-auto form-group mb-2 d-flex align-items-center text-bold mt-2 mb-2 mr-2">
-                                <label
-                                  htmlFor="entriesPerPage"
-                                  className="mb-0 mr-2"
-                                >
-                                  Show
-                                </label>
-                                <select
-                                  id="entriesPerPage"
-                                  className="form-control form-control-sm mr-2"
-                                  value={entriesPerPage}
-                                  onChange={handleEntriesChange}
-                                >
-                                  <option value={25}>25</option>
-                                  <option value={50}>50</option>
-                                  <option value={75}>75</option>
-                                  <option value={100}>100</option>
-                                </select>
-                                Entries
-                              </div>
+                            className="rounded-circle mb-2"
+                            style={{
+                              width: "12px",
+                              height: "12px",
+                              backgroundColor: item.color,
+                              margin: "0 auto",
+                            }}
+                          ></div>
+                          <small className="d-block">{item.name}</small>
+                          <strong>{item.value}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-                              <div className="col d-flex flex-wrap align-items-center">
-                                <button
-                                  onClick={exportCSV}
-                                  className="btn Export-Btn mt-2 mb-2 mr-2"
+            {/* Charts Row 2 */}
+            <div className="row">
+              {/* Department Distribution */}
+              <div className="col-lg-5 col-md-12 mb-4">
+                <div className="card shadow-sm border-0 h-100">
+                  <div className="card-header bg-white border-0">
+                    <h5 className="mb-0">
+                      <FontAwesomeIcon icon={faBriefcase} className="mr-2 text-info" />
+                      Department Distribution
+                    </h5>
+                  </div>
+                  <div className="card-body">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart
+                        data={departmentData()}
+                        layout="vertical"
+                        margin={{ left: 50 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" />
+                        <YAxis type="category" dataKey="name" width={100} />
+                        <Tooltip />
+                        <Bar dataKey="value" fill={COLORS.primary}>
+                          {departmentData().map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS.chart1[index % COLORS.chart1.length]}
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Payroll Trend */}
+              <div className="col-lg-7 col-md-12 mb-4">
+                <div className="card shadow-sm border-0 h-100">
+                  <div className="card-header bg-white border-0">
+                    <h5 className="mb-0">
+                      <FontAwesomeIcon icon={faMoneyBillWave} className="mr-2 text-success" />
+                      Monthly Payroll Trend
+                    </h5>
+                  </div>
+                  <div className="card-body">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={monthlyPayrollData()}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="amount"
+                          stroke={COLORS.success}
+                          strokeWidth={2}
+                          dot={{ fill: COLORS.success }}
+                          activeDot={{ r: 8 }}
+                          name="Payroll Amount (₹)"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Row - Holidays and Recent Activities */}
+            <div className="row">
+              {/* Upcoming Holidays */}
+              <div className="col-lg-5 col-md-12 mb-4">
+                <div className="card shadow-sm border-0">
+                  <div className="card-header bg-white border-0">
+                    <h5 className="mb-0">
+                      <FontAwesomeIcon icon={faUmbrellaBeach} className="mr-2 text-warning" />
+                      Upcoming Holidays
+                    </h5>
+                  </div>
+                  <div className="card-body">
+                    {upcomingHolidays().length > 0 ? (
+                      <div className="list-group list-group-flush">
+                        {upcomingHolidays().map((holiday, index) => (
+                          <div
+                            key={index}
+                            className="list-group-item d-flex justify-content-between align-items-center border-0 px-0"
+                          >
+                            <div>
+                              <h6 className="mb-1">{holiday.name}</h6>
+                              <small className="text-muted">
+                                {new Date(holiday.startDate).toLocaleDateString()}
+                                {holiday.endDate &&
+                                  holiday.startDate !== holiday.endDate &&
+                                  ` - ${new Date(holiday.endDate).toLocaleDateString()}`}
+                              </small>
+                            </div>
+                            <span className="badge badge-info">
+                              {Math.ceil(
+                                (new Date(holiday.startDate) - new Date()) /
+                                  (1000 * 60 * 60 * 24)
+                              )}{" "}
+                              days left
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted text-center py-3">No upcoming holidays</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Activities */}
+              <div className="col-lg-7 col-md-12 mb-4">
+                <div className="card shadow-sm border-0">
+                  <div className="card-header bg-white border-0">
+                    <h5 className="mb-0">
+                      <FontAwesomeIcon icon={faClock} className="mr-2 text-primary" />
+                      Recent Activities
+                    </h5>
+                  </div>
+                  <div className="card-body">
+                    {recentActivities().length > 0 ? (
+                      <div className="timeline">
+                        {recentActivities().map((activity, index) => (
+                          <div key={index} className="timeline-item mb-3">
+                            <div className="d-flex">
+                              <div className="mr-3">
+                                <div
+                                  className="rounded-circle p-2"
+                                  style={{
+                                    width: "35px",
+                                    height: "35px",
+                                    backgroundColor:
+                                      activity.type === "leave"
+                                        ? activity.status === 1
+                                          ? "#d4edda"
+                                          : activity.status === 0
+                                          ? "#fff3cd"
+                                          : "#f8d7da"
+                                        : "#cce5ff",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                  }}
                                 >
-                                  <i className="fa fa-file-csv"></i> Export CSV
-                                </button>
-                                <button
-                                  onClick={exportExcel}
-                                  className="btn Export-Btn mt-2 mb-2 mr-2"
-                                >
-                                  <i className="fa fa-file-excel"></i> Export
-                                  Excel
-                                </button>
-                                <button
-                                  onClick={printData}
-                                  className="btn Export-Btn mt-2 mb-2 mr-2"
-                                >
-                                  <i className="fa fa-print"></i> Print
-                                </button>
-                                <button
-                                  onClick={exportPDF}
-                                  className="btn Export-Btn mt-2 mb-2 mr-2"
-                                >
-                                  <i className="fa fa-file-pdf"></i> Export PDF
-                                </button>
-                                <div className="dropdown mt-lg-2 mb-lg-2">
-                                  <button
-                                    className="btn Export-Btn dropdown-toggle"
-                                    type="button"
-                                    id="dropdownMenuButton"
-                                    data-toggle="dropdown"
-                                    aria-haspopup="true"
-                                    aria-expanded="false"
-                                  >
-                                    <i className="fa fa-columns"></i> Column
-                                    Visibility
-                                  </button>
-                                  <div
-                                    className="dropdown-menu"
-                                    aria-labelledby="dropdownMenuButton"
-                                  ></div>
+                                  <FontAwesomeIcon
+                                    icon={
+                                      activity.type === "leave"
+                                        ? faUserClock
+                                        : faUserCheck
+                                    }
+                                    style={{
+                                      color:
+                                        activity.type === "leave"
+                                          ? activity.status === 1
+                                            ? "#155724"
+                                            : activity.status === 0
+                                            ? "#856404"
+                                            : "#721c24"
+                                          : "#004085",
+                                      fontSize: "14px",
+                                    }}
+                                  />
                                 </div>
                               </div>
-                            </div>
-                            <div className="dataTables_scroll">
-                              <div
-                                className="dataTables_scrollHead"
-                                style={{
-                                  overflow: "hidden",
-                                  position: "relative",
-                                  border: "0px",
-                                  width: "100%",
-                                }}
-                              >
-                                <div className="dataTables_scrollHeadInner">
-                                  <table
-                                    className="table dataTable no-footer"
-                                    role="grid"
-                                  >
-                                    <thead>
-                                      <tr role="row">
-                                        <th
-                                          className="sorting_asc"
-                                          tabIndex="0"
-                                          aria-controls="sales_targets_table"
-                                          rowSpan="1"
-                                          colSpan="1"
-                                          style={{ width: "179.738px" }}
-                                          aria-sort="ascending"
-                                          aria-label="User: activate to sort column descending"
-                                        >
-                                          User
-                                        </th>
-                                        <th
-                                          className="sorting"
-                                          tabIndex="0"
-                                          aria-controls="sales_targets_table"
-                                          rowSpan="1"
-                                          colSpan="1"
-                                          style={{ width: "657.963px" }}
-                                          aria-label="Target achieved last month: activate to sort column ascending"
-                                        >
-                                          Target achieved last month
-                                        </th>
-                                        <th
-                                          className="sorting"
-                                          tabIndex="0"
-                                          aria-controls="sales_targets_table"
-                                          rowSpan="1"
-                                          colSpan="1"
-                                          style={{ width: "660.963px" }}
-                                          aria-label="Target achieved this month: activate to sort column ascending"
-                                        >
-                                          Target achieved this month
-                                        </th>
-                                      </tr>
-                                    </thead>
-                                  </table>
-                                </div>
+                              <div className="flex-grow-1">
+                                <h6 className="mb-1">{activity.title}</h6>
+                                <p className="mb-1 small">{activity.description}</p>
+                                <small className="text-muted">
+                                  {activity.date.toLocaleString()}
+                                </small>
                               </div>
-                              <div
-                                className="dataTables_scrollBody"
-                                style={{
-                                  position: "relative",
-                                  overflow: "auto",
-                                  width: "100%",
-                                  maxHeight: "75vh",
-                                }}
-                              >
-                                <table
-                                  className="table dataTable no-footer"
-                                  id="sales_targets_table"
-                                  style={{ width: "100%" }}
-                                  role="grid"
-                                  aria-describedby="sales_targets_table_info"
-                                >
-                                  <thead>
-                                    <tr role="row" style={{ height: "0px" }}>
-                                      <th
-                                        className="sorting_asc"
-                                        aria-controls="sales_targets_table"
-                                        rowSpan="1"
-                                        colSpan="1"
-                                        style={{
-                                          width: "179.738px",
-                                          paddingTop: "0px",
-                                          paddingBottom: "0px",
-                                          borderTopWidth: "0px",
-                                          borderBottomWidth: "0px",
-                                          height: "0px",
-                                        }}
-                                        aria-sort="ascending"
-                                        aria-label="User: activate to sort column descending"
-                                      >
-                                        <div
-                                          className="dataTables_sizing"
-                                          style={{
-                                            height: "0",
-                                            overflow: "hidden",
-                                          }}
-                                        >
-                                          User
-                                        </div>
-                                      </th>
-                                      <th
-                                        className="sorting"
-                                        aria-controls="sales_targets_table"
-                                        rowSpan="1"
-                                        colSpan="1"
-                                        style={{
-                                          width: "657.963px",
-                                          paddingTop: "0px",
-                                          paddingBottom: "0px",
-                                          borderTopWidth: "0px",
-                                          borderBottomWidth: "0px",
-                                          height: "0px",
-                                        }}
-                                        aria-label="Target achieved last month: activate to sort column ascending"
-                                      >
-                                        <div
-                                          className="dataTables_sizing"
-                                          style={{
-                                            height: "0",
-                                            overflow: "hidden",
-                                          }}
-                                        >
-                                          Target achieved last month
-                                        </div>
-                                      </th>
-                                      <th
-                                        className="sorting"
-                                        aria-controls="sales_targets_table"
-                                        rowSpan="1"
-                                        colSpan="1"
-                                        style={{
-                                          width: "660.963px",
-                                          paddingTop: "0px",
-                                          paddingBottom: "0px",
-                                          borderTopWidth: "0px",
-                                          borderBottomWidth: "0px",
-                                          height: "0px",
-                                        }}
-                                        aria-label="Target achieved this month: activate to sort column ascending"
-                                      >
-                                        <div
-                                          className="dataTables_sizing"
-                                          style={{
-                                            height: "0",
-                                            overflow: "hidden",
-                                          }}
-                                        >
-                                          Target achieved this month
-                                        </div>
-                                      </th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    <tr className="odd">
-                                      <td
-                                        valign="top"
-                                        colSpan="3"
-                                        className="dataTables_empty"
-                                      >
-                                        No data available in table
-                                      </td>
-                                    </tr>
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                            <div
-                              className="dataTables_info"
-                              id="sales_targets_table_info"
-                              role="status"
-                              aria-live="polite"
-                            >
-                              Showing 0 to 0 of 0 entries
-                            </div>
-                            <div
-                              id="sales_targets_table_processing"
-                              className="dataTables_processing panel panel-default"
-                              style={{ display: "none" }}
-                            >
-                              Processing...
-                            </div>
-                            <div
-                              className="dataTables_paginate paging_simple_numbers"
-                              id="sales_targets_table_paginate"
-                            >
-                              <ul className="pagination">
-                                <li
-                                  className="paginate_button previous disabled"
-                                  id="sales_targets_table_previous"
-                                >
-                                  <a
-                                    href="#"
-                                    aria-controls="sales_targets_table"
-                                    data-dt-idx="0"
-                                    tabIndex="0"
-                                  >
-                                    Previous
-                                  </a>
-                                </li>
-                                <li
-                                  className="paginate_button next disabled"
-                                  id="sales_targets_table_next"
-                                >
-                                  <a
-                                    href="#"
-                                    aria-controls="sales_targets_table"
-                                    data-dt-idx="1"
-                                    tabIndex="0"
-                                  >
-                                    Next
-                                  </a>
-                                </li>
-                              </ul>
                             </div>
                           </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted text-center py-3">No recent activities</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Stats Row */}
+            <div className="row mb-4">
+              <div className="col-12">
+                <div className="card shadow-sm border-0">
+                  <div className="card-body">
+                    <div className="row text-center">
+                      <div className="col-md-2 col-6 mb-3 mb-md-0">
+                        <div className="p-3">
+                          <FontAwesomeIcon
+                            icon={faBriefcase}
+                            className="text-primary mb-2"
+                            size="2x"
+                          />
+                          <h5 className="mb-1">{stats.totalDepartments}</h5>
+                          <small className="text-muted">Departments</small>
+                        </div>
+                      </div>
+                      <div className="col-md-2 col-6 mb-3 mb-md-0">
+                        <div className="p-3">
+                          <FontAwesomeIcon
+                            icon={faUserTie}
+                            className="text-success mb-2"
+                            size="2x"
+                          />
+                          <h5 className="mb-1">{stats.totalDesignations}</h5>
+                          <small className="text-muted">Designations</small>
+                        </div>
+                      </div>
+                      <div className="col-md-2 col-6 mb-3 mb-md-0">
+                        <div className="p-3">
+                          <FontAwesomeIcon
+                            icon={faCalendarCheck}
+                            className="text-info mb-2"
+                            size="2x"
+                          />
+                          <h5 className="mb-1">{stats.upcomingHolidays}</h5>
+                          <small className="text-muted">Upcoming Holidays</small>
+                        </div>
+                      </div>
+                      <div className="col-md-2 col-6 mb-3 mb-md-0">
+                        <div className="p-3">
+                          <FontAwesomeIcon
+                            icon={faCircleCheck}
+                            className="text-warning mb-2"
+                            size="2x"
+                          />
+                          <h5 className="mb-1">{stats.pendingLeaves}</h5>
+                          <small className="text-muted">Pending Leaves</small>
+                        </div>
+                      </div>
+                      <div className="col-md-2 col-6">
+                        <div className="p-3">
+                          <FontAwesomeIcon
+                            icon={faMoneyBillWave}
+                            className="text-danger mb-2"
+                            size="2x"
+                          />
+                          <h5 className="mb-1">{stats.totalPayrolls}</h5>
+                          <small className="text-muted">Total Payrolls</small>
+                        </div>
+                      </div>
+                      <div className="col-md-2 col-6">
+                        <div className="p-3">
+                          <FontAwesomeIcon
+                            icon={faPercent}
+                            className="text-purple mb-2"
+                            size="2x"
+                          />
+                          <h5 className="mb-1">
+                            {((stats.activeEmployees / stats.totalEmployees) * 100).toFixed(1)}%
+                          </h5>
+                          <small className="text-muted">Active Rate</small>
                         </div>
                       </div>
                     </div>
@@ -776,9 +944,48 @@ const HRMTabComponent = () => {
                 </div>
               </div>
             </div>
-          </section>
+          </div>
         )}
       </div>
+
+      {/* Add custom CSS for timeline and other components */}
+      <style jsx>{`
+        .timeline-item {
+          padding: 10px 0;
+          border-bottom: 1px solid #f0f0f0;
+        }
+        .timeline-item:last-child {
+          border-bottom: none;
+        }
+        .card {
+          transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+        }
+        .btn-outline-secondary:hover {
+          background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+          color: white;
+          border-color: transparent;
+        }
+        .nav-link.active {
+          background-color: rgba(67, 97, 238, 0.1) !important;
+        }
+        .badge {
+          padding: 8px 12px;
+          border-radius: 8px;
+        }
+        .text-white-50 {
+          color: rgba(255, 255, 255, 0.7) !important;
+        }
+        @media (max-width: 768px) {
+          .float-sm-right {
+            float: none !important;
+            margin-top: 10px;
+          }
+        }
+      `}</style>
     </div>
   );
 };

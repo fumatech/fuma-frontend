@@ -26,6 +26,7 @@ function AddProducts() {
   const [productName, setProductName] = useState("");
   const [alertQuantity, setAlertQuantity] = useState("");
   const [sku, setSku] = useState("");
+  const [skuStatus, setSkuStatus] = useState("idle");
   const [barcode, setBarcode] = useState("");
   const [unit, setUnit] = useState("");
   const [brand, setBrand] = useState("");
@@ -377,6 +378,30 @@ function AddProducts() {
     }
   }, [defaultPurchasePrice, profitMargin]);
 
+  useEffect(() => {
+    let isActive = true;
+
+    const validateSku = async () => {
+      if (!sku) {
+        setSkuStatus("idle");
+        return;
+      }
+
+      setSkuStatus("checking");
+      const exists = await checkIfSkuExists(sku);
+
+      if (isActive) {
+        setSkuStatus(exists ? "exists" : "available");
+      }
+    };
+
+    validateSku();
+
+    return () => {
+      isActive = false;
+    };
+  }, [sku]);
+
   // Handle file upload
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -582,6 +607,7 @@ function AddProducts() {
 
     const checkSkuExists = await checkIfSkuExists(sku);
     if (checkSkuExists) {
+      setSkuStatus("exists");
       toast.warning("SKU already exists. Please choose a unique SKU.");
       return;
     }
@@ -740,6 +766,7 @@ function AddProducts() {
   const resetForm = () => {
     setProductName("");
     setSku("");
+    setSkuStatus("idle");
     setBarcode("");
     setUnit("");
     setBrand("");
@@ -888,21 +915,21 @@ function AddProducts() {
                                 e.preventDefault();
                               }
                             }}
-                            onChange={async (e) => {
-                              let newSku = e.target.value.replace(/\s+/g, "");
+                            onChange={(e) => {
+                              const newSku = e.target.value.replace(/\s+/g, "");
                               setSku(newSku);
-
-                              if (newSku) {
-                                const exists = await checkIfSkuExists(newSku);
-                                if (exists) {
-                                  toast.warning(
-                                    "This SKU already exists. Please enter a unique SKU."
-                                  );
-                                  setSku(""); // optional
-                                }
-                              }
                             }}
                           />
+                          {skuStatus === "exists" && (
+                            <small className="text-danger d-block mt-1">
+                              SKU already exists
+                            </small>
+                          )}
+                          {skuStatus === "available" && (
+                            <small className="text-success d-block mt-1">
+                              SKU Available
+                            </small>
+                          )}
                         </div>
                       </div>
 
@@ -1893,6 +1920,7 @@ function AddProducts() {
                   <button
                     type="submit"
                     className="btn btn-save btn-lg px-4 py-2 m-2 "
+                    disabled={skuStatus === "exists"}
                   >
                     Save
                   </button>
