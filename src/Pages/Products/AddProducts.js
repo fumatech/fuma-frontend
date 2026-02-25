@@ -64,6 +64,66 @@ function AddProducts() {
   // Brand modal state
   const [brandName, setBrandName] = useState("");
   const [shortDescription, setShortDescription] = useState("");
+
+  const barcodeOptions = [
+    { value: "", label: "Please Select" },
+    { value: "C128", label: "Code 128 (C128)" },
+    { value: "C39", label: "Code 39 (C39)" },
+    { value: "EAN-13", label: "EAN-13" },
+    { value: "EAN-8", label: "EAN-8" },
+    { value: "UPC-A", label: "UPC-A" },
+    { value: "UPC-E", label: "UPC-E" },
+  ];
+  const unitOptions = [
+    { value: "", label: "Please Select" },
+    ...units.map((unitItem) => ({
+      value: unitItem.id,
+      label: unitItem.name,
+    })),
+  ];
+  const brandOptions = [
+    { value: "", label: "Please Select" },
+    ...brands.map((brandItem) => ({
+      value: brandItem.id,
+      label: brandItem.brandName,
+    })),
+  ];
+  const categoryOptions = [
+    { value: "", label: "Please Select" },
+    ...categories.map((categoryItem) => ({
+      value: categoryItem.id,
+      label: categoryItem.categoryName,
+    })),
+  ];
+  const applicableTaxOptions = [
+    { value: "", label: "None" },
+    ...taxes.map((taxItem) => ({
+      value: taxItem.id,
+      label: `${taxItem.taxName} (${taxItem.taxValue}%)`,
+    })),
+  ];
+  const sellingTaxTypeOptions = [
+    { value: "", label: "None" },
+    { value: "Exclusive", label: "Exclusive" },
+    { value: "Inclusive", label: "Inclusive" },
+  ];
+  const productTypeOptions = [
+    { value: "SINGLE", label: "Single" },
+    { value: "VARIABLE", label: "Variable" },
+    { value: "COMBO", label: "Combo" },
+  ];
+  const allowDecimalOptions = [
+    { value: "", label: "Choose option" },
+    { value: "yes", label: "Yes" },
+    { value: "no", label: "No" },
+  ];
+  const variationNameOptions = [
+    { value: "", label: "Select Variation" },
+    ...variationValues.map((variationValue) => ({
+      value: String(variationValue.id),
+      label: variationValue.variationName,
+    })),
+  ];
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
@@ -612,6 +672,11 @@ function AddProducts() {
       return;
     }
 
+    if (!barcode || !unit || !brand || !category || !sellingPriceTaxType) {
+      toast.warning("Please select all required dropdown values.");
+      return;
+    }
+
     const formData = new FormData();
     const productObject = {
       productName,
@@ -939,23 +1004,21 @@ function AddProducts() {
                           <div className="">
                             <label className="me-2 d-md-inline">Barcode</label>
                             <div className="d-flex align-items-center">
-                              <select
-                                className="form-select me-2 "
-                                id="barcode"
-                                name="barcode"
-                                type="text"
-                                required
-                                value={barcode}
-                                onChange={(e) => setBarcode(e.target.value)}
-                              >
-                                <option value="">Please Select</option>
-                                <option value="C128">Code 128 (C128)</option>
-                                <option value="C39">Code 39 (C39)</option>
-                                <option value="EAN-13">EAN-13</option>
-                                <option value="EAN-8">EAN-8</option>
-                                <option value="UPC-A">UPC-A</option>
-                                <option value="UPC-E">UPC-E</option>
-                              </select>
+                              <Select
+                                inputId="barcode"
+                                options={barcodeOptions}
+                                value={
+                                  barcodeOptions.find(
+                                    (option) =>
+                                      String(option.value) === String(barcode)
+                                  ) || null
+                                }
+                                onChange={(selected) =>
+                                  setBarcode(selected?.value || "")
+                                }
+                                isSearchable
+                                className="flex-grow-1 me-2"
+                              />
                             </div>
                           </div>
                         </div>
@@ -967,21 +1030,21 @@ function AddProducts() {
                           <div className="">
                             <label className="me-2 d-md-inline">Unit</label>
                             <div className="d-flex align-items-center">
-                              <select
-                                className="form-select me-2"
-                                id="unit"
-                                name="unit"
-                                required
-                                value={unit}
-                                onChange={(e) => setUnit(e.target.value)}
-                              >
-                                <option value="">Please Select</option>
-                                {units.map((unit) => (
-                                  <option key={unit.id} value={unit.id}>
-                                    {unit.name}
-                                  </option>
-                                ))}
-                              </select>
+                              <Select
+                                inputId="unit"
+                                options={unitOptions}
+                                value={
+                                  unitOptions.find(
+                                    (option) =>
+                                      String(option.value) === String(unit)
+                                  ) || null
+                                }
+                                onChange={(selected) =>
+                                  setUnit(selected?.value || "")
+                                }
+                                isSearchable
+                                className="flex-grow-1 me-2"
+                              />
                               <span className="">
                                 <button
                                   type="button"
@@ -1004,21 +1067,21 @@ function AddProducts() {
                           <div className="">
                             <label className="me-2 d-md-inline">Brand</label>
                             <div className="d-flex align-items-center">
-                              <select
-                                className="form-select me-2"
-                                id="brand"
-                                name="brand"
-                                required
-                                value={brand}
-                                onChange={(e) => setBrand(e.target.value)}
-                              >
-                                <option value="">Please Select</option>
-                                {brands.map((brand) => (
-                                  <option key={brand.id} value={brand.id}>
-                                    {brand.brandName}
-                                  </option>
-                                ))}
-                              </select>
+                              <Select
+                                inputId="brand"
+                                options={brandOptions}
+                                value={
+                                  brandOptions.find(
+                                    (option) =>
+                                      String(option.value) === String(brand)
+                                  ) || null
+                                }
+                                onChange={(selected) =>
+                                  setBrand(selected?.value || "")
+                                }
+                                isSearchable
+                                className="flex-grow-1 me-2"
+                              />
                               <span className="">
                                 <button
                                   type="button"
@@ -1041,27 +1104,26 @@ function AddProducts() {
                           <div className="">
                             <label className="me-2 d-md-inline">Category</label>
                             <div className="d-flex align-items-center">
-                              <select
-                                className="form-select me-2"
-                                id="category"
-                                name="category"
-                                required
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
-                              >
-                                <option value="">Please Select</option>
-                                {categories.length > 0 ? (
-                                  categories.map((cat) => (
-                                    <option key={cat.id} value={cat.id}>
-                                      {cat.categoryName}
-                                    </option>
-                                  ))
-                                ) : (
-                                  <option value="" disabled>
-                                    No categories available
-                                  </option>
-                                )}
-                              </select>
+                              <Select
+                                inputId="category"
+                                options={
+                                  categories.length > 0
+                                    ? categoryOptions
+                                    : [{ value: "", label: "No categories available" }]
+                                }
+                                value={
+                                  categoryOptions.find(
+                                    (option) =>
+                                      String(option.value) === String(category)
+                                  ) || null
+                                }
+                                onChange={(selected) =>
+                                  setCategory(selected?.value || "")
+                                }
+                                isSearchable
+                                className="flex-grow-1 me-2"
+                                isDisabled={categories.length === 0}
+                              />
                             </div>
                           </div>
                         </div>
@@ -1207,23 +1269,24 @@ function AddProducts() {
                                 Applicable Tax
                               </label>
                               <div className="d-flex align-items-center">
-                                <select
-                                  className="form-select me-2"
-                                  id="application"
-                                  name="application"
-                                  required
-                                  value={applicableTax}
-                                  onChange={(e) =>
-                                    handleApplicableTaxChange(e.target.value)
+                                <Select
+                                  inputId="application"
+                                  options={applicableTaxOptions}
+                                  value={
+                                    applicableTaxOptions.find(
+                                      (option) =>
+                                        String(option.value) ===
+                                        String(applicableTax)
+                                    ) || null
                                   }
-                                >
-                                  <option value="">None</option>
-                                  {taxes.map((tax) => (
-                                    <option key={tax.id} value={tax.id}>
-                                      {tax.taxName} ({tax.taxValue}%)
-                                    </option>
-                                  ))}
-                                </select>
+                                  onChange={(selected) =>
+                                    handleApplicableTaxChange(
+                                      selected?.value || ""
+                                    )
+                                  }
+                                  isSearchable
+                                  className="flex-grow-1 me-2"
+                                />
                               </div>
                             </div>
                           </div>
@@ -1237,20 +1300,24 @@ function AddProducts() {
                                 Selling Price Tax Type
                               </label>
                               <div className="d-flex align-items-center">
-                                <select
-                                  className="form-select me-2"
-                                  id="sellingTax"
-                                  name="sellingTax"
-                                  required
-                                  value={sellingPriceTaxType}
-                                  onChange={(e) =>
-                                    setSellingPriceTaxType(e.target.value)
+                                <Select
+                                  inputId="sellingTax"
+                                  options={sellingTaxTypeOptions}
+                                  value={
+                                    sellingTaxTypeOptions.find(
+                                      (option) =>
+                                        String(option.value) ===
+                                        String(sellingPriceTaxType)
+                                    ) || null
                                   }
-                                >
-                                  <option value="">None</option>
-                                  <option value="Exclusive">Exclusive</option>
-                                  <option value="Inclusive">Inclusive</option>
-                                </select>
+                                  onChange={(selected) =>
+                                    setSellingPriceTaxType(
+                                      selected?.value || ""
+                                    )
+                                  }
+                                  isSearchable
+                                  className="flex-grow-1 me-2"
+                                />
                               </div>
                             </div>
                           </div>
@@ -1264,19 +1331,21 @@ function AddProducts() {
                                 Product Type
                               </label>
                               <div className=" ">
-                                <select
-                                  className="form-select "
-                                  id="productType"
-                                  name="productType"
-                                  value={productType}
-                                  onChange={(e) =>
-                                    setProductType(e.target.value)
+                                <Select
+                                  inputId="productType"
+                                  options={productTypeOptions}
+                                  value={
+                                    productTypeOptions.find(
+                                      (option) =>
+                                        String(option.value) ===
+                                        String(productType)
+                                    ) || null
                                   }
-                                >
-                                  <option value="SINGLE">Single</option>
-                                  <option value="VARIABLE">Variable</option>
-                                  <option value="COMBO">Combo</option>
-                                </select>
+                                  onChange={(selected) =>
+                                    setProductType(selected?.value || "SINGLE")
+                                  }
+                                  isSearchable
+                                />
                               </div>
                             </div>
                           </div>
@@ -1465,32 +1534,31 @@ function AddProducts() {
                                         </td>
                                         {/* Variation Name Selection */}
                                         <td>
-                                          <select
-                                            className="form-control input-sm variation_value_name"
-                                            required
-                                            value={variation.name || ""}
-                                            onChange={(e) =>
+                                          <Select
+                                            className="basic-single-select"
+                                            classNamePrefix="select"
+                                            value={
+                                              variationNameOptions.find(
+                                                (option) =>
+                                                  String(option.value) ===
+                                                  String(variation.name || "")
+                                              ) || null
+                                            }
+                                            options={variationNameOptions}
+                                            onChange={(selected) =>
                                               handleVariationChange(
-                                                e,
+                                                {
+                                                  target: {
+                                                    value:
+                                                      selected?.value || "",
+                                                  },
+                                                },
                                                 index,
                                                 "name"
                                               )
                                             }
-                                          >
-                                            <option value="">
-                                              Select Variation
-                                            </option>
-                                            {variationValues.map(
-                                              (variationValue) => (
-                                                <option
-                                                  key={variationValue.id}
-                                                  value={variationValue.id}
-                                                >
-                                                  {variationValue.variationName}
-                                                </option>
-                                              )
-                                            )}
-                                          </select>
+                                            isSearchable
+                                          />
 
                                           {/* Variation Values Selection */}
                                           {variation.name && (
@@ -1985,19 +2053,20 @@ function AddProducts() {
                   <label htmlFor="allowDecimal" className="form-label">
                     Allow Decimal
                   </label>
-                  <select
-                    className="form-select"
-                    id="allowDecimal"
-                    value={allowDecimal}
-                    onChange={(e) => setAllowDecimal(e.target.value)}
-                    required
-                  >
-                    <option value="" disabled>
-                      Choose option
-                    </option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                  </select>
+                  <Select
+                    inputId="allowDecimal"
+                    options={allowDecimalOptions}
+                    value={
+                      allowDecimalOptions.find(
+                        (option) =>
+                          String(option.value) === String(allowDecimal)
+                      ) || null
+                    }
+                    onChange={(selected) =>
+                      setAllowDecimal(selected?.value || "")
+                    }
+                    isSearchable
+                  />
                 </div>
                 <button type="submit" className="btn btn-primary">
                   Save

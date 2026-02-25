@@ -13,6 +13,9 @@ function ViewList() {
   const [taxes, setTaxes] = useState([]); // State for taxes
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [previewImageSrc, setPreviewImageSrc] = useState("");
+  const [previewImageAlt, setPreviewImageAlt] = useState("");
+  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const parseComboVariations = (comboString) => {
     try {
       return JSON.parse(comboString);
@@ -92,6 +95,18 @@ function ViewList() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const openImagePreview = (src, alt = "Product image") => {
+    setPreviewImageSrc(src);
+    setPreviewImageAlt(alt);
+    setIsImagePreviewOpen(true);
+  };
+
+  const closeImagePreview = () => {
+    setPreviewImageSrc("");
+    setPreviewImageAlt("");
+    setIsImagePreviewOpen(false);
   };
 
   if (loading) {
@@ -210,16 +225,29 @@ function ViewList() {
 
                             <div className="col-md-3">
                               {product.productImage && (
-                                <img
-                                  src={`${process.env.REACT_APP_BASE_URL}${product.productImage}`}
-                                  alt={product.productName}
-                                  className="img-fluid rounded"
-                                  style={{
-                                    maxWidth: "200px",
-                                    maxHeight: "200px",
-                                    objectFit: "cover",
-                                  }}
-                                />
+                                <button
+                                  type="button"
+                                  className="btn p-0 border-0 bg-transparent"
+                                  onClick={() =>
+                                    openImagePreview(
+                                      `${process.env.REACT_APP_BASE_URL}${product.productImage}`,
+                                      product.productName
+                                    )
+                                  }
+                                  title="Click to view full size"
+                                >
+                                  <img
+                                    src={`${process.env.REACT_APP_BASE_URL}${product.productImage}`}
+                                    alt={product.productName}
+                                    className="img-fluid rounded"
+                                    style={{
+                                      maxWidth: "200px",
+                                      maxHeight: "200px",
+                                      objectFit: "cover",
+                                      cursor: "zoom-in",
+                                    }}
+                                  />
+                                </button>
                               )}
                             </div>
                           </div>
@@ -315,15 +343,28 @@ function ViewList() {
                                               </td>
                                               <td>
                                                 {variation.variationProductImages ? (
-                                                  <img
-                                                    src={`${process.env.REACT_APP_BASE_URL}${variation.variationProductImages}`}
-                                                    alt="Variation"
-                                                    style={{
-                                                      width: "50px",
-                                                      height: "50px",
-                                                      objectFit: "cover",
-                                                    }}
-                                                  />
+                                                  <button
+                                                    type="button"
+                                                    className="btn p-0 border-0 bg-transparent"
+                                                    onClick={() =>
+                                                      openImagePreview(
+                                                        `${process.env.REACT_APP_BASE_URL}${variation.variationProductImages}`,
+                                                        `Variation ${variation.subSku || ""}`.trim()
+                                                      )
+                                                    }
+                                                    title="Click to view full size"
+                                                  >
+                                                    <img
+                                                      src={`${process.env.REACT_APP_BASE_URL}${variation.variationProductImages}`}
+                                                      alt="Variation"
+                                                      style={{
+                                                        width: "50px",
+                                                        height: "50px",
+                                                        objectFit: "cover",
+                                                        cursor: "zoom-in",
+                                                      }}
+                                                    />
+                                                  </button>
                                                 ) : (
                                                   "No image"
                                                 )}
@@ -472,6 +513,45 @@ function ViewList() {
           </section>
         </div>
       </div>
+
+      {isImagePreviewOpen && (
+        <div
+          className="modal fade show"
+          style={{
+            display: "block",
+            backgroundColor: "rgba(0, 0, 0, 0.75)",
+          }}
+          onClick={closeImagePreview}
+        >
+          <div
+            className="modal-dialog modal-dialog-centered modal-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content bg-transparent border-0 shadow-none">
+              <div className="modal-header border-0 pb-0">
+                <button
+                  type="button"
+                  className="btn-close btn-close-white ml-auto"
+                  aria-label="Close"
+                  onClick={closeImagePreview}
+                ></button>
+              </div>
+              <div className="modal-body text-center">
+                <img
+                  src={previewImageSrc}
+                  alt={previewImageAlt}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "80vh",
+                    objectFit: "contain",
+                    borderRadius: "8px",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
