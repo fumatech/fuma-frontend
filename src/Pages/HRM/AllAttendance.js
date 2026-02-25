@@ -276,7 +276,7 @@ const AllAttendance = () => {
   return (
     <div className="content">
       <div className="container-fluid">
-        <div className="card cardHover rounded-4 border-0">
+        <div className=" cardHover rounded-4 border-0">
           <div className="text-right p-3">
             <button className="btn btn-add" onClick={openAddModal}>
               <i className="fas fa-plus"></i> Add Attendance

@@ -672,7 +672,7 @@ function AddDIPurchase() {
       productId: item.productId,
       variationId: item.productVariationId || null,
       price: parseFloat(item.unitSellingPrice), // ✅ CORRECT VALUE
-      quantity: item.quantity,
+      quantity: parseFloat(item.quantity) || 0,
       transactionType: "di_purchase",
       date: new Date().toISOString().split("T")[0],
       note: "Stock updated after DI purchase",
@@ -708,6 +708,22 @@ function AddDIPurchase() {
         formData, // ✅ send as multipart/form-data
         { headers: { "Content-Type": "multipart/form-data" } }
       );
+
+      const stockResponse = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/stock-transactions/add`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(productStocks),
+        }
+      );
+
+      if (!stockResponse.ok) {
+        toast.error("DI saved, but stock update failed.");
+        return;
+      }
 
       toast.success("Purchase DI Order Placed Successfully!");
       navigate("/ListDIPurchaseOrder");

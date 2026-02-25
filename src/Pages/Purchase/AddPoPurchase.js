@@ -18,7 +18,7 @@ function AddPoPurchase() {
   const [file, setFile] = useState(null);
   const [referenceNumber, setReferenceNumber] = useState("");
   const [purchaseReferenceNumber, setPurchaseReferenceNumber] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(1);
   const [addedBy, setAddedBy] = useState("");
   const [orderedBy, setOrderedBy] = useState("");
   const [purchaseDate, setPurchaseDate] = useState(new Date());
@@ -625,6 +625,7 @@ function AddPoPurchase() {
   };
 
   const handleQuantityChange = (id, variationId, value) => {
+    if (selectedOrderId) return;
     setSelectedProducts((prev) =>
       prev.map((product) => {
         // For regular products (no variation)
@@ -844,7 +845,7 @@ function AddPoPurchase() {
       productId: item.productId,
       variationId: item.productVariationId || null,
       price: parseFloat(item.unitSellingPrice), // ✅ CORRECT VALUE
-      quantity: item.quantity,
+      quantity: parseFloat(item.quantity) || 0,
       transactionType: "po_purchase",
       date: new Date().toISOString().split("T")[0],
       note: "Stock updated after PO purchase",
@@ -856,7 +857,7 @@ function AddPoPurchase() {
       purchasePoOrderId: selectedOrderId?.value || "",
       referenceNumber: referenceNumber,
       purchaseReferenceNumber: purchaseReferenceNumber,
-      status,
+      status: status || 1,
       orderedBy,
       addedBy: userName,
       orderDate: formattedOrderDate,
@@ -893,7 +894,23 @@ function AddPoPurchase() {
       );
 
       if (response.ok) {
-        const data = await response.json(); // Assuming the response contains the saved order data
+        await response.json();
+
+        const stockResponse = await fetch(
+          `${process.env.REACT_APP_BASE_URL}/stock-transactions/add`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(productStocks),
+          }
+        );
+
+        if (!stockResponse.ok) {
+          toast.error("PO saved, but stock update failed.");
+          return;
+        }
 
         await updateOrderStatus(tempId); // Pass the order ID
         toast.success("Purchase PO Order Placed Successfully");
@@ -1276,6 +1293,7 @@ function AddPoPurchase() {
                                         <input
                                           type="number"
                                           value={product.quantity}
+                                          readOnly={!!selectedOrderId}
                                           style={{
                                             width: "80px",
                                             padding: "5px",

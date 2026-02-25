@@ -35,17 +35,23 @@ const Shifts = () => {
     { value: "sunday", label: "Sunday" },
   ];
 
-  // Fetch shifts from backend
-  const fetchShifts = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/shift/getall`
-      );
-      setShiftData(response.data);
-    } catch (error) {
-      console.error("Error fetching shifts:", error);
-    }
-  };
+// Fetch shifts from backend
+const fetchShifts = async () => {
+  try {
+    const response = await axios.get(
+      `${process.env.REACT_APP_BASE_URL}/shift/getall`
+    );
+    setShiftData(response.data);
+  } catch (error) {
+    console.error("Error fetching shifts:", error);
+  }
+
+  // Add jQuery script at the bottom
+  const script = document.createElement("script");
+  script.src = "js/JqueryContent.js";
+  script.async = true;
+  document.body.appendChild(script);
+};
 
   useEffect(() => {
     fetchShifts();
@@ -195,7 +201,7 @@ const Shifts = () => {
     <>
       <section className="content">
         <div className="container-fluid">
-          <div className="card cardHover rounded-4 border-0">
+          <div className=" cardHover rounded-4 border-0">
             <div className="text-right p-3">
               <button className="btn btn-add" onClick={() => openModal()}>
                 <i className="fas fa-plus"></i> Add

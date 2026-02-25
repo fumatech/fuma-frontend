@@ -39,6 +39,19 @@ const Department = () => {
 
   useEffect(() => {
     fetchDepartments();
+  
+    // Add jQuery script at the bottom
+    const script = document.createElement("script");
+    script.src = "js/JqueryContent.js";
+    script.async = true;
+    document.body.appendChild(script);
+  
+    // Cleanup function
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
 
   const handleInputChange = (e) => {
@@ -159,7 +172,7 @@ const Department = () => {
         </section>
         <section className="content">
           <div className="container-fluid">
-            <div className="card cardHover rounded-4 border-0">
+            <div className=" cardHover rounded-4 border-0">
               <div className="text-right">
                 <button className="btn btn-add" onClick={() => openModal()}>
                   Add

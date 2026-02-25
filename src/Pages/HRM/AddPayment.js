@@ -8,14 +8,9 @@ const AddPayment = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-
-
-
   const [users, setUsers] = useState([]);
   const [payroll, setPayroll] = useState(null);
   const [loading, setLoading] = useState(true);
-
-
   const [employees, setEmployees] = useState([]);
   const [paymentAccounts, setPaymentAccounts] = useState([]);
   const [businessLocations, setBusinessLocations] = useState([]);

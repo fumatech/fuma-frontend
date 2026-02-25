@@ -51,53 +51,66 @@ function Leave({ userRoles }) {
     )} (${totalDays} days)`;
   };
 
-  // Fetch all required data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch leaves data
-        const leavesResponse = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/add-leave/getall`
-        );
+// Fetch all required data
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      // Fetch leaves data
+      const leavesResponse = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/add-leave/getall`
+      );
 
-        // Fetch employees data
-        const employeesResponse = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/user/getall`
-        );
-        setEmployees(employeesResponse.data);
+      // Fetch employees data
+      const employeesResponse = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/user/getall`
+      );
+      setEmployees(employeesResponse.data);
 
-        // Fetch leave types data
-        const leaveTypesResponse = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/leave/getall`
-        );
-        setLeaveTypes(leaveTypesResponse.data);
+      // Fetch leave types data
+      const leaveTypesResponse = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/leave/getall`
+      );
+      setLeaveTypes(leaveTypesResponse.data);
 
-        // Process leaves data
-        setLeaveData(
-          leavesResponse.data.map((leave) => ({
-            ...leave,
-            referenceNo: `REF${leave.id.toString().padStart(3, "0")}`,
-            date: getDateWithDays(leave.startDate, leave.endDate),
+      // Process leaves data
+      setLeaveData(
+        leavesResponse.data.map((leave) => ({
+          ...leave,
+          referenceNo: `REF${leave.id.toString().padStart(3, "0")}`,
+          date: getDateWithDays(leave.startDate, leave.endDate),
 
-            statusText: getStatusText(leave.status),
-            employeeName: getEmployeeName(
-              leave.employee,
-              employeesResponse.data
-            ),
-            leaveTypeName: getLeaveTypeName(
-              leave.leaveType,
-              leaveTypesResponse.data
-            ),
-          }))
-        );
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+          statusText: getStatusText(leave.status),
+          employeeName: getEmployeeName(
+            leave.employee,
+            employeesResponse.data
+          ),
+          leaveTypeName: getLeaveTypeName(
+            leave.leaveType,
+            leaveTypesResponse.data
+          ),
+        }))
+      );
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+  fetchData();
+
+  // Add jQuery script at the bottom
+  const script = document.createElement("script");
+  script.src = "js/JqueryContent.js";
+  script.async = true;
+  document.body.appendChild(script);
+
+  // Cleanup function
+  return () => {
+    if (script.parentNode) {
+      script.parentNode.removeChild(script);
+    }
+  };
+}, []);
 
   const getEmployeeName = (employeeId, employees) => {
     const employee = employees.find((e) => e.id === employeeId);
@@ -537,7 +550,7 @@ function Leave({ userRoles }) {
                   <div className="tw-py-2 tw-align-middle sm:tw-px-5">
                     <div className="table-responsive">
                       <div id="table-container">
-                        <table className="table table-bordered table-striped">
+                        <table id="example1" className="table table-bordered table-striped">
                           <thead>
                             <tr>
                               {columnsVisibility.referenceNo && (
