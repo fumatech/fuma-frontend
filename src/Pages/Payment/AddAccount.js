@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import Select from "react-select";
 
 const AddAccount = () => {
   const navigate = useNavigate();
@@ -48,6 +49,21 @@ const AddAccount = () => {
     addedBy: "",
     status: "3",
   });
+
+  const accountTypeOptions = [
+    { value: "", label: "Select Account Type" },
+    { value: "current", label: "Current" },
+    { value: "saving", label: "Saving" },
+    { value: "loan", label: "Loan" },
+    { value: "cc", label: "CC" },
+  ];
+  const paymentMethodOptions = [
+    { value: "", label: "Select Payment Method" },
+    ...paymentMethods.map((method) => ({
+      value: method,
+      label: method,
+    })),
+  ];
 
   const handleFormChange = (e) => {
     const { id, value } = e.target;
@@ -104,6 +120,10 @@ const AddAccount = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.accountType) {
+      toast.warning("Account Type is required.");
+      return;
+    }
     handleSaveAccount();
   };
 
@@ -144,19 +164,24 @@ const AddAccount = () => {
                         <label htmlFor="accountType">
                           Account Type<span className="text-danger">*</span>
                         </label>
-                        <select
-                          id="accountType"
-                          className="form-control"
-                          value={formData.accountType}
-                          onChange={handleFormChange}
-                          required
-                        >
-                          <option value="">Select Account Type</option>
-                          <option value="current">Current</option>
-                          <option value="saving">Saving</option>
-                          <option value="loan">Loan</option>
-                          <option value="cc">CC</option>
-                        </select>
+                        <Select
+                          inputId="accountType"
+                          options={accountTypeOptions}
+                          value={
+                            accountTypeOptions.find(
+                              (option) =>
+                                String(option.value) ===
+                                String(formData.accountType)
+                            ) || null
+                          }
+                          onChange={(selectedOption) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              accountType: selectedOption?.value || "",
+                            }))
+                          }
+                          isSearchable
+                        />
                       </div>
                     </div>
 
@@ -205,19 +230,24 @@ const AddAccount = () => {
 
                     <div className="form-group col-md-4">
                       <label htmlFor="paymentMethod">Payment Method:</label>
-                      <select
-                        id="paymentMethod"
-                        className="form-control"
-                        value={formData.paymentMethod}
-                        onChange={handleFormChange}
-                      >
-                        <option value="">Select Payment Method</option>
-                        {paymentMethods.map((method, index) => (
-                          <option key={index} value={method}>
-                            {method}
-                          </option>
-                        ))}
-                      </select>
+                      <Select
+                        inputId="paymentMethod"
+                        options={paymentMethodOptions}
+                        value={
+                          paymentMethodOptions.find(
+                            (option) =>
+                              String(option.value) ===
+                              String(formData.paymentMethod)
+                          ) || null
+                        }
+                        onChange={(selectedOption) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            paymentMethod: selectedOption?.value || "",
+                          }))
+                        }
+                        isSearchable
+                      />
                     </div>
 
                     <div className="form-group col-md-4">
