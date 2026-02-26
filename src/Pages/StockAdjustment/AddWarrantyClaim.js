@@ -6,6 +6,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Tooltip, OverlayTrigger } from "react-bootstrap";
 import { toast } from "react-toastify";
+import Select from "react-select";
 
 function AddWarrantyClaim() {
   const navigate = useNavigate();
@@ -29,6 +30,19 @@ function AddWarrantyClaim() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [totalUnits, setTotalUnits] = useState(0); // New state for total units
+
+  const vendorOptions = vendorlist.map((vendorItem) => ({
+    value: vendorItem.firmName,
+    label: vendorItem.firmName,
+  }));
+  const selectMenuProps = {
+    menuPortalTarget: document.body,
+    menuPosition: "fixed",
+    styles: {
+      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+      menu: (base) => ({ ...base, zIndex: 9999 }),
+    },
+  };
 
   useEffect(() => {
     const fetchVendors = async () => {
@@ -279,6 +293,10 @@ function AddWarrantyClaim() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!vendor) {
+      toast.warning("Vendor is required.");
+      return;
+    }
     const stockAdjustmentData = {
       vendor,
       referenceNumber,
@@ -345,24 +363,23 @@ function AddWarrantyClaim() {
                       <div className="col-md-4">
                         <label className="">Vendor:</label>
                         <div className="d-flex align-items-center">
-                          <select
-                            className="form-control"
-                            id="vendor"
-                            name="vendor"
-                            value={vendor}
-                            onChange={(e) => setVendor(e.target.value)}
-                            required
-                          >
-                            <option value="">Please Select</option>
-                            {vendorlist.map((vendorItem) => (
-                              <option
-                                key={vendorItem.id}
-                                value={vendorItem.firmName}
-                              >
-                                {vendorItem.firmName}
-                              </option>
-                            ))}
-                          </select>
+                          <Select
+                            inputId="vendor"
+                            options={vendorOptions}
+                            value={
+                              vendorOptions.find(
+                                (option) =>
+                                  String(option.value) === String(vendor)
+                              ) || null
+                            }
+                            onChange={(selectedOption) =>
+                              setVendor(selectedOption?.value || "")
+                            }
+                            placeholder="Please Select"
+                            isSearchable
+                            className="flex-grow-1"
+                            {...selectMenuProps}
+                          />
                         </div>
                       </div>
                       <div className="form-group col-md-4">

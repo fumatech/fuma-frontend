@@ -29,7 +29,7 @@ function EditExpense() {
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const [taxId, setTaxId] = useState("None");
+  const [taxId, setTaxId] = useState("");
   const [finalTotal, setFinalTotal] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [isRefund, setIsRefund] = useState(false);
@@ -64,6 +64,50 @@ function EditExpense() {
   const [bankAccountNumber, setBankAccountNumber] = useState("");
   const [customTransactionNo, setCustomTransactionNo] = useState("");
   const [transactionId, setTransactionId] = useState("");
+
+  const locationOptions = locations.map((loc) => ({
+    value: loc.name,
+    label: loc.name,
+  }));
+  const expenseCategoryOptions = [
+    { value: "", label: "Please Select" },
+    ...expenses.map((cat) => ({
+      value: String(cat.id),
+      label: cat.expenseName,
+    })),
+  ];
+  const subCategoryOptions = [
+    { value: "", label: "Please Select" },
+    ...filteredSubExpenses.map((sub) => ({
+      value: String(sub.id),
+      label: sub.expenseName,
+    })),
+  ];
+  const contactOptions = [
+    { value: "", label: "Please Select" },
+    { value: "1", label: "Walk-In Customer" },
+    { value: "2", label: "Regular Customer" },
+  ];
+  const paymentMethodOptions = [
+    { value: "", label: "Select Payment Method" },
+    ...paymentMethods.map((method) => ({
+      value: method,
+      label: method,
+    })),
+  ];
+  const paymentAccountOptions = [
+    { value: "", label: "None" },
+    ...paymentAccounts.map((account) => ({
+      value: String(account.id),
+      label: `${account.accountName} / ${account.accountNumber}`,
+    })),
+  ];
+  const cardTypeOptions = [
+    { value: "credit", label: "Credit Card" },
+    { value: "debit", label: "Debit Card" },
+    { value: "visa", label: "Visa" },
+    { value: "master", label: "MasterCard" },
+  ];
 
   // Fetch expense data by ID on component mount
   useEffect(() => {
@@ -336,6 +380,17 @@ function EditExpense() {
     setIsSubmitting(true);
 
     try {
+      if (!locationId) {
+        toast.warning("Business Location is required.");
+        setIsSubmitting(false);
+        return;
+      }
+      if (!paymentMethod) {
+        toast.warning("Payment Method is required.");
+        setIsSubmitting(false);
+        return;
+      }
+
       const expenseObj = {
         businessLocation: locationId,
         expenseCategory: expenseCategoryId ? Number(expenseCategoryId) : null,
@@ -413,62 +468,63 @@ function EditExpense() {
                       {/* Business Location */}
                       <div className="col-md-4 form-group">
                         <label htmlFor="location_id">Business Location:*</label>
-                        <select
-                          className="form-control"
-                          required
-                          id="location_id"
-                          value={locationId}
-                          onChange={(e) => setLocationId(e.target.value)}
-                        >
-                          <option value="">Please Select</option>
-
-                          {locations.map((loc) => (
-                            <option key={loc.id} value={loc.name}>
-                              {loc.name}
-                            </option>
-                          ))}
-                        </select>
+                        <Select
+                          inputId="location_id"
+                          options={locationOptions}
+                          value={
+                            locationOptions.find(
+                              (option) =>
+                                String(option.value) === String(locationId)
+                            ) || null
+                          }
+                          onChange={(selectedOption) =>
+                            setLocationId(selectedOption?.value || "")
+                          }
+                          isSearchable
+                        />
                       </div>
                       {/* Expense Category */}
                       <div className="col-md-4">
                         <label htmlFor="expense_category_id">
                           Expense Category:
                         </label>
-                        <select
-                          className="form-control"
-                          id="expense_category_id"
-                          value={expenseCategoryId}
-                          onChange={(e) => handleCategoryChange(e.target.value)}
-                        >
-                          <option value="">Please Select</option>
-                          {expenses.map((cat) => (
-                            <option key={cat.id} value={cat.id}>
-                              {cat.expenseName}
-                            </option>
-                          ))}
-                        </select>
+                        <Select
+                          inputId="expense_category_id"
+                          options={expenseCategoryOptions}
+                          value={
+                            expenseCategoryOptions.find(
+                              (option) =>
+                                String(option.value) ===
+                                String(expenseCategoryId)
+                            ) || null
+                          }
+                          onChange={(selectedOption) =>
+                            handleCategoryChange(selectedOption?.value || "")
+                          }
+                          isSearchable
+                        />
                       </div>
                       {/* Sub category */}
                       <div className="col-md-4">
                         <label htmlFor="expense_sub_category_id">
                           Sub category:
                         </label>
-                        <select
-                          className="form-control"
-                          id="expense_sub_category_id"
-                          value={expenseSubCategoryId}
-                          onChange={(e) =>
-                            setExpenseSubCategoryId(e.target.value)
+                        <Select
+                          inputId="expense_sub_category_id"
+                          options={subCategoryOptions}
+                          value={
+                            subCategoryOptions.find(
+                              (option) =>
+                                String(option.value) ===
+                                String(expenseSubCategoryId)
+                            ) || null
                           }
-                          disabled={!expenseCategoryId}
-                        >
-                          <option value="">Please Select</option>
-                          {filteredSubExpenses.map((sub) => (
-                            <option key={sub.id} value={sub.id}>
-                              {sub.expenseName}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(selectedOption) =>
+                            setExpenseSubCategoryId(selectedOption?.value || "")
+                          }
+                          isSearchable
+                          isDisabled={!expenseCategoryId}
+                        />
                       </div>
                       {/* Reference Number */}
                       {/* <div className="col-md-4">
@@ -519,16 +575,20 @@ function EditExpense() {
                       {/* Expense for contact */}
                       <div className="col-md-4">
                         <label htmlFor="contact_id">Expense for contact:</label>
-                        <select
-                          className="form-control"
-                          id="contact_id"
-                          value={contactId}
-                          onChange={(e) => setContactId(e.target.value)}
-                        >
-                          <option value="">Please Select</option>
-                          <option value="1">Walk-In Customer</option>
-                          <option value="2">Regular Customer</option>
-                        </select>
+                        <Select
+                          inputId="contact_id"
+                          options={contactOptions}
+                          value={
+                            contactOptions.find(
+                              (option) =>
+                                String(option.value) === String(contactId)
+                            ) || null
+                          }
+                          onChange={(selectedOption) =>
+                            setContactId(selectedOption?.value || "")
+                          }
+                          isSearchable
+                        />
                       </div>
                       {/* Attach document */}
                       <div className="col-12 col-md-4">
@@ -650,6 +710,7 @@ function EditExpense() {
                             setTaxId(selectedOption ? selectedOption.value : "")
                           }
                           isClearable={true}
+                          isSearchable
                           styles={{
                             control: (provided) => ({
                               ...provided,
@@ -889,23 +950,26 @@ function EditExpense() {
                                       <i className="fas fa-money-bill-alt"></i>
                                     </span>
                                   </div>
-                                  <select
-                                    className="form-control"
-                                    required
-                                    id="method"
-                                    name="method"
-                                    value={paymentMethod}
-                                    onChange={handleMethodChange}
-                                  >
-                                    <option value="">
-                                      Select Payment Method
-                                    </option>
-                                    {paymentMethods.map((method, index) => (
-                                      <option key={index} value={method}>
-                                        {method}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  <Select
+                                    inputId="method"
+                                    options={paymentMethodOptions}
+                                    value={
+                                      paymentMethodOptions.find(
+                                        (option) =>
+                                          String(option.value) ===
+                                          String(paymentMethod)
+                                      ) || null
+                                    }
+                                    onChange={(selectedOption) =>
+                                      handleMethodChange({
+                                        target: {
+                                          value: selectedOption?.value || "",
+                                        },
+                                      })
+                                    }
+                                    isSearchable
+                                    className="flex-grow-1"
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -918,27 +982,25 @@ function EditExpense() {
                                   <span className="input-group-text bg-transparent">
                                     <i className="fas fa-money-bill-alt"></i>
                                   </span>
-                                  <select
-                                    className="form-control"
-                                    id="account"
-                                    name="account_id"
-                                    value={selectedAccount}
-                                    onChange={(e) => {
-                                      setSelectedAccount(e.target.value);
-                                      setPaymentAccount(e.target.value);
+                                  <Select
+                                    inputId="account"
+                                    options={paymentAccountOptions}
+                                    value={
+                                      paymentAccountOptions.find(
+                                        (option) =>
+                                          String(option.value) ===
+                                          String(selectedAccount)
+                                      ) || null
+                                    }
+                                    onChange={(selectedOption) => {
+                                      const selectedValue =
+                                        selectedOption?.value || "";
+                                      setSelectedAccount(selectedValue);
+                                      setPaymentAccount(selectedValue);
                                     }}
-                                  >
-                                    <option value="">None</option>
-                                    {paymentAccounts.map((account) => (
-                                      <option
-                                        key={account.id}
-                                        value={account.id}
-                                      >
-                                        {account.accountName} /{" "}
-                                        {account.accountNumber}
-                                      </option>
-                                    ))}
-                                  </select>
+                                    isSearchable
+                                    className="flex-grow-1"
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -1003,24 +1065,25 @@ function EditExpense() {
                                       <label htmlFor="cardType">
                                         Card Type
                                       </label>
-                                      <select
-                                        className="form-control"
-                                        id="cardType"
-                                        name="cardType"
-                                        value={cardDetails.cardType}
-                                        onChange={handleInputChange}
-                                      >
-                                        <option value="credit">
-                                          Credit Card
-                                        </option>
-                                        <option value="debit">
-                                          Debit Card
-                                        </option>
-                                        <option value="visa">Visa</option>
-                                        <option value="master">
-                                          MasterCard
-                                        </option>
-                                      </select>
+                                      <Select
+                                        inputId="cardType"
+                                        options={cardTypeOptions}
+                                        value={
+                                          cardTypeOptions.find(
+                                            (option) =>
+                                              String(option.value) ===
+                                              String(cardDetails.cardType)
+                                          ) || null
+                                        }
+                                        onChange={(selectedOption) =>
+                                          setCardDetails((prev) => ({
+                                            ...prev,
+                                            cardType:
+                                              selectedOption?.value || "credit",
+                                          }))
+                                        }
+                                        isSearchable
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-3">
