@@ -1,12 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUsers } from "@fortawesome/free-solid-svg-icons";
+import axios from "axios";
 
 import Campaigns from "./Campaigns";
 import ContactLogin from "./ContactLogin";
 import Leads from "./Leads";
 import FollowUps from "./FollowUps";
 
+const ComingSoonTab = ({ title }) => (
+  <div className="card cardHover p-4 m-3">
+    <h4 className="mb-2">{title}</h4>
+    <p className="mb-0 text-muted">
+      This section is not configured yet. Please add the module implementation.
+    </p>
+  </div>
+);
 
 const tabsData = [
   
@@ -14,41 +23,202 @@ const tabsData = [
   { id: "Follow-Ups", label: "Follow Ups" , component: <FollowUps  />   },
   { id: "Campaigns", label: "Campaigns" , component: <Campaigns  />  },
   { id: "Contacts-Login", label: "Contacts Login" , component: <ContactLogin  />  },
-  { id: "Sources", label: "Sources" },
-  { id: "Life-Stage", label: "Life Stage" },
+  {
+    id: "Sources",
+    label: "Sources",
+    component: <ComingSoonTab title="Sources" />,
+  },
+  {
+    id: "Life-Stage",
+    label: "Life Stage",
+    component: <ComingSoonTab title="Life Stage" />,
+  },
 ];
 
 const CRMDashboard = () => {
   const [activeTab, setActiveTab] = useState(null);
-  const [entriesPerPage, setEntriesPerPage] = useState(25);
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // Dashboard data
-  const dashboardData = {
-    customerCount: 3,
+  const [dashboardData, setDashboardData] = useState({
+    customerCount: 0,
     leadsCount: 0,
-    sourcesCount: 3,
-    lifeStagesCount: 4,
-    facebookCount: 1,
-    emailCount: 1,
-    twitterCount: 1,
+    sourcesCount: 0,
+    lifeStagesCount: 0,
+    facebookCount: 0,
+    emailCount: 0,
+    twitterCount: 0,
     offlineCount: 0,
-    todayBirthdays: [{ name: "Harry" }],
-    upcomingBirthdays: [
-      { name: "Birthday on", date: "" },
-      { name: "Walk-In Customer", date: "" },
-      { name: "22nd Oct", date: "" }
-    ]
-  };
+    newCount: 0,
+    prospectCount: 0,
+    contactedCount: 0,
+    opportunityCount: 0,
+    todayBirthdays: [],
+    upcomingBirthdays: [],
+  });
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
 
   const activeTabData = tabsData.find(tab => tab.id === activeTab);
-  const startIndex = (currentPage - 1) * entriesPerPage;
-  const endIndex = startIndex + entriesPerPage;
 
-  const handleEntriesChange = (e) => {
-    setEntriesPerPage(Number(e.target.value));
-    setCurrentPage(1);
+  const normalizeText = (value) =>
+    String(value || "")
+      .trim()
+      .toLowerCase();
+
+  const getCustomerName = (customer) => {
+    const firstName = customer.firstName || customer.firstname || "";
+    const lastName = customer.lastName || customer.lastname || "";
+    const fullName = `${firstName} ${lastName}`.trim();
+    return fullName || customer.name || customer.customerName || "Customer";
   };
+
+  const getLeadName = (lead) => {
+    const firstName = lead.firstName || lead.firstname || "";
+    const lastName = lead.lastName || lead.lastname || "";
+    const fullName = `${firstName} ${lastName}`.trim();
+    return fullName || lead.name || lead.leadName || "Lead";
+  };
+
+  const getBirthdayRawValue = (customer) =>
+    customer.dateOfBirth ||
+    customer.dob ||
+    customer.birthDate ||
+    customer.birthday ||
+    customer.date_of_birth ||
+    "";
+
+  const parseBirthdayDate = (value) => {
+    if (!value) return null;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const getDaysUntilBirthday = (birthdayDate) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const nextBirthday = new Date(
+      today.getFullYear(),
+      birthdayDate.getMonth(),
+      birthdayDate.getDate()
+    );
+    if (nextBirthday < today) {
+      nextBirthday.setFullYear(nextBirthday.getFullYear() + 1);
+    }
+    return Math.floor((nextBirthday - today) / (1000 * 60 * 60 * 24));
+  };
+
+  const formatBirthday = (birthdayDate) =>
+    birthdayDate.toLocaleDateString(undefined, {
+      day: "2-digit",
+      month: "short",
+    });
+
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoadingDashboard(true);
+      const [customersResponse, leadsResponse] = await Promise.all([
+        axios.get(`${process.env.REACT_APP_BASE_URL}/customer/getall`),
+        axios.get(`${process.env.REACT_APP_BASE_URL}/lead/getall`),
+      ]);
+
+      const customers = Array.isArray(customersResponse.data)
+        ? customersResponse.data
+        : [];
+      const leads = Array.isArray(leadsResponse.data) ? leadsResponse.data : [];
+
+      const sourceCounts = leads.reduce((acc, lead) => {
+        const key = normalizeText(lead.source);
+        if (key) acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+
+      const lifeStageCounts = leads.reduce((acc, lead) => {
+        const key = normalizeText(lead.lifeStage);
+        if (key) acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+
+      const getGroupedCount = (map, keys) =>
+        keys.reduce((sum, key) => sum + (map[normalizeText(key)] || 0), 0);
+
+      const facebookCount = getGroupedCount(sourceCounts, ["facebook"]);
+      const emailCount = getGroupedCount(sourceCounts, ["email"]);
+      const twitterCount = getGroupedCount(sourceCounts, ["twitter"]);
+      const offlineCount = getGroupedCount(sourceCounts, [
+        "offline",
+        "offline campaign",
+        "walk-in",
+        "walk in",
+        "walkin",
+      ]);
+
+      const newCount = getGroupedCount(lifeStageCounts, ["new"]);
+      const prospectCount = getGroupedCount(lifeStageCounts, ["prospect"]);
+      const contactedCount = getGroupedCount(lifeStageCounts, ["contacted"]);
+      const opportunityCount = getGroupedCount(lifeStageCounts, [
+        "opportunity",
+        "oppotu",
+      ]);
+
+      const birthdayPeople = customers
+        .map((customer) => {
+          const birthdayDate = parseBirthdayDate(getBirthdayRawValue(customer));
+          if (!birthdayDate) return null;
+          return {
+            name: `${getCustomerName(customer)} (Customer)`,
+            daysUntil: getDaysUntilBirthday(birthdayDate),
+            date: formatBirthday(birthdayDate),
+          };
+        })
+        .filter(Boolean);
+
+      const leadBirthdayPeople = leads
+        .map((customer) => {
+          const birthdayDate = parseBirthdayDate(getBirthdayRawValue(customer));
+          if (!birthdayDate) return null;
+          return {
+            name: `${getLeadName(customer)} (Lead)`,
+            daysUntil: getDaysUntilBirthday(birthdayDate),
+            date: formatBirthday(birthdayDate),
+          };
+        })
+        .filter(Boolean);
+
+      const allBirthdayPeople = [...birthdayPeople, ...leadBirthdayPeople];
+
+      const todayBirthdays = allBirthdayPeople.filter(
+        (person) => person.daysUntil === 0
+      );
+      const upcomingBirthdays = allBirthdayPeople
+        .filter((person) => person.daysUntil > 0 && person.daysUntil <= 30)
+        .sort((a, b) => a.daysUntil - b.daysUntil)
+        .slice(0, 10);
+
+      setDashboardData({
+        customerCount: customers.length,
+        leadsCount: leads.length,
+        sourcesCount: Object.keys(sourceCounts).length,
+        lifeStagesCount: Object.keys(lifeStageCounts).length,
+        facebookCount,
+        emailCount,
+        twitterCount,
+        offlineCount,
+        newCount,
+        prospectCount,
+        contactedCount,
+        opportunityCount,
+        todayBirthdays,
+        upcomingBirthdays,
+      });
+    } catch (error) {
+      console.error("Failed to load CRM dashboard data:", error);
+    } finally {
+      setIsLoadingDashboard(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!activeTab) {
+      fetchDashboardData();
+    }
+  }, [activeTab]);
 
   return (
     <div className="wrapper" style={{ backgroundColor: '#f4f6f9' }}>
@@ -134,6 +304,9 @@ const CRMDashboard = () => {
         {/* Dashboard Content - Only shown when no tab is active */}
         {!activeTab && (
           <section className="content" style={{ padding: '0 15px' }}>
+   {isLoadingDashboard && (
+    <div className="mb-2 text-muted">Refreshing dashboard...</div>
+   )}
    <div className="row" style={{ margin: '0 -5px' }}>
   {/* Customer Card */}
   <div className="col-md-3 col-sm-6" style={{ padding: '5px' }}>
@@ -325,7 +498,7 @@ const CRMDashboard = () => {
                   color: '#007bff',
                   fontWeight: 'bold',
                   textAlign: 'right'
-                }}>{dashboardData.facebookCount}</td>
+                }}>{dashboardData.newCount}</td>
               </tr>
               <tr>
                 <td style={{
@@ -339,7 +512,7 @@ const CRMDashboard = () => {
                   color: '#007bff',
                   fontWeight: 'bold',
                   textAlign: 'right'
-                }}>{dashboardData.emailCount}</td>
+                }}>{dashboardData.prospectCount}</td>
               </tr>
               <tr>
                 <td style={{
@@ -437,19 +610,19 @@ const CRMDashboard = () => {
                   color: '#007bff',
                   fontWeight: 'bold',
                   textAlign: 'right'
-                }}>{dashboardData.twitterCount}</td>
+                }}>{dashboardData.contactedCount}</td>
               </tr>
               <tr>
                 <td style={{
                   padding: '8px 0',
                   color: '#6c757d'
-                }}>Oppotu</td>
+                }}>Opportunity</td>
                 <td style={{
                   padding: '8px 0',
                   color: '#007bff',
                   fontWeight: 'bold',
                   textAlign: 'right'
-                }}>{dashboardData.offlineCount}</td>
+                }}>{dashboardData.opportunityCount}</td>
               </tr>
             </tbody>
           </table>
@@ -485,6 +658,9 @@ const CRMDashboard = () => {
                         margin: '0 0 10px 0',
                         fontWeight: 'bold'
                       }}>Today</h5>
+                      {dashboardData.todayBirthdays.length === 0 && (
+                        <div style={{ color: '#6c757d' }}>No birthdays today</div>
+                      )}
                       {dashboardData.todayBirthdays.map((person, index) => (
                         <div key={index} style={{ 
                           display: 'flex', 
@@ -513,6 +689,11 @@ const CRMDashboard = () => {
                         margin: '0 0 10px 0',
                         fontWeight: 'bold'
                       }}>Upcoming</h5>
+                      {dashboardData.upcomingBirthdays.length === 0 && (
+                        <div style={{ color: '#6c757d' }}>
+                          No upcoming birthdays in next 30 days
+                        </div>
+                      )}
                       {dashboardData.upcomingBirthdays.map((person, index) => (
                         <div key={index} style={{ 
                           display: 'flex', 
