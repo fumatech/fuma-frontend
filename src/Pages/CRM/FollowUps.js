@@ -552,52 +552,51 @@ const FollowUps = () => {
             <thead>
               <tr>
                 ${visibleColumns
-                  .map(
-                    (col) => `<th>${col.replace(/([A-Z])/g, " $1").trim()}</th>`
-                  )
-                  .join("")}
+        .map(
+          (col) => `<th>${col.replace(/([A-Z])/g, " $1").trim()}</th>`
+        )
+        .join("")}
               </tr>
             </thead>
             <tbody>
               ${filteredFollowUps
-                .map((followUp) => {
-                  const customerName = getCustomerFullName(followUp.customer);
-                  return `
+        .map((followUp) => {
+          const customerName = getCustomerFullName(followUp.customer);
+          return `
                     <tr>
                       ${visibleColumns
-                        .map((col) => {
-                          switch (col) {
-                            case "Action":
-                              return "<td>Edit/View/Delete</td>";
-                            case "Contact":
-                              return `<td>${customerName}</td>`;
-                            case "StartDatetime":
-                              return `<td>${formatDate(
-                                followUp.startDateAndTime
-                              )}</td>`;
-                            case "Status":
-                              return `<td>${followUp.status}</td>`;
-                            case "FollowUpType":
-                              return `<td>${followUp.type}</td>`;
-                            case "AssignedTo":
-                              return `<td>${followUp.assigned}</td>`;
-                            case "Description":
-                              return `<td>${followUp.description}</td>`;
-                            case "Title":
-                              return `<td>${followUp.title}</td>`;
-                            case "AddedBy":
-                              return `<td>${
-                                followUp.addedBy || "Mr. Super Admin"
-                              }</td>`;
-                            default:
-                              return "";
-                          }
-                        })
-                        .join("")}
+              .map((col) => {
+                switch (col) {
+                  case "Action":
+                    return "<td>Edit/View/Delete</td>";
+                  case "Contact":
+                    return `<td>${customerName}</td>`;
+                  case "StartDatetime":
+                    return `<td>${formatDate(
+                      followUp.startDateAndTime
+                    )}</td>`;
+                  case "Status":
+                    return `<td>${followUp.status}</td>`;
+                  case "FollowUpType":
+                    return `<td>${followUp.type}</td>`;
+                  case "AssignedTo":
+                    return `<td>${followUp.assigned}</td>`;
+                  case "Description":
+                    return `<td>${followUp.description}</td>`;
+                  case "Title":
+                    return `<td>${followUp.title}</td>`;
+                  case "AddedBy":
+                    return `<td>${followUp.addedBy || "Mr. Super Admin"
+                      }</td>`;
+                  default:
+                    return "";
+                }
+              })
+              .join("")}
                     </tr>
                   `;
-                })
-                .join("")}
+        })
+        .join("")}
             </tbody>
           </table>
           <script>
