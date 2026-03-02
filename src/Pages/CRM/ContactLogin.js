@@ -160,12 +160,15 @@ const ContactLogin = () => {
   });
 
   // Calculate pagination
-  const totalPages = Math.ceil(filteredContacts.length / entriesPerPage);
   const searchedContacts = filteredContacts.filter((contact) =>
     Object.values(contact).some(
       (val) =>
         val && val.toString().toLowerCase().includes(searchTerm.toLowerCase())
     )
+  );
+  const totalPages = Math.max(
+    1,
+    Math.ceil(searchedContacts.length / entriesPerPage)
   );
   const paginatedContacts = searchedContacts.slice(
     (currentPage - 1) * entriesPerPage,
@@ -176,6 +179,12 @@ const ContactLogin = () => {
     setEntriesPerPage(parseInt(e.target.value, 10));
     setCurrentPage(1);
   };
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const toggleColumn = (column) => {
     setColumnsVisibility((prev) => ({
@@ -428,6 +437,57 @@ const ContactLogin = () => {
                       )}
                     </tbody>
                   </table>
+                </div>
+                <div className="row mt-3">
+                  <div className="col-md-6">
+                    <div className="dataTables_info">
+                      Showing{" "}
+                      {searchedContacts.length === 0
+                        ? 0
+                        : (currentPage - 1) * entriesPerPage + 1}{" "}
+                      to{" "}
+                      {Math.min(
+                        currentPage * entriesPerPage,
+                        searchedContacts.length
+                      )}{" "}
+                      of {searchedContacts.length} entries
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="dataTables_paginate paging_simple_numbers float-right">
+                      <ul className="pagination">
+                        <li
+                          className={`paginate_button page-item previous ${
+                            currentPage === 1 ? "disabled" : ""
+                          }`}
+                        >
+                          <button
+                            className="page-link"
+                            onClick={() => setCurrentPage(currentPage - 1)}
+                            disabled={currentPage === 1}
+                          >
+                            Previous
+                          </button>
+                        </li>
+                        <li className="paginate_button page-item active">
+                          <button className="page-link">{currentPage}</button>
+                        </li>
+                        <li
+                          className={`paginate_button page-item next ${
+                            currentPage === totalPages ? "disabled" : ""
+                          }`}
+                        >
+                          <button
+                            className="page-link"
+                            onClick={() => setCurrentPage(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                          >
+                            Next
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

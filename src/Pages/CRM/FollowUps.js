@@ -45,6 +45,7 @@ const FollowUps = () => {
 
   // State for customers
   const [customers, setCustomers] = useState([]);
+  const [leads, setLeads] = useState([]);
 
   // State for editing follow-up
   const [editingFollowUp, setEditingFollowUp] = useState(null);
@@ -64,23 +65,42 @@ const FollowUps = () => {
 
   // State for pagination
   const [entriesPerPage, setEntriesPerPage] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // State for follow-ups data
   const [allFollowUps, setAllFollowUps] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch follow-ups and customers from backend
+  // Fetch follow-ups, customers, and leads from backend
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [followUpsResponse, customersResponse] = await Promise.all([
+        const [
+          followUpsResponse,
+          activeCustomersResponse,
+          inactiveCustomersResponse,
+          leadsResponse,
+        ] = await Promise.allSettled([
           axios.get(`${process.env.REACT_APP_BASE_URL}/follow-ups/getall`),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/customer/getall`),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/customer/getallactive`),
+          axios.get(
+            `${process.env.REACT_APP_BASE_URL}/customer/getallinactive`
+          ),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/lead/getall`),
         ]);
 
-        setAllFollowUps(followUpsResponse.data);
-        setCustomers(customersResponse.data);
+        const getData = (result) =>
+          result.status === "fulfilled" && Array.isArray(result.value.data)
+            ? result.value.data
+            : [];
+
+        setAllFollowUps(getData(followUpsResponse));
+        setCustomers([
+          ...getData(activeCustomersResponse),
+          ...getData(inactiveCustomersResponse),
+        ]);
+        setLeads(getData(leadsResponse));
         setIsLoading(false);
       } catch (err) {
         setError(err.message);
@@ -109,16 +129,49 @@ const FollowUps = () => {
   ];
   const assignedOptions = ["All", "Agent 1", "Agent 2", "Agent 3", "Manager"];
 
+  const buildDisplayName = (record, fallbackPrefix) => {
+    const firstName = record.firstName || record.firstname || "";
+    const lastName = record.lastName || record.lastname || "";
+    const fullName = `${firstName} ${lastName}`.trim();
+    return (
+      fullName ||
+      record.name ||
+      record.customerName ||
+      record.franchiseName ||
+      record.email ||
+      record.mobileNumber ||
+      `${fallbackPrefix} ${record.id ?? ""}`.trim()
+    );
+  };
+
+  const contactOptions = [
+    ...customers.map((customer) => ({
+      key: `customer-${customer.id}`,
+      id: String(customer.id),
+      label: `${buildDisplayName(customer, "Customer")} (Customer)`,
+    })),
+    ...leads.map((lead) => ({
+      key: `lead-${lead.id}`,
+      id: String(lead.id),
+      label: `${buildDisplayName(lead, "Lead")} (Lead)`,
+    })),
+  ];
+
   // Get customer full name by ID
   const getCustomerFullName = (customerId) => {
-    const customer = customers.find((c) => c.id === customerId);
-    return customer ? `${customer.firstName} ${customer.lastName}` : "Unknown";
+    const contact = contactOptions.find(
+      (option) => option.id === String(customerId)
+    );
+    return contact ? contact.label : "Unknown";
   };
 
   // Filter follow-ups based on selected filters
   const filteredFollowUps = allFollowUps.filter((followUp) => {
     // Contact filter
-    if (filters.contact !== "All" && followUp.customer !== filters.contact) {
+    if (
+      filters.contact !== "All" &&
+      String(followUp.customer) !== String(filters.contact)
+    ) {
       return false;
     }
 
@@ -241,6 +294,7 @@ const FollowUps = () => {
   // Handle entries per page change
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value));
+    setCurrentPage(1);
   };
 
   // Toggle column visibility
@@ -317,7 +371,7 @@ const FollowUps = () => {
     setEditingFollowUp(followUp);
     setFormData({
       title: followUp.title,
-      customer: followUp.customer,
+      customer: String(followUp.customer ?? ""),
       status: followUp.status,
       startDateAndTime: formatDateTimeForInput(followUp.startDateAndTime),
       description: followUp.description,
@@ -620,6 +674,11 @@ const FollowUps = () => {
 
   // Calculate totals for summary
   const totalCount = filteredFollowUps.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / entriesPerPage));
+  const paginatedFollowUps = filteredFollowUps.slice(
+    (currentPage - 1) * entriesPerPage,
+    currentPage * entriesPerPage
+  );
   const scheduledCount = filteredFollowUps.filter(
     (f) => f.status === "Scheduled"
   ).length;
@@ -648,6 +707,12 @@ const FollowUps = () => {
     }));
   };
 
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   if (isLoading) {
     return <div className="wrapper">Loading...</div>;
   }
@@ -675,9 +740,9 @@ const FollowUps = () => {
                       onChange={(e) => handleFilterChange(e)}
                     >
                       <option value="All">All</option>
-                      {customers.map((customer) => (
-                        <option key={customer.id} value={customer.id}>
-                          {customer.firstName} {customer.lastName}
+                      {contactOptions.map((contact) => (
+                        <option key={contact.key} value={contact.id}>
+                          {contact.label}
                         </option>
                       ))}
                     </select>
@@ -892,8 +957,8 @@ const FollowUps = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredFollowUps.length > 0 ? (
-                        filteredFollowUps.map((followUp) => {
+                      {paginatedFollowUps.length > 0 ? (
+                        paginatedFollowUps.map((followUp) => {
                           const customerName = getCustomerFullName(
                             followUp.customer
                           );
@@ -957,16 +1022,37 @@ const FollowUps = () => {
                   </div>
                   <div className="d-flex align-items-center">
                     <div className="me-3">
-                      Showing 1 to {filteredFollowUps.length} of{" "}
-                      {filteredFollowUps.length} entries
+                      Showing{" "}
+                      {totalCount === 0
+                        ? 0
+                        : (currentPage - 1) * entriesPerPage + 1}{" "}
+                      to {Math.min(currentPage * entriesPerPage, totalCount)} of{" "}
+                      {totalCount} entries
                     </div>
-                    <button className="btn btn-light btn-sm" disabled>
+                    <button
+                      className="btn btn-light btn-sm"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((prev) => prev - 1)}
+                    >
                       Previous
                     </button>
                     <button className="btn btn-light btn-sm mx-1" disabled>
-                      1
+                      {currentPage}
                     </button>
-                    <button className="btn btn-light btn-sm" disabled>
+                    <button
+                      className="btn btn-light btn-sm mx-1"
+                      disabled
+                    >
+                      /
+                    </button>
+                    <button className="btn btn-light btn-sm mx-1" disabled>
+                      {totalPages}
+                    </button>
+                    <button
+                      className="btn btn-light btn-sm"
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage((prev) => prev + 1)}
+                    >
                       Next
                     </button>
                   </div>
@@ -1050,9 +1136,9 @@ const FollowUps = () => {
                         required
                       >
                         <option value="">Please Select</option>
-                        {customers.map((customer) => (
-                          <option key={customer.id} value={customer.id}>
-                            {customer.firstName} {customer.lastName}
+                        {contactOptions.map((contact) => (
+                          <option key={contact.key} value={contact.id}>
+                            {contact.label}
                           </option>
                         ))}
                       </select>
