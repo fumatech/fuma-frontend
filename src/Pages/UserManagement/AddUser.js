@@ -19,6 +19,13 @@ import { toast } from "react-toastify";
 import BackButton from "../../components/BackButton";
 
 const AddUser = () => {
+  const isSuperAdminRole = (roleName = "") =>
+    roleName
+      .toString()
+      .toLowerCase()
+      .replace(/[\s_-]/g, "")
+      .includes("superadmin");
+
   // Basic Information
   const emailCheckTimeoutRef = useRef(null);
   const emailToastShownRef = useRef(false);
@@ -444,6 +451,14 @@ const AddUser = () => {
       return;
     }
 
+    const selectedRole = roles.find(
+      (role) => role.id === parseInt(selectedRoleId, 10)
+    );
+    if (selectedRole && isSuperAdminRole(selectedRole.role)) {
+      toast.warning("Super Admin role cannot be assigned from Add User.");
+      return;
+    }
+
     const userData = {
       prefix,
       firstname: firstName,
@@ -459,8 +474,7 @@ const AddUser = () => {
       roles: [
         {
           id: selectedRoleId,
-          role: roles.find((role) => role.id === parseInt(selectedRoleId))
-            ?.role,
+          role: selectedRole?.role,
         },
       ],
       language,
@@ -766,7 +780,7 @@ const AddUser = () => {
                                   >
                                     <option value="">Select Role</option>
                                     {roles
-                                      .filter((role) => role.role !== "Super Admin")
+                                      .filter((role) => !isSuperAdminRole(role.role))
                                       .map((role) => (
                                         <option key={role.id} value={role.id}>
                                           {role.role}

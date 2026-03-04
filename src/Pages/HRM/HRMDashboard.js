@@ -47,6 +47,7 @@ import Holiday from "./Holiday";
 import Attendance from "./Attendance";
 import Payroll from "./payroll";
 import HRMSettings from "./HRMSettings";
+import EmployeePerformance from "./EmployeePerformance";
 
 const tabsData = [
   { id: "leave-type", label: "Leave Type", component: <LeaveType /> },
@@ -57,6 +58,7 @@ const tabsData = [
   { id: "departments", label: "Departments", component: <Department /> },
   { id: "designations", label: "Designations", component: <Designations /> },
   { id: "sales-targets", label: "Sales Targets", component: <SalesTargets /> },
+  { id: "performance", label: "Performance Tracker", component: <EmployeePerformance /> },
   { id: "HRMSettings", label: "Settings", component: <HRMSettings /> },
 ];
 
@@ -645,7 +647,7 @@ const HRMTabComponent = () => {
                           outerRadius={80}
                           paddingAngle={5}
                           dataKey="value"
-                          label={({ name, percent }) => 
+                          label={({ name, percent }) =>
                             `${name} ${(percent * 100).toFixed(0)}%`
                           }
                         >
@@ -778,7 +780,7 @@ const HRMTabComponent = () => {
                             <span className="badge badge-info">
                               {Math.ceil(
                                 (new Date(holiday.startDate) - new Date()) /
-                                  (1000 * 60 * 60 * 24)
+                                (1000 * 60 * 60 * 24)
                               )}{" "}
                               days left
                             </span>
@@ -818,8 +820,8 @@ const HRMTabComponent = () => {
                                         ? activity.status === 1
                                           ? "#d4edda"
                                           : activity.status === 0
-                                          ? "#fff3cd"
-                                          : "#f8d7da"
+                                            ? "#fff3cd"
+                                            : "#f8d7da"
                                         : "#cce5ff",
                                     display: "flex",
                                     alignItems: "center",
@@ -838,8 +840,8 @@ const HRMTabComponent = () => {
                                           ? activity.status === 1
                                             ? "#155724"
                                             : activity.status === 0
-                                            ? "#856404"
-                                            : "#721c24"
+                                              ? "#856404"
+                                              : "#721c24"
                                           : "#004085",
                                       fontSize: "14px",
                                     }}

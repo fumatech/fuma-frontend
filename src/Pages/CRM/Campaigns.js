@@ -3,7 +3,15 @@ import { Dropdown, DropdownButton } from "react-bootstrap";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+const CRM_DASHBOARD_REFRESH_EVENT = "crm-dashboard-refresh";
+
 const Campaigns = () => {
+  const getCurrentLocalDateTime = () => {
+    const now = new Date();
+    const timezoneOffsetMs = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
+  };
+
   // Table data state
   const [campaigns, setCampaigns] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,7 +27,7 @@ const Campaigns = () => {
     name: "",
     type: "Email",
     createdBy: userName,
-    createdAt: new Date().toISOString().slice(0, 16),
+    createdAt: getCurrentLocalDateTime(),
   });
 
   // Table configuration
@@ -79,7 +87,7 @@ const Campaigns = () => {
       name: "",
       type: "Email",
       createdBy: userName,
-      createdAt: new Date().toISOString().slice(0, 16),
+      createdAt: getCurrentLocalDateTime(),
     });
     setIsModalOpen(true);
   };
@@ -99,13 +107,19 @@ const Campaigns = () => {
       createdBy: campaign.createdBy,
       createdAt: campaign.createdAt
         ? formatDateTimeForInput(campaign.createdAt)
-        : new Date().toISOString().slice(0, 16),
+        : getCurrentLocalDateTime(),
     });
     setIsModalOpen(true);
   };
 
   const formatDateTimeForInput = (dateTime) => {
-    return dateTime.slice(0, 16);
+    if (!dateTime) return getCurrentLocalDateTime();
+    const parsed = new Date(dateTime);
+    if (Number.isNaN(parsed.getTime())) {
+      return String(dateTime).slice(0, 16);
+    }
+    const timezoneOffsetMs = parsed.getTimezoneOffset() * 60000;
+    return new Date(parsed.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
   };
 
   const formatDateTimeForDisplay = (dateTime) => {
@@ -147,6 +161,7 @@ const Campaigns = () => {
           campaign.id === currentCampaign.id ? response.data : campaign
         );
         setCampaigns(updatedCampaigns);
+        window.dispatchEvent(new Event(CRM_DASHBOARD_REFRESH_EVENT));
       } else {
         // Add new campaign
         const response = await axios.post(
@@ -155,6 +170,7 @@ const Campaigns = () => {
         );
         toast.success("Campaign Saved Successfully...");
         setCampaigns([...campaigns, response.data]);
+        window.dispatchEvent(new Event(CRM_DASHBOARD_REFRESH_EVENT));
       }
       closeModal();
     } catch (err) {
@@ -171,6 +187,7 @@ const Campaigns = () => {
           ` ${process.env.REACT_APP_BASE_URL}/campaign/delete/${id}`
         );
         setCampaigns(campaigns.filter((campaign) => campaign.id !== id));
+        window.dispatchEvent(new Event(CRM_DASHBOARD_REFRESH_EVENT));
       } catch (err) {
         console.error("Error deleting campaign:", err);
         toast.error("Error deleting campaign. Please try again.");

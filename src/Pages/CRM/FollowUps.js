@@ -15,6 +15,8 @@ import "jspdf-autotable";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+const CRM_DASHBOARD_REFRESH_EVENT = "crm-dashboard-refresh";
+
 const FollowUps = () => {
   // State for filters
   const [filters, setFilters] = useState({
@@ -245,6 +247,7 @@ const FollowUps = () => {
             f.id === editingFollowUp.id ? response.data : f
           )
         );
+        window.dispatchEvent(new Event(CRM_DASHBOARD_REFRESH_EVENT));
       } else {
         // Add new follow-up
         const response = await axios.post(
@@ -252,6 +255,7 @@ const FollowUps = () => {
           formData
         );
         setAllFollowUps([...allFollowUps, response.data]);
+        window.dispatchEvent(new Event(CRM_DASHBOARD_REFRESH_EVENT));
       }
       setShowAddModal(false);
       setEditingFollowUp(null);
@@ -386,8 +390,11 @@ const FollowUps = () => {
   const formatDateTimeForInput = (dateTimeString) => {
     if (!dateTimeString) return "";
     const date = new Date(dateTimeString);
-    const isoString = date.toISOString();
-    return isoString.substring(0, isoString.length - 1);
+    if (Number.isNaN(date.getTime())) {
+      return String(dateTimeString).slice(0, 16);
+    }
+    const timezoneOffsetMs = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
   };
 
   // Handle view action
@@ -407,6 +414,7 @@ const FollowUps = () => {
         );
         toast.success("Follow-up deleted Successfully...");
         setAllFollowUps(allFollowUps.filter((f) => f.id !== id));
+        window.dispatchEvent(new Event(CRM_DASHBOARD_REFRESH_EVENT));
       } catch (err) {
         // console.error("Error deleting follow-up:", err);
         toast.error("Failed to delete follow-up. Please try again.");
