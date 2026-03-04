@@ -150,6 +150,7 @@ import LeaveType from "./Pages/HRM/LeaveType";
 import Leave from "./Pages/HRM/Leave";
 import Designations from "./Pages/HRM/Designations";
 import SalesTargets from "./Pages/HRM/SalesTargets";
+
 import Holiday from "./Pages/HRM/Holiday";
 import Department from "./Pages/HRM/Department";
 import Attendance from "./Pages/HRM/Attendance";

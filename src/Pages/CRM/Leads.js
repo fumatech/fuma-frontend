@@ -3,7 +3,15 @@ import { Dropdown, DropdownButton } from "react-bootstrap";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+const CRM_DASHBOARD_REFRESH_EVENT = "crm-dashboard-refresh";
+
 const Leads = () => {
+  const getCurrentLocalDateTime = () => {
+    const now = new Date();
+    const timezoneOffsetMs = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
+  };
+
   // Table data state
   const [leads, setLeads] = useState([]);
   const [users, setUsers] = useState([]);
@@ -21,7 +29,7 @@ const Leads = () => {
     employeeid: "",
     mobileNumber: "",
     taxNumber: "",
-    addedOn: new Date().toISOString().slice(0, 16),
+    addedOn: getCurrentLocalDateTime(),
     customField1: "",
     customField2: "",
     customField3: "",
@@ -77,6 +85,7 @@ const Leads = () => {
       employeeid: "",
       mobileNumber: "",
       taxNumber: "",
+      addedOn: getCurrentLocalDateTime(),
       customField1: "",
       customField2: "",
       customField3: "",
@@ -103,7 +112,7 @@ const Leads = () => {
       taxNumber: lead.taxNumber,
       addedOn: lead.addedOn
         ? formatDateTimeForInput(lead.addedOn)
-        : new Date().toISOString().slice(0, 16),
+        : getCurrentLocalDateTime(),
       customField1: lead.customField1,
       customField2: lead.customField2,
       customField3: lead.customField3,
@@ -112,7 +121,13 @@ const Leads = () => {
   };
 
   const formatDateTimeForInput = (backendDateTime) => {
-    return backendDateTime.slice(0, 16);
+    if (!backendDateTime) return getCurrentLocalDateTime();
+    const parsed = new Date(backendDateTime);
+    if (Number.isNaN(parsed.getTime())) {
+      return String(backendDateTime).slice(0, 16);
+    }
+    const timezoneOffsetMs = parsed.getTimezoneOffset() * 60000;
+    return new Date(parsed.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
   };
 
   const formatDateTimeForDisplay = (backendDateTime) => {
@@ -155,6 +170,7 @@ const Leads = () => {
             lead.id === currentLead.id ? response.data : lead
           )
         );
+        window.dispatchEvent(new Event(CRM_DASHBOARD_REFRESH_EVENT));
       } else {
         // Add new lead
         const response = await axios.post(
@@ -163,6 +179,7 @@ const Leads = () => {
         );
         toast.success("Lead Saved Successfully...");
         setLeads([...leads, response.data]);
+        window.dispatchEvent(new Event(CRM_DASHBOARD_REFRESH_EVENT));
       }
       closeModal();
     } catch (err) {
@@ -180,6 +197,7 @@ const Leads = () => {
         );
         toast.success("Lead Deleted Successfully...");
         setLeads(leads.filter((lead) => lead.id !== id));
+        window.dispatchEvent(new Event(CRM_DASHBOARD_REFRESH_EVENT));
       } catch (err) {
         //console.error("Error deleting lead:", err);
         toast.error("Error deleting lead. Please try again.");
@@ -505,9 +523,8 @@ const Leads = () => {
                     <div className="dataTables_paginate paging_simple_numbers float-right">
                       <ul className="pagination">
                         <li
-                          className={`paginate_button page-item previous ${
-                            currentPage === 1 ? "disabled" : ""
-                          }`}
+                          className={`paginate_button page-item previous ${currentPage === 1 ? "disabled" : ""
+                            }`}
                         >
                           <button
                             className="page-link"
@@ -521,9 +538,8 @@ const Leads = () => {
                           <button className="page-link">{currentPage}</button>
                         </li>
                         <li
-                          className={`paginate_button page-item next ${
-                            currentPage === totalPages ? "disabled" : ""
-                          }`}
+                          className={`paginate_button page-item next ${currentPage === totalPages ? "disabled" : ""
+                            }`}
                         >
                           <button
                             className="page-link"
