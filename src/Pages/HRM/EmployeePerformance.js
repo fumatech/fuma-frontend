@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
+import "../UserManagement/Users.css";
 import {
     RadarChart,
     Radar,
@@ -79,6 +81,7 @@ const KPI_CATEGORIES = [
 ];
 
 function EmployeePerformance() {
+    const navigate = useNavigate();
     // ── State ──
     const [employees, setEmployees] = useState([]);
     const [departments, setDepartments] = useState([]);
@@ -132,6 +135,8 @@ function EmployeePerformance() {
         month: new Date().getMonth(),
         year: new Date().getFullYear(),
     });
+    const [editingFeedbackId, setEditingFeedbackId] = useState(null);
+    const [viewFeedback, setViewFeedback] = useState(null);
 
     // Pagination
     const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -178,7 +183,7 @@ function EmployeePerformance() {
 
     const getDesignationName = (id) => {
         const d = designations.find((des) => des.id === id);
-        return d ? d.designation : "—";
+        return d ? d.name : "—";
     };
 
     // Filtered KPI records
@@ -233,22 +238,46 @@ function EmployeePerformance() {
             .sort((a, b) => b.avgScore - a.avgScore);
     }, [filteredKPIs]);
 
-    // Filtered + searched employee list
+    const employeeScoreMap = useMemo(() => {
+        const map = {};
+        employeeScores.forEach((s) => {
+            map[s.employeeId] = s.avgScore;
+        });
+        return map;
+    }, [employeeScores]);
+
+    const employeeFeedbackMap = useMemo(() => {
+        const map = {};
+        filteredFeedbacks.forEach((f) => {
+            if (!map[f.employeeId]) map[f.employeeId] = { total: 0, count: 0 };
+            map[f.employeeId].total += f.rating;
+            map[f.employeeId].count += 1;
+        });
+        return map;
+    }, [filteredFeedbacks]);
+
+    // Filtered + searched employee list (show all employees)
     const displayedEmployees = useMemo(() => {
-        let list = employeeScores.map((s) => {
-            const emp = employees.find((e) => e.id === s.employeeId);
-            const fb = filteredFeedbacks.filter((f) => f.employeeId === s.employeeId);
-            const avgRating = fb.length
-                ? (fb.reduce((sum, f) => sum + f.rating, 0) / fb.length).toFixed(1)
-                : "—";
+        let list = employees.map((emp) => {
+            const name = `${emp.firstname || ""} ${emp.lastname || ""}`.trim() || "Unknown";
+            const feedback = employeeFeedbackMap[emp.id];
             return {
-                ...s,
-                name: getEmployeeName(s.employeeId),
-                department: getDepartmentName(emp?.departmentId),
-                designation: getDesignationName(emp?.designationId),
-                avgRating,
+                employeeId: emp.id,
+                avgScore: employeeScoreMap[emp.id] ?? 0,
+                name,
+                department: getDepartmentName(emp.departmentId),
+                designation: getDesignationName(emp.designationId),
+                avgRating: feedback?.count ? (feedback.total / feedback.count).toFixed(1) : "—",
             };
         });
+
+        if (filterDepartment) {
+            list = list.filter((e) => {
+                const emp = employees.find((x) => x.id === e.employeeId);
+                return emp && String(emp.departmentId) === String(filterDepartment);
+            });
+        }
+
         if (searchTerm) {
             const lower = searchTerm.toLowerCase();
             list = list.filter(
@@ -257,8 +286,9 @@ function EmployeePerformance() {
                     e.department.toLowerCase().includes(lower)
             );
         }
-        return list;
-    }, [employeeScores, employees, filteredFeedbacks, searchTerm]);
+
+        return list.sort((a, b) => b.avgScore - a.avgScore);
+    }, [employees, employeeScoreMap, employeeFeedbackMap, filterDepartment, searchTerm, getDepartmentName, getDesignationName]);
 
     // Pagination helpers
     const totalPages = Math.ceil(displayedEmployees.length / entriesPerPage);
@@ -355,9 +385,15 @@ function EmployeePerformance() {
                 ...feedbackForm,
                 employeeId: Number(feedbackForm.employeeId),
             };
-            await axios.post(`${process.env.REACT_APP_BASE_URL}/performance-feedback/add`, payload);
-            toast.success("Feedback submitted successfully");
+            if (editingFeedbackId) {
+                await axios.put(`${process.env.REACT_APP_BASE_URL}/performance-feedback/update/${editingFeedbackId}`, payload);
+                toast.success("Feedback updated successfully");
+            } else {
+                await axios.post(`${process.env.REACT_APP_BASE_URL}/performance-feedback/add`, payload);
+                toast.success("Feedback submitted successfully");
+            }
             setShowFeedbackModal(false);
+            setEditingFeedbackId(null);
             setFeedbackForm({
                 employeeId: "",
                 rating: 3,
@@ -370,7 +406,34 @@ function EmployeePerformance() {
             fetchAllData();
         } catch (err) {
             console.error(err);
-            toast.error("Failed to submit feedback");
+            toast.error(editingFeedbackId ? "Failed to update feedback" : "Failed to submit feedback");
+        }
+    };
+
+    const handleEditFeedback = (f) => {
+        setFeedbackForm({
+            employeeId: String(f.employeeId),
+            rating: f.rating,
+            strengths: f.strengths || "",
+            improvements: f.improvements || "",
+            comments: f.comments || "",
+            month: f.month,
+            year: f.year,
+        });
+        setEditingFeedbackId(f.id);
+        setShowFeedbackModal(true);
+    };
+
+    const handleDeleteFeedback = async (id) => {
+        if (window.confirm("Delete this feedback record?")) {
+            try {
+                await axios.delete(`${process.env.REACT_APP_BASE_URL}/performance-feedback/delete/${id}`);
+                toast.success("Feedback deleted");
+                fetchAllData();
+            } catch (err) {
+                console.error(err);
+                toast.error("Failed to delete feedback");
+            }
         }
     };
 
@@ -583,6 +646,15 @@ function EmployeePerformance() {
                             <option key={d.id} value={d.id}>{d.department}</option>
                         ))}
                     </select>
+                    {filterDepartment && (
+                        <button
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={() => setFilterDepartment("")}
+                            title="Reset Department Filter"
+                        >
+                            <FontAwesomeIcon icon={faTimes} className="mr-1" /> Reset
+                        </button>
+                    )}
 
                     <div className="ml-auto" style={{ position: "relative" }}>
                         <FontAwesomeIcon
@@ -648,8 +720,8 @@ function EmployeePerformance() {
                             </select>
                         </div>
                         <div className="card-body p-0">
-                            <div className="table-responsive">
-                                <table className="table table-hover mb-0">
+                            <div style={{ overflowX: "auto" }}>
+                                <table className="table table-bordered table-hover mb-0" style={{ minWidth: "1000px" }}>
                                     <thead style={{ backgroundColor: "#f8f9fa" }}>
                                         <tr>
                                             <th>#</th>
@@ -658,7 +730,7 @@ function EmployeePerformance() {
                                             <th>Designation</th>
                                             <th>Avg Score</th>
                                             <th>Rating</th>
-                                            <th style={{ width: 100 }}>Actions</th>
+                                            <th className="text-center" style={{ width: 280 }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -676,24 +748,34 @@ function EmployeePerformance() {
                                                     <td>{emp.designation}</td>
                                                     <td>{scoreBadge(emp.avgScore)}</td>
                                                     <td>{emp.avgRating !== "—" ? renderStars(emp.avgRating) : "—"}</td>
-                                                    <td>
-                                                        <button
-                                                            className="btn btn-sm btn-outline-primary mr-1"
-                                                            title="View Details"
-                                                            onClick={() => { setSelectedEmployee(emp); setShowDetailModal(true); }}
-                                                        >
-                                                            <FontAwesomeIcon icon={faEye} />
-                                                        </button>
-                                                        <button
-                                                            className="btn btn-sm btn-outline-success"
-                                                            title="Give Feedback"
-                                                            onClick={() => {
-                                                                setFeedbackForm((f) => ({ ...f, employeeId: emp.employeeId }));
-                                                                setShowFeedbackModal(true);
-                                                            }}
-                                                        >
-                                                            <FontAwesomeIcon icon={faComment} />
-                                                        </button>
+                                                    <td className="text-center">
+                                                        <div className="btn-group btn-group-sm btn-icon-only">
+                                                            <button
+                                                                type="button"
+                                                                className="btn-edit"
+                                                                onClick={() => navigate(`/EditUser/${emp.employeeId}`)}
+                                                            >
+                                                                <i className="fas fa-edit btn-icon"></i> Edit
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="btn-view"
+                                                                onClick={() => { setSelectedEmployee(emp); setShowDetailModal(true); }}
+                                                            >
+                                                                <i className="fas fa-eye btn-icon"></i> View
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="btn-view"
+                                                                style={{ borderColor: "#fb8500", color: "#fb8500" }}
+                                                                onClick={() => {
+                                                                    setFeedbackForm((f) => ({ ...f, employeeId: emp.employeeId }));
+                                                                    setShowFeedbackModal(true);
+                                                                }}
+                                                            >
+                                                                <i className="fas fa-comment btn-icon"></i> Feedback
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))
@@ -848,11 +930,12 @@ function EmployeePerformance() {
                                                     <th>Strengths</th>
                                                     <th>Improvements</th>
                                                     <th>Period</th>
+                                                    <th style={{ width: 150 }}>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {filteredFeedbacks.length === 0 ? (
-                                                    <tr><td colSpan="5" className="text-center py-4 text-muted">No feedback for this period</td></tr>
+                                                    <tr><td colSpan="6" className="text-center py-4 text-muted">No feedback for this period</td></tr>
                                                 ) : (
                                                     filteredFeedbacks.slice(0, 20).map((f) => (
                                                         <tr key={f.id}>
@@ -861,6 +944,19 @@ function EmployeePerformance() {
                                                             <td style={{ maxWidth: 200, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.strengths}</td>
                                                             <td style={{ maxWidth: 200, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.improvements}</td>
                                                             <td>{MONTHS[f.month]?.substring(0, 3)} {f.year}</td>
+                                                            <td>
+                                                                <div className="d-flex" style={{ gap: 4 }}>
+                                                                    <button className="btn btn-sm btn-view" title="View" onClick={() => setViewFeedback(f)}>
+                                                                        <FontAwesomeIcon icon={faEye} />
+                                                                    </button>
+                                                                    <button className="btn btn-sm btn-edit" title="Edit" onClick={() => handleEditFeedback(f)}>
+                                                                        <FontAwesomeIcon icon={faEdit} />
+                                                                    </button>
+                                                                    <button className="btn btn-sm btn-delete" title="Delete" onClick={() => handleDeleteFeedback(f.id)}>
+                                                                        <FontAwesomeIcon icon={faTrash} />
+                                                                    </button>
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                     ))
                                                 )}
@@ -980,7 +1076,7 @@ function EmployeePerformance() {
     */}
             {showKPIModal && (
                 <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-dialog modal-dialog-centered modal-lg">
                         <div className="modal-content" style={{ borderRadius: 12 }}>
                             <div className="modal-header border-0">
                                 <h5 className="modal-title">
@@ -991,44 +1087,52 @@ function EmployeePerformance() {
                                 </button>
                             </div>
                             <div className="modal-body">
-                                <div className="form-group">
-                                    <label>Employee <span className="text-danger">*</span></label>
-                                    <select
-                                        className="form-control"
-                                        value={kpiForm.employeeId}
-                                        onChange={(e) => setKpiForm({ ...kpiForm, employeeId: e.target.value })}
-                                    >
-                                        <option value="">Select Employee</option>
-                                        {employees.map((emp) => (
-                                            <option key={emp.id} value={emp.id}>
-                                                {emp.firstname} {emp.lastname}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Category</label>
-                                    <select
-                                        className="form-control"
-                                        value={kpiForm.category}
-                                        onChange={(e) => setKpiForm({ ...kpiForm, category: e.target.value })}
-                                    >
-                                        {KPI_CATEGORIES.map((c) => (
-                                            <option key={c} value={c}>{c}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Goal <span className="text-danger">*</span></label>
-                                    <input
-                                        className="form-control"
-                                        placeholder="e.g. Close 50 tickets this month"
-                                        value={kpiForm.goal}
-                                        onChange={(e) => setKpiForm({ ...kpiForm, goal: e.target.value })}
-                                    />
+                                <div className="row">
+                                    <div className="col-md-4">
+                                        <div className="form-group">
+                                            <label>Employee <span className="text-danger">*</span></label>
+                                            <select
+                                                className="form-control"
+                                                value={kpiForm.employeeId}
+                                                onChange={(e) => setKpiForm({ ...kpiForm, employeeId: e.target.value })}
+                                            >
+                                                <option value="">Select Employee</option>
+                                                {employees.map((emp) => (
+                                                    <option key={emp.id} value={emp.id}>
+                                                        {emp.firstname} {emp.lastname}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="col-md-4">
+                                        <div className="form-group">
+                                            <label>Category</label>
+                                            <select
+                                                className="form-control"
+                                                value={kpiForm.category}
+                                                onChange={(e) => setKpiForm({ ...kpiForm, category: e.target.value })}
+                                            >
+                                                {KPI_CATEGORIES.map((c) => (
+                                                    <option key={c} value={c}>{c}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="col-md-4">
+                                        <div className="form-group">
+                                            <label>Goal <span className="text-danger">*</span></label>
+                                            <input
+                                                className="form-control"
+                                                placeholder="e.g. Close 50 tickets this month"
+                                                value={kpiForm.goal}
+                                                onChange={(e) => setKpiForm({ ...kpiForm, goal: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="row">
-                                    <div className="col-6">
+                                    <div className="col-md-3">
                                         <div className="form-group">
                                             <label>Target Value</label>
                                             <input
@@ -1039,7 +1143,7 @@ function EmployeePerformance() {
                                             />
                                         </div>
                                     </div>
-                                    <div className="col-6">
+                                    <div className="col-md-3">
                                         <div className="form-group">
                                             <label>Achieved Value</label>
                                             <input
@@ -1050,9 +1154,7 @@ function EmployeePerformance() {
                                             />
                                         </div>
                                     </div>
-                                </div>
-                                <div className="row">
-                                    <div className="col-6">
+                                    <div className="col-md-3">
                                         <div className="form-group">
                                             <label>Month</label>
                                             <select className="form-control" value={kpiForm.month} onChange={(e) => setKpiForm({ ...kpiForm, month: Number(e.target.value) })}>
@@ -1060,7 +1162,7 @@ function EmployeePerformance() {
                                             </select>
                                         </div>
                                     </div>
-                                    <div className="col-6">
+                                    <div className="col-md-3">
                                         <div className="form-group">
                                             <label>Year</label>
                                             <select className="form-control" value={kpiForm.year} onChange={(e) => setKpiForm({ ...kpiForm, year: Number(e.target.value) })}>
@@ -1069,9 +1171,13 @@ function EmployeePerformance() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="form-group">
-                                    <label>Notes</label>
-                                    <textarea className="form-control" rows="2" value={kpiForm.notes} onChange={(e) => setKpiForm({ ...kpiForm, notes: e.target.value })} />
+                                <div className="row">
+                                    <div className="col-md-12">
+                                        <div className="form-group">
+                                            <label>Notes</label>
+                                            <textarea className="form-control" rows="2" value={kpiForm.notes} onChange={(e) => setKpiForm({ ...kpiForm, notes: e.target.value })} />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div className="modal-footer border-0">
@@ -1094,9 +1200,9 @@ function EmployeePerformance() {
                         <div className="modal-content" style={{ borderRadius: 12 }}>
                             <div className="modal-header border-0">
                                 <h5 className="modal-title">
-                                    <FontAwesomeIcon icon={faComment} className="mr-2 text-success" /> Give Feedback
+                                    <FontAwesomeIcon icon={faComment} className="mr-2 text-success" /> {editingFeedbackId ? "Edit Feedback" : "Give Feedback"}
                                 </h5>
-                                <button className="close" onClick={() => setShowFeedbackModal(false)}>
+                                <button className="close" onClick={() => { setShowFeedbackModal(false); setEditingFeedbackId(null); }}>
                                     <FontAwesomeIcon icon={faTimes} />
                                 </button>
                             </div>
@@ -1167,9 +1273,58 @@ function EmployeePerformance() {
                                 </div>
                             </div>
                             <div className="modal-footer border-0">
-                                <button className="btn btn-secondary" onClick={() => setShowFeedbackModal(false)}>Cancel</button>
+                                <button className="btn btn-secondary" onClick={() => { setShowFeedbackModal(false); setEditingFeedbackId(null); }}>Cancel</button>
                                 <button className="btn btn-success" onClick={handleSaveFeedback}>
-                                    <FontAwesomeIcon icon={faCheck} className="mr-1" /> Submit Feedback
+                                    <FontAwesomeIcon icon={faCheck} className="mr-1" /> {editingFeedbackId ? "Update Feedback" : "Submit Feedback"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ════════════════════════════════════════
+          VIEW FEEDBACK MODAL
+      ════════════════════════════════════════ */}
+            {viewFeedback && (
+                <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content" style={{ borderRadius: 12 }}>
+                            <div className="modal-header border-0">
+                                <h5 className="modal-title">
+                                    <FontAwesomeIcon icon={faEye} className="mr-2 text-info" /> Feedback Details
+                                </h5>
+                                <button className="close" onClick={() => setViewFeedback(null)}>
+                                    <FontAwesomeIcon icon={faTimes} />
+                                </button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="mb-3">
+                                    <strong>Employee:</strong> <span className="ml-2">{getEmployeeName(viewFeedback.employeeId)}</span>
+                                </div>
+                                <div className="mb-3">
+                                    <strong>Rating:</strong> <span className="ml-2">{renderStars(viewFeedback.rating)} ({viewFeedback.rating}/5)</span>
+                                </div>
+                                <div className="mb-3">
+                                    <strong>Period:</strong> <span className="ml-2">{MONTHS[viewFeedback.month]} {viewFeedback.year}</span>
+                                </div>
+                                <div className="mb-3">
+                                    <strong>Strengths:</strong>
+                                    <p className="mt-1 mb-0" style={{ whiteSpace: "pre-wrap" }}>{viewFeedback.strengths || "—"}</p>
+                                </div>
+                                <div className="mb-3">
+                                    <strong>Areas of Improvement:</strong>
+                                    <p className="mt-1 mb-0" style={{ whiteSpace: "pre-wrap" }}>{viewFeedback.improvements || "—"}</p>
+                                </div>
+                                <div className="mb-3">
+                                    <strong>Additional Comments:</strong>
+                                    <p className="mt-1 mb-0" style={{ whiteSpace: "pre-wrap" }}>{viewFeedback.comments || "—"}</p>
+                                </div>
+                            </div>
+                            <div className="modal-footer border-0">
+                                <button className="btn btn-secondary" onClick={() => setViewFeedback(null)}>Close</button>
+                                <button className="btn btn-edit" onClick={() => { handleEditFeedback(viewFeedback); setViewFeedback(null); }}>
+                                    <FontAwesomeIcon icon={faEdit} className="mr-1" /> Edit
                                 </button>
                             </div>
                         </div>

@@ -36,6 +36,8 @@ const Users = ({ userRoles }) => {
     lastName: true,
     email: true,
     role: true,
+    department: true,
+    designation: true,
     isActive: true,
     actions: true,
     location: true,
@@ -44,11 +46,21 @@ const Users = ({ userRoles }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
   const [businessLocations, setBusinessLocations] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [designations, setDesignations] = useState([]);
   useEffect(() => {
     fetch(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
       .then((res) => res.json())
       .then((data) => setBusinessLocations(data))
       .catch((err) => console.error("Error fetching locations", err));
+    fetch(`${process.env.REACT_APP_BASE_URL}/department/getall`)
+      .then((res) => res.json())
+      .then((data) => setDepartments(data))
+      .catch((err) => console.error("Error fetching departments", err));
+    fetch(`${process.env.REACT_APP_BASE_URL}/designation/getall`)
+      .then((res) => res.json())
+      .then((data) => setDesignations(data))
+      .catch((err) => console.error("Error fetching designations", err));
   }, []);
   const getUserLocations = (locationIds = []) => {
     if (!locationIds.length || !businessLocations.length) return "-";
@@ -57,6 +69,16 @@ const Users = ({ userRoles }) => {
       .filter((loc) => locationIds.includes(Number(loc.id)))
       .map((loc) => loc.name)
       .join(", ");
+  };
+
+  const getDepartmentName = (id) => {
+    const d = departments.find((dep) => dep.id === id);
+    return d ? d.department : "—";
+  };
+
+  const getDesignationName = (id) => {
+    const d = designations.find((des) => des.id === id);
+    return d ? d.name : "—";
   };
 
   // Improved extractRole function
@@ -352,6 +374,8 @@ const Users = ({ userRoles }) => {
                         {columnsVisibility.lastName && <th>Last Name</th>}
                         {columnsVisibility.email && <th>Email</th>}
                         {columnsVisibility.role && <th>Role</th>}
+                        {columnsVisibility.department && <th>Department</th>}
+                        {columnsVisibility.designation && <th>Designation</th>}
                         {columnsVisibility.isActive && (
                           <th className="text-center">Is Active</th>
                         )}
@@ -379,6 +403,12 @@ const Users = ({ userRoles }) => {
                               {columnsVisibility.email && <td>{user.email}</td>}
                               {columnsVisibility.role && (
                                 <td>{extractRole(user.roles)}</td>
+                              )}
+                              {columnsVisibility.department && (
+                                <td>{getDepartmentName(user.departmentId)}</td>
+                              )}
+                              {columnsVisibility.designation && (
+                                <td>{getDesignationName(user.designationId)}</td>
                               )}
                               {columnsVisibility.isActive && (
                                 <td className="checkbox-container text-center">

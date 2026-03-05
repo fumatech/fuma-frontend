@@ -553,9 +553,9 @@ const EditUser = () => {
       ifsc: bankCode, // Map bankCode to ifsc field
       branch,
       taxPayerId,
-      departmentId: selectedDepartmentId,
-      designationId: selectedDesignationId,
-      // Payroll ✅
+      departmentId: selectedDepartmentId ? Number(selectedDepartmentId) : null,
+      designationId: selectedDesignationId ? Number(selectedDesignationId) : null,
+
       primaryWorkLocation,
       primaryWorkLocationId,
       basicSalary,
