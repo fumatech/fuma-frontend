@@ -165,6 +165,7 @@ import ViewPayrollGroups from "./Pages/HRM/ViewPayrollGroups ";
 import AllPayrollGroups from "./Pages/HRM/AllPayrollGroups";
 import PayComponents from "./Pages/HRM/PayComponents";
 import HRMSettings from "./Pages/HRM/HRMSettings";
+import EmployeeGrievance from "./Pages/HRM/EmployeeGrievance";
 import CRMDashboard from "./Pages/CRM/CRMDashboard";
 import Campaigns from "./Pages/CRM/Campaigns";
 import ContactLogin from "./Pages/CRM/ContactLogin";
@@ -305,6 +306,7 @@ const App = () => {
     "/AllPayrollGroups": ["hrm.view"],
     "/PayComponents": ["hrm.view"],
     "/HRMSettings": ["hrm.view"],
+    "/EmployeeGrievance": ["hrm.view"],
     "/Campaigns": ["crm.view"],
     "/ContactLogin": ["crm.view"],
     "/Leads": ["crm.view"],
@@ -1581,6 +1583,16 @@ const App = () => {
                     element={
                       hasPermission("/HRMSettings") ? (
                         <HRMSettings />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/EmployeeGrievance"
+                    element={
+                      hasPermission("/EmployeeGrievance") ? (
+                        <EmployeeGrievance />
                       ) : (
                         <Navigate to="/" />
                       )

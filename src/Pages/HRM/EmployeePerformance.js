@@ -147,7 +147,7 @@ function EmployeePerformance() {
         setLoading(true);
         try {
             const [empRes, deptRes, desigRes, kpiRes, fbRes] = await Promise.all([
-                axios.get(`${process.env.REACT_APP_BASE_URL}/user/getall`),
+                axios.get(`${process.env.REACT_APP_BASE_URL}/user/getall-names`),
                 axios.get(`${process.env.REACT_APP_BASE_URL}/department/getall`),
                 axios.get(`${process.env.REACT_APP_BASE_URL}/designation/getall`),
                 axios.get(`${process.env.REACT_APP_BASE_URL}/performance-kpi/getall`),
