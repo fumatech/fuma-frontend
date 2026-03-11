@@ -166,6 +166,8 @@ import AllPayrollGroups from "./Pages/HRM/AllPayrollGroups";
 import PayComponents from "./Pages/HRM/PayComponents";
 import HRMSettings from "./Pages/HRM/HRMSettings";
 import EmployeeGrievance from "./Pages/HRM/EmployeeGrievance";
+import FaceAttendancePage from "./Pages/HRM/FaceAttendance";
+import WorkingHoursReport from "./Pages/HRM/WorkingHoursReport";
 import CRMDashboard from "./Pages/CRM/CRMDashboard";
 import Campaigns from "./Pages/CRM/Campaigns";
 import ContactLogin from "./Pages/CRM/ContactLogin";
@@ -174,6 +176,15 @@ import FollowUps from "./Pages/CRM/FollowUps";
 import BusinessDetails from "./Pages/Setting/BusinessDetails";
 import PrintLabel from "./Pages/Products/PrintLabel";
 import ProductLabel from "./Pages/Products/ProductLabel";
+import EmployeeLayout from "./Pages/EmployeePortal/EmployeeLayout";
+import EmployeePortalWrapper from "./Pages/EmployeePortal/EmployeePortalWrapper";
+import EmployeeDashboard from "./Pages/EmployeePortal/EmployeeDashboard";
+import EmployeeFaceAttendance from "./Pages/EmployeePortal/EmployeeFaceAttendance";
+import EmployeeMyAttendance from "./Pages/EmployeePortal/EmployeeMyAttendance";
+import EmployeeMyLeave from "./Pages/EmployeePortal/EmployeeMyLeave";
+import EmployeeMyPayslips from "./Pages/EmployeePortal/EmployeeMyPayslips";
+import EmployeeViewPayslip from "./Pages/EmployeePortal/EmployeeViewPayslip";
+import EmployeeNotices from "./Pages/EmployeePortal/EmployeeNotices";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 const App = () => {
@@ -329,23 +340,38 @@ const App = () => {
     "/InputTaxPurchase": ["tax_report.view"],
     "/OutputTaxSales": ["tax_report.view"],
     "/ExpenseTax": ["tax_report.view"],
+    "/Dashboard": ["dashboard.view"],
+    "/MyDashboard": ["employee_portal.view"],
+    "/MyFaceAttendance": ["employee_portal.view"],
+    "/MyAttendance": ["employee_portal.view"],
+    "/MyLeave": ["employee_portal.view"],
+    "/MyPayslips": ["employee_portal.view"],
+    "/MyViewPayslip": ["employee_portal.view"],
+    "/MyNotices": ["employee_portal.view"],
   };
 
   const hasPermission = (path) => {
-    return true; // Temporarily bypassed
-    /*
     const requiredPermissionsList = requiredPermissions[path];
-    return (
-      requiredPermissionsList &&
-      requiredPermissionsList.some((permission) =>
-        userRoles.some((role) =>
-          role.permissions.some(
-            (userPermission) => userPermission.name === permission
-          )
+    if (!requiredPermissionsList) return true;
+
+    // Bypass for Super Admin and Admin
+    if (
+      userRoles.some(
+        (role) =>
+          role.role?.toLowerCase() === "super admin" ||
+          role.role?.toLowerCase() === "admin"
+      )
+    ) {
+      return true;
+    }
+
+    return requiredPermissionsList.some((permission) =>
+      userRoles.some((role) =>
+        role.permissions.some(
+          (userPermission) => userPermission.name === permission
         )
       )
     );
-    */
   };
 
   return (
@@ -361,13 +387,26 @@ const App = () => {
       />
       <div className="app-background">
         <Routes>
+          {/* Employee Portal Routes - login is now unified at / */}
+          <Route path="/employee" element={<Navigate to="/" replace />} />
+          <Route path="/employee/*" element={<EmployeeLayout />} />
+
           <Route
             path="*"
             element={
               <Layout userRoles={userRoles}>
                 <Routes>
                   <Route path="/" element={<LoginPage />} />
-                  <Route path="/Dashboard" element={<Dashboard />} />
+                  <Route
+                    path="/Dashboard"
+                    element={
+                      hasPermission("/Dashboard") ? (
+                        <Dashboard />
+                      ) : (
+                        <Navigate to="/MyDashboard" />
+                      )
+                    }
+                  />
                   <Route path="/Profile" element={<Profile />} />
                   <Route
                     path="/Users"
@@ -1599,6 +1638,26 @@ const App = () => {
                     }
                   />
                   <Route
+                    path="/FaceAttendance"
+                    element={
+                      hasPermission("/FaceAttendance") ? (
+                        <FaceAttendancePage />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/WorkingHoursReport"
+                    element={
+                      hasPermission("/WorkingHoursReport") ? (
+                        <WorkingHoursReport />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
                     path="/CRMDashboard"
                     element={
                       hasPermission("/CRMDashboard") ? (
@@ -1650,6 +1709,78 @@ const App = () => {
                   />
                   {/* <Route path="/" element={<div>No Access</div>} /> */}
                   <Route path="/Reporting" element={<Reporting />} />
+
+                  {/* Employee Portal Routes (inside admin panel) */}
+                  <Route
+                    path="/MyDashboard"
+                    element={
+                      hasPermission("/MyDashboard") ? (
+                        <EmployeePortalWrapper Component={EmployeeDashboard} />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/MyFaceAttendance"
+                    element={
+                      hasPermission("/MyFaceAttendance") ? (
+                        <EmployeePortalWrapper Component={EmployeeFaceAttendance} />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/MyAttendance"
+                    element={
+                      hasPermission("/MyAttendance") ? (
+                        <EmployeePortalWrapper Component={EmployeeMyAttendance} />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/MyLeave"
+                    element={
+                      hasPermission("/MyLeave") ? (
+                        <EmployeePortalWrapper Component={EmployeeMyLeave} />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/MyPayslips"
+                    element={
+                      hasPermission("/MyPayslips") ? (
+                        <EmployeePortalWrapper Component={EmployeeMyPayslips} />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/MyViewPayslip"
+                    element={
+                      hasPermission("/MyViewPayslip") ? (
+                        <EmployeePortalWrapper Component={EmployeeViewPayslip} />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/MyNotices"
+                    element={
+                      hasPermission("/MyNotices") ? (
+                        <EmployeePortalWrapper Component={EmployeeNotices} />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
                 </Routes>
               </Layout>
             }
@@ -1664,18 +1795,21 @@ const Layout = ({ children, userRoles }) => {
   const location = useLocation();
 
   const isAuthPage = location.pathname === "/" || location.pathname === "/";
+  const isEmployeePortal = location.pathname.startsWith("/employee");
+
+  if (isEmployeePortal) return null;
 
   return (
-    <>
+    <div className="wrapper">
       {!isAuthPage && (
         <>
           <Header />
           <Menu userRoles={userRoles} />
         </>
       )}
-      <div className="wrapper">{children}</div>
+      {children}
       {!isAuthPage && <Footer />}
-    </>
+    </div>
   );
 };
 

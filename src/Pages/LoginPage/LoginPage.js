@@ -11,7 +11,6 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   // Load stored email on component mount
   useEffect(() => {
@@ -28,10 +27,7 @@ const LoginPage = () => {
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/user/login`,
-        {
-          email,
-          password,
-        },
+        { email, password },
         { withCredentials: true }
       );
 
@@ -41,25 +37,18 @@ const LoginPage = () => {
         } else {
           localStorage.removeItem("userEmail");
         }
-
         sessionStorage.setItem("userEmail", email);
-
-        // ✅ SUCCESS TOAST
         toast.success("Login successful! Redirecting...");
-
-        // wait a bit so user can see toast
         setTimeout(() => {
           window.location.href = "/fumamain/Dashboard";
         }, 1500);
       } else {
-        // ❌ INVALID CREDENTIALS
         toast.error("Invalid email or password");
       }
     } catch (error) {
-      // ❌ API / SERVER ERROR
       toast.error(
         error.response?.data?.message ||
-          "Login failed. Please check your credentials."
+        "Login failed. Please check your credentials."
       );
       console.error("Login error:", error);
     }
@@ -78,7 +67,7 @@ const LoginPage = () => {
                 <div className="login_outer_borderbg">
                   <div className="inner_loginBox bg-transparent">
                     <p className="Register_With text-light">
-                      Super Admin Log in
+                      Log in
                     </p>
                     <div>
                       <div className="row">

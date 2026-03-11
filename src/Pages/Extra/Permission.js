@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const modules = [
-  "user", "roles", "vendor", "franchise", "product", "category", "brand", "variation", "unit",
+  "dashboard", "user", "roles", "vendor", "franchise", "product", "category", "brand", "variation", "unit",
   "purchase_order", "di_purchase", "po_purchase", "return_purchase", "purchase_entry",
   "view_orders", "accepted_orders", "ship_orders", "rejected_orders",
   "so_sale", "di_sale", "all_sale_orders", "sale_return", "accepted_return", "sale_entry", "ship_return",
@@ -13,7 +13,7 @@ const modules = [
   "stock_adjustment_report", "item_report", "product_purchase_report", "product_sell_report",
   "purchase_payment_report", "sale_payment_report", "tax_rate", "business_details",
   "business_locations", "business_category", "permission", "image_upload", "signature_upload",
-  "hrm", "crm"
+  "hrm", "crm", "employee_portal"
 ];
 
 const actions = ["view", "add", "edit", "delete"];
