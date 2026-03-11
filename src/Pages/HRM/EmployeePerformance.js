@@ -48,7 +48,9 @@ import {
     faChevronUp,
     faTimes,
     faCheck,
+    faTasks,
 } from "@fortawesome/free-solid-svg-icons";
+import TaskManagement from "./TaskManagement";
 
 const COLORS = {
     primary: "#4361ee",
@@ -560,6 +562,7 @@ function EmployeePerformance() {
                     { key: "kpi", label: "KPIs & Goals", icon: faBullseye },
                     { key: "feedback", label: "Feedback & Ratings", icon: faStar },
                     { key: "reports", label: "Reports", icon: faChartBar },
+                    { key: "tasks", label: "Tasks", icon: faTasks },
                 ].map((t) => (
                     <li className="nav-item" key={t.key}>
                         <button
@@ -1070,6 +1073,9 @@ function EmployeePerformance() {
                     </div>
                 </>
             )}
+
+            {/* ── Tasks View ── */}
+            {activeView === "tasks" && <TaskManagement />}
 
             {/*
           ADD KPI MODAL

@@ -132,54 +132,65 @@ const AttendanceDate = () => {
       currentDate.add(1, "day");
     }
 
-    // Fill present/absent
+    // Fill present/absent using Number() to avoid type mismatches
     summary.dailyRecords.forEach((daily) => {
       attendanceData.forEach((attendance) => {
         const attendanceDate = attendance.attendanceDate
           ? moment(attendance.attendanceDate).format("YYYY-MM-DD")
           : moment(attendance.inTime).format("YYYY-MM-DD"); // fallback to inTime
 
-        if (attendanceDate === daily.date && attendance.status === "PRESENT") {
-          daily.present.push(attendance.employeeId);
+        if (
+          attendanceDate === daily.date &&
+          (attendance.status === "PRESENT" || attendance.status === "HALF_DAY")
+        ) {
+          const empId = Number(attendance.employeeId);
+          if (!daily.present.includes(empId)) {
+            daily.present.push(empId);
+          }
           daily.absent = daily.absent.filter(
-            (id) => id !== attendance.employeeId
+            (id) => Number(id) !== empId
           );
         }
       });
     });
 
     // Convert IDs to employee details
+    const toEmployeeDetail = (id) => {
+      const u = userData.find((u) => Number(u.id) === Number(id));
+      return u ? { id: u.id, name: `${u.firstname} ${u.lastname}` } : null;
+    };
+
     summary.dailyRecords = summary.dailyRecords.map((daily) => ({
       ...daily,
-      present: daily.present
-        .map((id) => userData.find((u) => u.id === id))
-        .filter(Boolean)
-        .map((u) => ({ id: u.id, name: `${u.firstname} ${u.lastname}` })),
-      absent: daily.absent
-        .map((id) => userData.find((u) => u.id === id))
-        .filter(Boolean)
-        .map((u) => ({ id: u.id, name: `${u.firstname} ${u.lastname}` })),
+      present: daily.present.map(toEmployeeDetail).filter(Boolean),
+      absent: daily.absent.map(toEmployeeDetail).filter(Boolean),
     }));
 
-    // Compute totals for period
-    const presentEmployees = new Set();
-    const absentEmployees = new Set();
+    // Compute totals for period — present on ANY day = present, rest = absent
+    const presentIdSet = new Set();
+    let presentDayCount = 0;
+    let absentDayCount = 0;
 
     summary.dailyRecords.forEach((daily) => {
-      daily.present.forEach((emp) => presentEmployees.add(emp.id));
-      daily.absent.forEach((emp) => absentEmployees.add(emp.id));
+      presentDayCount += daily.present.length;
+      absentDayCount += daily.absent.length;
+      daily.present.forEach((emp) => presentIdSet.add(Number(emp.id)));
     });
+
+    const presentEmployeesList = userData
+      .filter((u) => presentIdSet.has(Number(u.id)))
+      .map((u) => ({ id: u.id, name: `${u.firstname} ${u.lastname}` }));
+
+    const absentEmployeesList = userData
+      .filter((u) => !presentIdSet.has(Number(u.id)))
+      .map((u) => ({ id: u.id, name: `${u.firstname} ${u.lastname}` }));
 
     setSummaryData({
       ...summary,
-      presentEmployees: Array.from(presentEmployees)
-        .map((id) => userData.find((u) => u.id === id))
-        .filter(Boolean)
-        .map((u) => ({ id: u.id, name: `${u.firstname} ${u.lastname}` })),
-      absentEmployees: Array.from(absentEmployees)
-        .map((id) => userData.find((u) => u.id === id))
-        .filter(Boolean)
-        .map((u) => ({ id: u.id, name: `${u.firstname} ${u.lastname}` })),
+      presentEmployees: presentEmployeesList,
+      absentEmployees: absentEmployeesList,
+      presentCount: presentDayCount,
+      absentCount: absentDayCount,
     });
   };
 
@@ -194,20 +205,8 @@ const AttendanceDate = () => {
     if (dailyRecord) {
       setDateDetails({
         date,
-        present: Array.from(dailyRecord.present)
-          .map((id) => userData.find((user) => user.id === id))
-          .filter((user) => user)
-          .map((user) => ({
-            id: user.id,
-            name: `${user.firstname} ${user.lastname}`,
-          })),
-        absent: Array.from(dailyRecord.absent)
-          .map((id) => userData.find((user) => user.id === id))
-          .filter((user) => user)
-          .map((user) => ({
-            id: user.id,
-            name: `${user.firstname} ${user.lastname}`,
-          })),
+        present: dailyRecord.present,
+        absent: dailyRecord.absent,
       });
     }
   };

@@ -5,6 +5,9 @@ import AllAttendance from "./AllAttendance";
 import AttendanceShift from "./AttendanceShift";
 import AttendanceDate from "./AttendanceDate";
 import ClockInOut from "./ClockInOut";
+import FaceAttendance from "./FaceAttendance";
+import FaceRegistration from "./FaceRegistration";
+import WorkingHoursReport from "./WorkingHoursReport";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -13,6 +16,9 @@ import {
   faUserCheck,
   faUserClock,
   faClock,
+  faFaceSmile,
+  faIdCard,
+  faChartBar,
 } from "@fortawesome/free-solid-svg-icons";
 
 const tabsData = [
@@ -40,13 +46,31 @@ const tabsData = [
     icon: faCalendar,
     component: <AttendanceDate />,
   },
+  {
+    id: "FaceAttendance",
+    label: "Face Attendance",
+    icon: faFaceSmile,
+    component: <FaceAttendance />,
+  },
+  {
+    id: "FaceRegistration",
+    label: "Face Registration",
+    icon: faIdCard,
+    component: <FaceRegistration />,
+  },
+  {
+    id: "WorkingHours",
+    label: "Working Hours",
+    icon: faChartBar,
+    component: <WorkingHoursReport />,
+  },
 ];
 
 const Attendance = () => {
   const [activeTab, setActiveTab] = useState("Shifts");
   const [showClockInModal, setShowClockInModal] = useState(false);
 
-  // ✅ FIX: Proper modal behavior
+
   useEffect(() => {
     if (showClockInModal) {
       document.body.classList.add("modal-open");
@@ -123,9 +147,8 @@ const Attendance = () => {
                 {tabsData.map(({ id, component }) => (
                   <div
                     key={id}
-                    className={`tab-pane fade ${
-                      activeTab === id ? "active show" : ""
-                    }`}
+                    className={`tab-pane fade ${activeTab === id ? "active show" : ""
+                      }`}
                   >
                     {activeTab === id && component}
                   </div>

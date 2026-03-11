@@ -1,9 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
-import { saveAs } from "file-saver";
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
 
 const AllAttendance = () => {
@@ -26,6 +22,10 @@ const AllAttendance = () => {
   ]);
   const [attendances, setAttendances] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(25);
 
   const [formData, setFormData] = useState({
     attendanceDate: "",
@@ -42,22 +42,93 @@ const AllAttendance = () => {
     ],
   });
 
+  // Fetch employees and shifts only once on mount
   useEffect(() => {
-    const fetchData = async () => {
-      const [empRes, attRes, shiftRes] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_BASE_URL}/user/getall`),
-        axios.get(`${process.env.REACT_APP_BASE_URL}/attendance/getall`),
-        axios.get(`https://fusionmastertech.com:8443/shift/getall`),
-      ]);
+    const fetchStaticData = async () => {
+      try {
+        const [empRes, shiftRes] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BASE_URL}/user/getall`),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/shift/getall`),
+        ]);
+        setEmployees(empRes.data);
+        setShifts(shiftRes.data);
+      } catch (err) {
+        console.error("Error fetching static data:", err);
+      }
+    };
+    fetchStaticData();
+  }, []);
 
-      setEmployees(empRes.data);
-      setAttendances(attRes.data);
-      setShifts(shiftRes.data);
+  // Fetch attendance data when date changes
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      setIsLoading(true);
+      try {
+        const attRes = await axios.get(
+          `${process.env.REACT_APP_BASE_URL}/attendance/by-date/${filterDate}`
+        );
+        setAttendances(attRes.data);
+      } catch (err) {
+        console.error("Error fetching attendance:", err);
+      }
       setIsLoading(false);
     };
+    fetchAttendance();
+  }, [filterDate]);
 
-    fetchData();
-  }, []);
+  // Memoized lookup maps for O(1) name resolution
+  const employeeMap = useMemo(() => {
+    const map = new Map();
+    employees.forEach((e) => {
+      map.set(e.id, `${e.prefix} ${e.firstname} ${e.lastname}`);
+    });
+    return map;
+  }, [employees]);
+
+  const shiftMap = useMemo(() => {
+    const map = new Map();
+    shifts.forEach((s) => {
+      map.set(s.id, s.name);
+    });
+    return map;
+  }, [shifts]);
+
+  const getEmployeeName = useCallback(
+    (employeeId) => employeeMap.get(employeeId) || "Unknown",
+    [employeeMap]
+  );
+
+  const getShiftName = useCallback(
+    (shiftId) => shiftMap.get(shiftId) || "Unknown",
+    [shiftMap]
+  );
+
+  // Filtered + paginated data
+  const filteredAttendances = useMemo(() => {
+    if (!searchTerm) return attendances;
+    const term = searchTerm.toLowerCase();
+    return attendances.filter((att) => {
+      const empName = getEmployeeName(att.employeeId).toLowerCase();
+      const shiftName = getShiftName(att.shiftId).toLowerCase();
+      return (
+        empName.includes(term) ||
+        shiftName.includes(term) ||
+        String(att.id).includes(term) ||
+        (att.ipAddress && att.ipAddress.toLowerCase().includes(term))
+      );
+    });
+  }, [attendances, searchTerm, getEmployeeName, getShiftName]);
+
+  const totalPages = Math.ceil(filteredAttendances.length / entriesPerPage);
+  const paginatedAttendances = useMemo(() => {
+    const start = (currentPage - 1) * entriesPerPage;
+    return filteredAttendances.slice(start, start + entriesPerPage);
+  }, [filteredAttendances, currentPage, entriesPerPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterDate, searchTerm, entriesPerPage]);
 
   const openAddModal = () => {
     setIsEditMode(false);
@@ -151,10 +222,7 @@ const AllAttendance = () => {
     });
   };
 
-  const getShiftName = (shiftId) => {
-    const shift = shifts.find((s) => s.id === shiftId);
-    return shift ? shift.name : "Unknown";
-  };
+  // getShiftName is now memoized above
 
   const saveAttendance = async () => {
     try {
@@ -186,7 +254,7 @@ const AllAttendance = () => {
       closeModal();
 
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/attendance/getall`
+        `${process.env.REACT_APP_BASE_URL}/attendance/by-date/${filterDate}`
       );
       setAttendances(response.data);
     } catch (err) {
@@ -210,7 +278,8 @@ const AllAttendance = () => {
     }
   };
 
-  const exportCSV = () => {
+  const exportCSV = async () => {
+    const { saveAs } = await import("file-saver");
     const csvData = attendances.map((att) => ({
       ID: att.id,
       Employee: getEmployeeName(att.employeeId),
@@ -233,7 +302,8 @@ const AllAttendance = () => {
     saveAs(blob, "attendances.csv");
   };
 
-  const exportExcel = () => {
+  const exportExcel = async () => {
+    const XLSX = await import("xlsx");
     const ws = XLSX.utils.json_to_sheet(
       attendances.map((att) => ({
         ID: att.id,
@@ -251,7 +321,9 @@ const AllAttendance = () => {
     XLSX.writeFile(wb, "attendances.xlsx");
   };
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
+    const { jsPDF } = await import("jspdf");
+    await import("jspdf-autotable");
     const doc = new jsPDF();
     doc.autoTable({
       head: [["ID", "Employee", "Clock In", "Clock Out", "Shift"]],
@@ -266,12 +338,7 @@ const AllAttendance = () => {
     doc.save("attendances.pdf");
   };
 
-  const getEmployeeName = (employeeId) => {
-    const employee = employees.find((e) => e.id === employeeId);
-    return employee
-      ? `${employee.prefix} ${employee.firstname} ${employee.lastname}`
-      : "Unknown";
-  };
+  // getEmployeeName is now memoized above
 
   return (
     <div className="content">
@@ -291,6 +358,8 @@ const AllAttendance = () => {
                     <select
                       id="entriesPerPage"
                       className="form-control form-control-sm mr-2"
+                      value={entriesPerPage}
+                      onChange={(e) => setEntriesPerPage(Number(e.target.value))}
                     >
                       <option value={25}>25</option>
                       <option value={50}>50</option>
@@ -298,6 +367,31 @@ const AllAttendance = () => {
                       <option value={100}>100</option>
                     </select>
                     Entries
+                  </div>
+                  <div className="col-12 col-md-auto form-group mb-2 d-flex align-items-center text-bold mt-2 mb-2 mr-2">
+                    <label htmlFor="filterDate" className="mb-0 mr-2">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      id="filterDate"
+                      className="form-control form-control-sm mr-2"
+                      value={filterDate}
+                      onChange={(e) => setFilterDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-12 col-md-auto form-group mb-2 d-flex align-items-center text-bold mt-2 mb-2 mr-2">
+                    <label htmlFor="searchTerm" className="mb-0 mr-2">
+                      Search
+                    </label>
+                    <input
+                      type="text"
+                      id="searchTerm"
+                      className="form-control form-control-sm"
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                   </div>
                   <div className="col d-flex flex-wrap align-items-center">
                     <button
@@ -379,50 +473,122 @@ const AllAttendance = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {attendances.map((attendance) => (
-                        <tr key={attendance.id}>
-                          <td>{attendance.id}</td>
-                          {columnsVisibility.name && (
-                            <td>{getEmployeeName(attendance.employeeId)}</td>
-                          )}
-                          {columnsVisibility.shiftType && (
-                            <td>{getShiftName(attendance.shiftId)}</td>
-                          )}
-                          {columnsVisibility.startTime && (
-                            <td>
-                              {attendance.inTime
-                                ? new Date(attendance.inTime).toLocaleString()
-                                : "-"}
-                            </td>
-                          )}
-                          {columnsVisibility.endTime && (
-                            <td>
-                              {attendance.outTime
-                                ? new Date(attendance.outTime).toLocaleString()
-                                : "-"}
-                            </td>
-                          )}
-                          {columnsVisibility.holiday && (
-                            <td>{attendance.ipAddress || "-"}</td>
-                          )}
-                          <td>
-                            <button
-                              className="btn btn-edit mr-2"
-                              onClick={() => openEditModal(attendance)}
-                            >
-                              <i className="fas fa-edit"></i> Edit
-                            </button>
-                            <button
-                              className="btn btn-danger"
-                              onClick={() => deleteAttendance(attendance.id)}
-                            >
-                              <i className="fas fa-trash"></i> Delete
-                            </button>
+                      {isLoading ? (
+                        <tr>
+                          <td colSpan="7" className="text-center py-4">
+                            <div className="spinner-border text-primary" role="status">
+                              <span className="sr-only">Loading...</span>
+                            </div>
                           </td>
                         </tr>
-                      ))}
+                      ) : paginatedAttendances.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="text-center py-4">
+                            No attendance records found.
+                          </td>
+                        </tr>
+                      ) : (
+                        paginatedAttendances.map((attendance) => (
+                          <tr key={attendance.id}>
+                            <td>{attendance.id}</td>
+                            {columnsVisibility.name && (
+                              <td>{getEmployeeName(attendance.employeeId)}</td>
+                            )}
+                            {columnsVisibility.shiftType && (
+                              <td>{getShiftName(attendance.shiftId)}</td>
+                            )}
+                            {columnsVisibility.startTime && (
+                              <td>
+                                {attendance.inTime
+                                  ? new Date(attendance.inTime).toLocaleString()
+                                  : "-"}
+                              </td>
+                            )}
+                            {columnsVisibility.endTime && (
+                              <td>
+                                {attendance.outTime
+                                  ? new Date(attendance.outTime).toLocaleString()
+                                  : "-"}
+                              </td>
+                            )}
+                            {columnsVisibility.holiday && (
+                              <td>{attendance.ipAddress || "-"}</td>
+                            )}
+                            <td>
+                              <button
+                                className="btn btn-edit mr-2"
+                                onClick={() => openEditModal(attendance)}
+                              >
+                                <i className="fas fa-edit"></i> Edit
+                              </button>
+                              <button
+                                className="btn btn-danger"
+                                onClick={() => deleteAttendance(attendance.id)}
+                              >
+                                <i className="fas fa-trash"></i> Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
+
+                  {/* Pagination controls */}
+                  {!isLoading && filteredAttendances.length > 0 && (
+                    <div className="d-flex justify-content-between align-items-center mt-3">
+                      <div>
+                        Showing {((currentPage - 1) * entriesPerPage) + 1} to{" "}
+                        {Math.min(currentPage * entriesPerPage, filteredAttendances.length)} of{" "}
+                        {filteredAttendances.length} entries
+                      </div>
+                      <nav>
+                        <ul className="pagination mb-0">
+                          <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                            <button
+                              className="page-link"
+                              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                            >
+                              Previous
+                            </button>
+                          </li>
+                          {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                            let page;
+                            if (totalPages <= 5) {
+                              page = i + 1;
+                            } else if (currentPage <= 3) {
+                              page = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                              page = totalPages - 4 + i;
+                            } else {
+                              page = currentPage - 2 + i;
+                            }
+                            return (
+                              <li
+                                key={page}
+                                className={`page-item ${currentPage === page ? "active" : ""}`}
+                              >
+                                <button
+                                  className="page-link"
+                                  onClick={() => setCurrentPage(page)}
+                                >
+                                  {page}
+                                </button>
+                              </li>
+                            );
+                          })}
+                          <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                            <button
+                              className="page-link"
+                              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                            >
+                              Next
+                            </button>
+                          </li>
+                        </ul>
+                      </nav>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

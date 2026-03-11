@@ -67,16 +67,7 @@ const tabsData = [
 const HRMTabComponent = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(null);
-  const [dashboardData, setDashboardData] = useState({
-    employees: [],
-    attendance: [],
-    leaves: [],
-    payrolls: [],
-    holidays: [],
-    departments: [],
-    designations: [],
-    leaveTypes: [],
-  });
+  const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -97,41 +88,13 @@ const HRMTabComponent = () => {
     chart1: ["#4361ee", "#3f37c9", "#4cc9f0", "#f72585", "#7209b7", "#fb8500"],
   };
 
-  // Fetch all dashboard data
+  // Fetch dashboard summary in a single API call
   useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        const [
-          employeesRes,
-          attendanceRes,
-          leavesRes,
-          payrollsRes,
-          holidaysRes,
-          departmentsRes,
-          designationsRes,
-          leaveTypesRes,
-        ] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_BASE_URL}/user/getall`),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/attendance/getall`),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/add-leave/getall`),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/payroll/employee-wise`),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/holiday/getall`),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/department/getall`),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/designation/getall`),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/leave/getall`),
-        ]);
-
-        setDashboardData({
-          employees: employeesRes.data || [],
-          attendance: attendanceRes.data || [],
-          leaves: leavesRes.data || [],
-          payrolls: payrollsRes.data || [],
-          holidays: holidaysRes.data || [],
-          departments: departmentsRes.data || [],
-          designations: designationsRes.data || [],
-          leaveTypes: leaveTypesRes.data || [],
-        });
+        const res = await axios.get(`${process.env.REACT_APP_BASE_URL}/hrm/dashboard-summary`);
+        setDashboardData(res.data);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         toast.error("Failed to load dashboard data");
@@ -143,155 +106,45 @@ const HRMTabComponent = () => {
     fetchDashboardData();
   }, []);
 
-  // Calculate statistics
-  const stats = {
-    totalEmployees: dashboardData.employees.length,
-    activeEmployees: dashboardData.employees.filter((e) => e.isActive).length,
-    presentToday: dashboardData.attendance.filter(
-      (a) =>
-        new Date(a.inTime).toDateString() === new Date().toDateString() &&
-        a.status === "PRESENT"
-    ).length,
-    onLeave: dashboardData.leaves.filter(
-      (l) =>
-        l.status === 1 &&
-        new Date(l.startDate) <= new Date() &&
-        new Date(l.endDate) >= new Date()
-    ).length,
-    pendingLeaves: dashboardData.leaves.filter((l) => l.status === 0).length,
-    totalDepartments: dashboardData.departments.length,
-    totalDesignations: dashboardData.designations.length,
-    upcomingHolidays: dashboardData.holidays.filter(
-      (h) => new Date(h.startDate) >= new Date()
-    ).length,
-    totalPayrolls: dashboardData.payrolls.length,
-    totalPayrollAmount: dashboardData.payrolls.reduce(
-      (sum, p) => sum + (p.total || 0),
-      0
-    ),
-  };
+  // Use pre-computed stats from backend
+  const stats = dashboardData ? {
+    totalEmployees: dashboardData.totalEmployees || 0,
+    activeEmployees: dashboardData.activeEmployees || 0,
+    presentToday: dashboardData.presentToday || 0,
+    onLeave: dashboardData.onLeave || 0,
+    pendingLeaves: dashboardData.pendingLeaves || 0,
+    totalDepartments: dashboardData.totalDepartments || 0,
+    totalDesignations: dashboardData.totalDesignations || 0,
+    upcomingHolidays: dashboardData.upcomingHolidays || 0,
+    totalPayrolls: dashboardData.totalPayrolls || 0,
+    totalPayrollAmount: dashboardData.totalPayrollAmount || 0,
+  } : {};
 
-  // Attendance trend data (last 7 days)
+  // Attendance trend data from backend
   const attendanceTrend = () => {
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toDateString();
-
-      const present = dashboardData.attendance.filter(
-        (a) =>
-          new Date(a.inTime).toDateString() === dateStr &&
-          a.status === "PRESENT"
-      ).length;
-
-      days.push({
-        day: date.toLocaleDateString("en-US", { weekday: "short" }),
-        present,
-        absent: stats.totalEmployees - present,
-        date: dateStr,
-      });
-    }
-    return days;
+    return dashboardData?.attendanceTrend || [];
   };
 
-  // Department distribution
+  // Department distribution from backend
   const departmentData = () => {
-    const deptMap = new Map();
-    dashboardData.employees.forEach((emp) => {
-      const dept = dashboardData.departments.find(
-        (d) => d.id === emp.departmentId
-      );
-      const deptName = dept ? dept.department : "Unassigned";
-      deptMap.set(deptName, (deptMap.get(deptName) || 0) + 1);
-    });
-
-    return Array.from(deptMap, ([name, value]) => ({ name, value }));
+    return dashboardData?.departmentData || [];
   };
 
-  // Leave status data
+  // Leave status data from backend
   const leaveStatusData = () => {
-    const approved = dashboardData.leaves.filter((l) => l.status === 1).length;
-    const pending = dashboardData.leaves.filter((l) => l.status === 0).length;
-    const rejected = dashboardData.leaves.filter((l) => l.status === 2).length;
-
-    return [
-      { name: "Approved", value: approved, color: COLORS.success },
-      { name: "Pending", value: pending, color: COLORS.warning },
-      { name: "Rejected", value: rejected, color: COLORS.danger },
-    ];
+    const data = dashboardData?.leaveStatusData || [];
+    const colorMap = { "Approved": COLORS.success, "Pending": COLORS.warning, "Rejected": COLORS.danger };
+    return data.map(item => ({ ...item, color: colorMap[item.name] || COLORS.info }));
   };
 
-  // Monthly payroll trend
+  // Monthly payroll data from backend
   const monthlyPayrollData = () => {
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const monthlyData = months.map((month, index) => {
-      const monthPayrolls = dashboardData.payrolls.filter(
-        (p) => p.month - 1 === index
-      );
-      const total = monthPayrolls.reduce((sum, p) => sum + (p.total || 0), 0);
-      return {
-        month,
-        amount: total,
-      };
-    });
-    return monthlyData;
+    return dashboardData?.monthlyPayrollData || [];
   };
 
-  // Holiday calendar data
+  // Upcoming holidays from backend
   const upcomingHolidays = () => {
-    return dashboardData.holidays
-      .filter((h) => new Date(h.startDate) >= new Date())
-      .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
-      .slice(0, 5);
-  };
-
-  // Recent activities
-  const recentActivities = () => {
-    const activities = [];
-
-    // Add recent leaves
-    dashboardData.leaves.slice(0, 3).forEach((leave) => {
-      const employee = dashboardData.employees.find(
-        (e) => e.id === leave.employee
-      );
-      activities.push({
-        type: "leave",
-        title: "Leave Request",
-        description: `${employee?.firstname || "Employee"} requested leave`,
-        date: new Date(leave.startDate),
-        status: leave.status,
-      });
-    });
-
-    // Add recent attendance
-    dashboardData.attendance.slice(0, 3).forEach((att) => {
-      const employee = dashboardData.employees.find(
-        (e) => e.id === att.employeeId
-      );
-      activities.push({
-        type: "attendance",
-        title: "Clock In",
-        description: `${employee?.firstname || "Employee"} clocked in`,
-        date: new Date(att.inTime),
-        status: "present",
-      });
-    });
-
-    return activities.sort((a, b) => b.date - a.date).slice(0, 5);
+    return dashboardData?.upcomingHolidayList || [];
   };
 
   if (loading) {
@@ -802,68 +655,33 @@ const HRMTabComponent = () => {
                   <div className="card-header bg-white border-0">
                     <h5 className="mb-0">
                       <FontAwesomeIcon icon={faClock} className="mr-2 text-primary" />
-                      Recent Activities
+                      Quick Overview
                     </h5>
                   </div>
                   <div className="card-body">
-                    {recentActivities().length > 0 ? (
-                      <div className="timeline">
-                        {recentActivities().map((activity, index) => (
-                          <div key={index} className="timeline-item mb-3">
-                            <div className="d-flex">
-                              <div className="mr-3">
-                                <div
-                                  className="rounded-circle p-2"
-                                  style={{
-                                    width: "35px",
-                                    height: "35px",
-                                    backgroundColor:
-                                      activity.type === "leave"
-                                        ? activity.status === 1
-                                          ? "#d4edda"
-                                          : activity.status === 0
-                                            ? "#fff3cd"
-                                            : "#f8d7da"
-                                        : "#cce5ff",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                  }}
-                                >
-                                  <FontAwesomeIcon
-                                    icon={
-                                      activity.type === "leave"
-                                        ? faUserClock
-                                        : faUserCheck
-                                    }
-                                    style={{
-                                      color:
-                                        activity.type === "leave"
-                                          ? activity.status === 1
-                                            ? "#155724"
-                                            : activity.status === 0
-                                              ? "#856404"
-                                              : "#721c24"
-                                          : "#004085",
-                                      fontSize: "14px",
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex-grow-1">
-                                <h6 className="mb-1">{activity.title}</h6>
-                                <p className="mb-1 small">{activity.description}</p>
-                                <small className="text-muted">
-                                  {activity.date.toLocaleString()}
-                                </small>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                    <div className="row text-center">
+                      <div className="col-4">
+                        <div className="p-3">
+                          <FontAwesomeIcon icon={faUserCheck} className="text-success mb-2" size="2x" />
+                          <h4 className="mb-1">{stats.presentToday}</h4>
+                          <small className="text-muted">Present Today</small>
+                        </div>
                       </div>
-                    ) : (
-                      <p className="text-muted text-center py-3">No recent activities</p>
-                    )}
+                      <div className="col-4">
+                        <div className="p-3">
+                          <FontAwesomeIcon icon={faUserClock} className="text-warning mb-2" size="2x" />
+                          <h4 className="mb-1">{stats.onLeave}</h4>
+                          <small className="text-muted">On Leave</small>
+                        </div>
+                      </div>
+                      <div className="col-4">
+                        <div className="p-3">
+                          <FontAwesomeIcon icon={faCircleExclamation} className="text-danger mb-2" size="2x" />
+                          <h4 className="mb-1">{stats.pendingLeaves}</h4>
+                          <small className="text-muted">Pending Leaves</small>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

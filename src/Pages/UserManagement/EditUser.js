@@ -79,6 +79,8 @@ const EditUser = () => {
   // Payroll
   const [basicSalary, setBasicSalary] = useState("");
   const [salaryIn, setSalaryIn] = useState("month");
+  const [employeeType, setEmployeeType] = useState("FULL_TIME");
+  const [hourlyRate, setHourlyRate] = useState("");
   const [payComponents, setPayComponents] = useState([]);
   const [selectedPayComponents, setSelectedPayComponents] = useState([]);
 
@@ -154,7 +156,7 @@ const EditUser = () => {
       if (userData.roles && userData.roles.length > 0) {
         setSelectedRoleId(userData.roles[0].id || "");
       }
-      // ---------- ✅ LOCATION PRESELECTION ----------
+      // ----------  ----------
       if (userData.locationIds && userData.locationIds.length > 0) {
         setSelectedLocationIds(userData.locationIds);
 
@@ -212,6 +214,8 @@ const EditUser = () => {
       setPrimaryWorkLocationId(userData.primaryWorkLocationId || null);
       setBasicSalary(userData.basicSalary || "");
       setSalaryIn(userData.salaryIn || "month");
+      setEmployeeType(userData.employeeType || "FULL_TIME");
+      setHourlyRate(userData.hourlyRate || "");
       if (userData.payComponentId) {
         setSelectedPayComponents([userData.payComponentId]);
       }
@@ -453,6 +457,12 @@ const EditUser = () => {
       case "salaryIn":
         setSalaryIn(value);
         break;
+      case "employeeType":
+        setEmployeeType(value);
+        break;
+      case "hourlyRate":
+        setHourlyRate(value);
+        break;
       case "payComponents":
         if (type === "select-multiple") {
           const selectedOptions = Array.from(
@@ -560,6 +570,8 @@ const EditUser = () => {
       primaryWorkLocationId,
       basicSalary,
       salaryIn,
+      employeeType,
+      hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
       payComponentId:
         selectedPayComponents.length > 0 ? selectedPayComponents[0] : null,
       salesCommissionPercentage,
@@ -1543,6 +1555,22 @@ const EditUser = () => {
                       </div>
                       <div className="col-md-4">
                         <div className="form-group">
+                          <label htmlFor="employeeType">Employee Type:</label>
+                          <select
+                            className="form-control"
+                            id="employeeType"
+                            name="employeeType"
+                            value={employeeType}
+                            onChange={handleChange}
+                          >
+                            <option value="FULL_TIME">Full-Time</option>
+                            <option value="HOURLY">Hourly</option>
+                            <option value="FREELANCER">Freelancer</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="col-md-4">
+                        <div className="form-group">
                           <label htmlFor="basicSalary">Basic Salary:</label>
                           <div className="d-flex gap-2">
                             <input
@@ -1568,6 +1596,23 @@ const EditUser = () => {
                           </div>
                         </div>
                       </div>
+                      {(employeeType === "HOURLY" || employeeType === "FREELANCER") && (
+                        <div className="col-md-4">
+                          <div className="form-group">
+                            <label htmlFor="hourlyRate">Hourly Rate (₹):</label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              id="hourlyRate"
+                              name="hourlyRate"
+                              value={hourlyRate}
+                              onChange={handleChange}
+                              placeholder="Rate per hour"
+                              step="0.01"
+                            />
+                          </div>
+                        </div>
+                      )}
                       <div className="col-md-4">
                         <div className="form-group">
                           <label htmlFor="payComponents">Pay Components:</label>

@@ -28,6 +28,7 @@ const Menu = ({ userRoles }) => {
   const [isReportOpen, setReportOpen] = useState(false);
   const [isSettingOpen, setSettingOpen] = useState(false);
   const [isHomeOpen, setHomeOpen] = useState(false);
+  const [isEmployeePortalOpen, setEmployeePortalOpen] = useState(false);
 
   useEffect(() => {
     const path = location.pathname;
@@ -123,6 +124,15 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/BusinessDetails") ||
       path.startsWith("/BusinessLocations") ||
       path.startsWith("/BusinessCategory")
+    );
+    setEmployeePortalOpen(
+      path.startsWith("/MyDashboard") ||
+      path.startsWith("/MyFaceAttendance") ||
+      path.startsWith("/MyAttendance") ||
+      path.startsWith("/MyLeave") ||
+      path.startsWith("/MyPayslips") ||
+      path.startsWith("/MyViewPayslip") ||
+      path.startsWith("/MyNotices")
     );
 
     // Set active menu based on current path
@@ -220,6 +230,16 @@ const Menu = ({ userRoles }) => {
       setActiveMenu("report");
     } else if (path.startsWith("/TaxRate")) {
       setActiveMenu("setting");
+    } else if (
+      path.startsWith("/MyDashboard") ||
+      path.startsWith("/MyFaceAttendance") ||
+      path.startsWith("/MyAttendance") ||
+      path.startsWith("/MyLeave") ||
+      path.startsWith("/MyPayslips") ||
+      path.startsWith("/MyViewPayslip") ||
+      path.startsWith("/MyNotices")
+    ) {
+      setActiveMenu("employeePortal");
     } else {
       setActiveMenu("");
     }
@@ -349,6 +369,18 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("BusinessLocations");
     } else if (path === "/BusinessCategory") {
       setActiveSubMenu("BusinessCategory");
+    } else if (path === "/MyDashboard") {
+      setActiveSubMenu("MyDashboard");
+    } else if (path === "/MyFaceAttendance") {
+      setActiveSubMenu("MyFaceAttendance");
+    } else if (path === "/MyAttendance") {
+      setActiveSubMenu("MyAttendance");
+    } else if (path === "/MyLeave") {
+      setActiveSubMenu("MyLeave");
+    } else if (path === "/MyPayslips" || path === "/MyViewPayslip") {
+      setActiveSubMenu("MyPayslips");
+    } else if (path === "/MyNotices") {
+      setActiveSubMenu("MyNotices");
     } else {
       setActiveSubMenu("");
     }
@@ -372,6 +404,7 @@ const Menu = ({ userRoles }) => {
     setPaymentOpen(dropdown === "payment" ? !isPaymentOpen : false);
     setReportOpen(dropdown === "report" ? !isReportOpen : false);
     setSettingOpen(dropdown === "setting" ? !isSettingOpen : false);
+    setEmployeePortalOpen(dropdown === "employeePortal" ? !isEmployeePortalOpen : false);
 
     // Set active menu
     if (
@@ -386,7 +419,8 @@ const Menu = ({ userRoles }) => {
       dropdown === "expenses" ||
       dropdown === "payment" ||
       dropdown === "report" ||
-      dropdown === "setting"
+      dropdown === "setting" ||
+      dropdown === "employeePortal"
     ) {
       setActiveMenu(dropdown);
     }
@@ -453,35 +487,37 @@ const Menu = ({ userRoles }) => {
               data-widget="treeview"
               role="menu"
             >
-              <li className="nav-item">
-                <Link
-                  to="/Dashboard"
-                  className="nav-link"
-                  style={{
-                    paddingLeft: "20px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                  }}
-                >
-                  <i
-                    className="fa-solid fa-house"
+              {hasPermission("dashboard.view") && (
+                <li className="nav-item">
+                  <Link
+                    to="/Dashboard"
+                    className="nav-link"
                     style={{
-                      fontSize: "20px",
-                      color: "black",
-                      opacity: 0.7, // makes it look lighter
-                    }}
-                  ></i>
-                  <p
-                    style={{
-                      color: "black",
-                      opacity: 0.7, // makes it look lighter
+                      paddingLeft: "20px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
                     }}
                   >
-                    Dashboard
-                  </p>
-                </Link>
-              </li>
+                    <i
+                      className="fa-solid fa-house"
+                      style={{
+                        fontSize: "20px",
+                        color: "black",
+                        opacity: 0.7,
+                      }}
+                    ></i>
+                    <p
+                      style={{
+                        color: "black",
+                        opacity: 0.7,
+                      }}
+                    >
+                      Dashboard
+                    </p>
+                  </Link>
+                </li>
+              )}
 
               {/* User management */}
               {(hasPermission("user.view") ||
@@ -2562,6 +2598,175 @@ const Menu = ({ userRoles }) => {
                     </ul>
                   </li>
                 )}
+
+              {/* Employee Portal */}
+              {hasPermission("employee_portal.view") && (
+                <li
+                  className={`nav-item ${activeMenu === "employeePortal" ? "menu-open" : ""} mb-2`}
+                >
+                  <a
+                    href="#"
+                    className={getMenuItemClass("employeePortal")}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggleDropdown("employeePortal");
+                    }}
+                    style={{
+                      borderLeft:
+                        activeMenu === "employeePortal"
+                          ? "3px solid #0040C1"
+                          : "none",
+                      backgroundColor:
+                        activeMenu === "employeePortal"
+                          ? "rgba(0, 64, 193, 0.05)"
+                          : "transparent",
+                    }}
+                  >
+                    <i
+                      className="nav-icon fas fa-id-badge"
+                      style={{
+                        color:
+                          activeMenu === "employeePortal"
+                            ? "#0040C1"
+                            : "#4b5565",
+                      }}
+                    />
+                    <p
+                      style={{
+                        color:
+                          activeMenu === "employeePortal"
+                            ? "#0040C1"
+                            : "#4b5565",
+                      }}
+                      className="ms-1"
+                    >
+                      Employee Portal
+                      <i
+                        className="right fas fa-angle-left"
+                        style={{
+                          color:
+                            activeMenu === "employeePortal"
+                              ? "#0040C1"
+                              : "#4b5565",
+                        }}
+                      />
+                    </p>
+                  </a>
+                  <ul
+                    className="nav nav-treeview"
+                    style={{
+                      display: isEmployeePortalOpen ? "block" : "none",
+                      backgroundColor:
+                        activeMenu === "employeePortal"
+                          ? "rgba(0, 64, 193, 0.05)"
+                          : "transparent",
+                    }}
+                  >
+                    <li className="nav-item">
+                      <Link
+                        to="/MyDashboard"
+                        className={getSubMenuItemClass("MyDashboard")}
+                        style={{
+                          color:
+                            activeSubMenu === "MyDashboard" ? "#0040C1" : "#4b5565",
+                          backgroundColor:
+                            activeSubMenu === "MyDashboard"
+                              ? "rgba(0, 64, 193, 0.08)"
+                              : "transparent",
+                          paddingLeft: "52px",
+                        }}
+                      >
+                        <p>My Dashboard</p>
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link
+                        to="/MyFaceAttendance"
+                        className={getSubMenuItemClass("MyFaceAttendance")}
+                        style={{
+                          color:
+                            activeSubMenu === "MyFaceAttendance" ? "#0040C1" : "#4b5565",
+                          backgroundColor:
+                            activeSubMenu === "MyFaceAttendance"
+                              ? "rgba(0, 64, 193, 0.08)"
+                              : "transparent",
+                          paddingLeft: "52px",
+                        }}
+                      >
+                        <p>Face Attendance</p>
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link
+                        to="/MyAttendance"
+                        className={getSubMenuItemClass("MyAttendance")}
+                        style={{
+                          color:
+                            activeSubMenu === "MyAttendance" ? "#0040C1" : "#4b5565",
+                          backgroundColor:
+                            activeSubMenu === "MyAttendance"
+                              ? "rgba(0, 64, 193, 0.08)"
+                              : "transparent",
+                          paddingLeft: "52px",
+                        }}
+                      >
+                        <p>My Attendance</p>
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link
+                        to="/MyLeave"
+                        className={getSubMenuItemClass("MyLeave")}
+                        style={{
+                          color:
+                            activeSubMenu === "MyLeave" ? "#0040C1" : "#4b5565",
+                          backgroundColor:
+                            activeSubMenu === "MyLeave"
+                              ? "rgba(0, 64, 193, 0.08)"
+                              : "transparent",
+                          paddingLeft: "52px",
+                        }}
+                      >
+                        <p>My Leave</p>
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link
+                        to="/MyPayslips"
+                        className={getSubMenuItemClass("MyPayslips")}
+                        style={{
+                          color:
+                            activeSubMenu === "MyPayslips" ? "#0040C1" : "#4b5565",
+                          backgroundColor:
+                            activeSubMenu === "MyPayslips"
+                              ? "rgba(0, 64, 193, 0.08)"
+                              : "transparent",
+                          paddingLeft: "52px",
+                        }}
+                      >
+                        <p>My Payslips</p>
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link
+                        to="/MyNotices"
+                        className={getSubMenuItemClass("MyNotices")}
+                        style={{
+                          color:
+                            activeSubMenu === "MyNotices" ? "#0040C1" : "#4b5565",
+                          backgroundColor:
+                            activeSubMenu === "MyNotices"
+                              ? "rgba(0, 64, 193, 0.08)"
+                              : "transparent",
+                          paddingLeft: "52px",
+                        }}
+                      >
+                        <p>Notices</p>
+                      </Link>
+                    </li>
+                  </ul>
+                </li>
+              )}
 
               {hasPermission("hrm.view") && (
                 <li className="nav-item">

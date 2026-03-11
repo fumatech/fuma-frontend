@@ -186,8 +186,8 @@ const Calculator = ({ onClose, buttonRef }) => {
                 btn === "="
                   ? "#007bff"
                   : ["AC", "CE", "%", "÷"].includes(btn)
-                  ? "#e9ecef"
-                  : "#ffffff",
+                    ? "#e9ecef"
+                    : "#ffffff",
               color: btn === "=" ? "#ffffff" : "#212529",
               cursor: "pointer",
               transition: "all 0.2s",
@@ -203,8 +203,8 @@ const Calculator = ({ onClose, buttonRef }) => {
                 btn === "="
                   ? "#007bff"
                   : ["AC", "CE", "%", "÷"].includes(btn)
-                  ? "#e9ecef"
-                  : "#ffffff";
+                    ? "#e9ecef"
+                    : "#ffffff";
             }}
           >
             {btn}
@@ -315,8 +315,14 @@ const Header = () => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [showClockInModal, setShowClockInModal] = useState(false);
   const [userFirstName, setUserFirstName] = useState("");
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const calculatorButtonRef = useRef(null);
   const downloadButtonRef = useRef(null);
+  const notifBellRef = useRef(null);
+  const BASE_URL = process.env.REACT_APP_BASE_URL;
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -331,6 +337,7 @@ const Header = () => {
           if (response.data) {
             // Set the firstname from the user object
             setUserFirstName(response.data.firstname);
+            setCurrentUserId(response.data.id);
 
             // Store the full user data in session storage for profile page
             sessionStorage.setItem(
@@ -361,6 +368,57 @@ const Header = () => {
     fetchUserData();
   }, []);
 
+  // Fetch notifications when userId is available
+  useEffect(() => {
+    if (currentUserId) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [currentUserId]);
+
+  // Close notification dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notifBellRef.current && !notifBellRef.current.contains(e.target)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const [unreadRes, countRes] = await Promise.all([
+        axios.get(`${BASE_URL}/task-notification/unread/${currentUserId}`),
+        axios.get(`${BASE_URL}/task-notification/unread-count/${currentUserId}`),
+      ]);
+      setNotifications(unreadRes.data);
+      setUnreadCount(countRes.data);
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+    }
+  };
+
+  const markNotifAsRead = async (id) => {
+    try {
+      await axios.put(`${BASE_URL}/task-notification/mark-read/${id}`);
+      fetchNotifications();
+    } catch (err) {
+      console.error("Error marking notification as read:", err);
+    }
+  };
+
+  const markAllNotifsRead = async () => {
+    try {
+      await axios.put(`${BASE_URL}/task-notification/mark-all-read/${currentUserId}`);
+      fetchNotifications();
+    } catch (err) {
+      console.error("Error marking all notifications read:", err);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await axios.post(`${process.env.REACT_APP_BASE_URL}/user/logout`);
@@ -378,6 +436,7 @@ const Header = () => {
     setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
     // Close other modals when opening a dropdown
     setShowClockInModal(false);
+    setShowNotifications(false);
   };
 
   const toggleCalculator = () => {
@@ -611,16 +670,130 @@ const Header = () => {
             {currentDate}
           </div>
 
-          {/* Bell Icon */}
+          {/* Bell Icon with Notifications */}
           <div
-            style={navItemStyle}
+            ref={notifBellRef}
+            style={{ ...navItemStyle, position: "relative", cursor: "pointer" }}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            onClick={() => {
+              setShowNotifications(!showNotifications);
+              setActiveDropdown(null);
+            }}
           >
             <FontAwesomeIcon
               icon={faBell}
-              style={{ marginRight: "6px", fontSize: "14px" }}
+              style={{ fontSize: "14px" }}
             />
+            {unreadCount > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: "2px",
+                  right: "4px",
+                  background: "#dc3545",
+                  color: "#fff",
+                  borderRadius: "50%",
+                  fontSize: "0.6rem",
+                  minWidth: "16px",
+                  height: "16px",
+                  lineHeight: "16px",
+                  textAlign: "center",
+                  padding: "0 3px",
+                }}
+              >
+                {unreadCount}
+              </span>
+            )}
+            {showNotifications && (
+              <div
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "calc(100% + 10px)",
+                  width: "370px",
+                  maxHeight: "420px",
+                  overflowY: "auto",
+                  backgroundColor: "#fff",
+                  borderRadius: "10px",
+                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
+                  zIndex: 9999,
+                  border: "1px solid rgba(0,0,0,0.1)",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div
+                  style={{
+                    padding: "12px 16px",
+                    borderBottom: "1px solid #dee2e6",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    background: "#f8f9fa",
+                    borderRadius: "10px 10px 0 0",
+                  }}
+                >
+                  <strong style={{ color: "#333" }}>
+                    <FontAwesomeIcon icon={faBell} style={{ marginRight: "8px" }} />
+                    Notifications
+                  </strong>
+                  {unreadCount > 0 && (
+                    <button
+                      style={{
+                        border: "1px solid #007bff",
+                        background: "transparent",
+                        color: "#007bff",
+                        borderRadius: "4px",
+                        padding: "2px 8px",
+                        fontSize: "0.75rem",
+                        cursor: "pointer",
+                      }}
+                      onClick={markAllNotifsRead}
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+                {notifications.length === 0 ? (
+                  <div style={{ textAlign: "center", color: "#999", padding: "30px 16px" }}>
+                    <FontAwesomeIcon icon={faBell} style={{ fontSize: "2rem", opacity: 0.3, display: "block", margin: "0 auto 8px" }} />
+                    No new notifications
+                  </div>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      style={{
+                        padding: "10px 16px",
+                        borderBottom: "1px solid #f0f0f0",
+                        cursor: "pointer",
+                        fontSize: "0.85rem",
+                        borderLeft: `3px solid ${n.type === "TASK_OVERDUE" ? "#dc3545" : n.type === "TASK_DUE_SOON" ? "#ffc107" : "#17a2b8"}`,
+                      }}
+                      onClick={() => markNotifAsRead(n.id)}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                        <span
+                          style={{
+                            padding: "2px 6px",
+                            borderRadius: "3px",
+                            fontSize: "0.7rem",
+                            color: "#fff",
+                            background: n.type === "TASK_OVERDUE" ? "#dc3545" : n.type === "TASK_DUE_SOON" ? "#ffc107" : n.type === "TASK_ASSIGNED" ? "#17a2b8" : "#6c757d",
+                          }}
+                        >
+                          {n.type?.replace(/_/g, " ")}
+                        </span>
+                        <small style={{ color: "#999" }}>
+                          {n.createdAt ? new Date(n.createdAt).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : ""}
+                        </small>
+                      </div>
+                      <div style={{ color: "#333" }}>{n.message}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           {/* Admin Dropdown */}
