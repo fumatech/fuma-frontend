@@ -115,7 +115,7 @@ const EmployeeFaceAttendance = ({ employee }) => {
                     ? `${BASE_URL}/attendance/face-clock-in`
                     : `${BASE_URL}/attendance/face-clock-out`;
 
-            const res = await axios.post(endpoint, { faceDescriptor, ipAddress });
+            const res = await axios.post(endpoint, { faceDescriptor, ipAddress, employeeId: String(employee.id) });
             setResult(res.data);
 
             if (res.data.success) {
@@ -293,10 +293,10 @@ const EmployeeFaceAttendance = ({ employee }) => {
                                 )}
                                 <span
                                     className={`badge ${todayStatus.status === "PRESENT"
-                                            ? "badge-success"
-                                            : todayStatus.status === "HALF_DAY"
-                                                ? "badge-warning"
-                                                : "badge-danger"
+                                        ? "badge-success"
+                                        : todayStatus.status === "HALF_DAY"
+                                            ? "badge-warning"
+                                            : "badge-danger"
                                         }`}
                                 >
                                     {todayStatus.status}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import BusinessFunctionCards from "./components/Dashboard/BusinessFunctionCards";
 import "./Pages/Dashboard.css";
 const Dashboard = () => {
@@ -7,6 +8,7 @@ const Dashboard = () => {
   const [userCount, setUserCount] = useState(0);
   const [vendorCount, setVendorCount] = useState(0);
   const [franchiseCount, setFranchiseCount] = useState(0);
+  const [notices, setNotices] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,20 +19,25 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_BASE_URL}/user/getall`)
+    fetch(`${process.env.REACT_APP_BASE_URL}/user/count`)
       .then((res) => res.json())
-      .then((data) => setUserCount(data.length))
+      .then((data) => setUserCount(data))
       .catch((err) => console.error("User fetch error:", err));
 
-    fetch(`${process.env.REACT_APP_BASE_URL}/vendor/getall`)
+    fetch(`${process.env.REACT_APP_BASE_URL}/vendor/count`)
       .then((res) => res.json())
-      .then((data) => setVendorCount(data.length))
+      .then((data) => setVendorCount(data))
       .catch((err) => console.error("Vendor fetch error:", err));
 
-    fetch(`${process.env.REACT_APP_BASE_URL}/customer/getall`)
+    fetch(`${process.env.REACT_APP_BASE_URL}/customer/count`)
       .then((res) => res.json())
-      .then((data) => setFranchiseCount(data.length))
+      .then((data) => setFranchiseCount(data))
       .catch((err) => console.error("Franchise fetch error:", err));
+
+    // Fetch active notices for the announcement widget
+    axios.get(`${process.env.REACT_APP_BASE_URL}/notice-board/active`)
+      .then((res) => setNotices(res.data || []))
+      .catch((err) => console.error("Notice fetch error:", err));
   }, []);
 
   return (
@@ -704,6 +711,94 @@ const Dashboard = () => {
               {/* /.Left col */}
               {/* right col (We are only adding the ID to make the widgets sortable)*/}
               <section className="col-lg-5 connectedSortable">
+                {/* Company Announcements */}
+                <div className="card blur-card text-dark shadow" style={{ background: "#fff", borderTop: "3px solid #6f42c1" }}>
+                  <div className="card-header d-flex justify-content-between align-items-center" style={{ background: "linear-gradient(135deg, #6f42c1 0%, #4361ee 100%)", color: "#fff", borderRadius: "0" }}>
+                    <h3 className="card-title mb-0">
+                      <i className="fas fa-bullhorn mr-2" />
+                      Company Announcements
+                    </h3>
+                    <span className="badge badge-light">{notices.filter(n => n.active).length} Active</span>
+                  </div>
+                  <div className="card-body p-0" style={{ maxHeight: "360px", overflowY: "auto" }}>
+                    {notices.length === 0 ? (
+                      <div className="text-center text-muted py-4">
+                        <i className="fas fa-clipboard fa-2x mb-2 d-block" style={{ opacity: 0.3 }}></i>
+                        <small>No announcements at this time</small>
+                      </div>
+                    ) : (
+                      notices.slice(0, 5).map((notice) => {
+                        const categoryColors = {
+                          Announcement: "#3498db", Achievement: "#2ecc71", Alert: "#e74c3c",
+                          Event: "#9b59b6", Policy: "#f39c12", General: "#95a5a6",
+                        };
+                        const categoryIcons = {
+                          Announcement: "fas fa-bullhorn", Achievement: "fas fa-trophy", Alert: "fas fa-exclamation-triangle",
+                          Event: "fas fa-calendar-alt", Policy: "fas fa-file-alt", General: "fas fa-info-circle",
+                        };
+                        const timeAgo = (dateStr) => {
+                          if (!dateStr) return "";
+                          const seconds = Math.floor((new Date() - new Date(dateStr)) / 1000);
+                          if (seconds < 60) return "Just now";
+                          const minutes = Math.floor(seconds / 60);
+                          if (minutes < 60) return `${minutes}m ago`;
+                          const hours = Math.floor(minutes / 60);
+                          if (hours < 24) return `${hours}h ago`;
+                          const days = Math.floor(hours / 24);
+                          if (days < 30) return `${days}d ago`;
+                          return `${Math.floor(days / 30)}mo ago`;
+                        };
+                        return (
+                          <div
+                            key={notice.id}
+                            style={{
+                              padding: "12px 16px",
+                              borderBottom: "1px solid #f0f0f0",
+                              borderLeft: `4px solid ${categoryColors[notice.category] || "#95a5a6"}`,
+                            }}
+                          >
+                            <div className="d-flex justify-content-between align-items-start">
+                              <div className="d-flex align-items-center mb-1">
+                                {notice.pinned && (
+                                  <i className="fas fa-thumbtack text-warning mr-2" style={{ fontSize: "11px" }} title="Pinned"></i>
+                                )}
+                                <span
+                                  className="badge mr-2"
+                                  style={{
+                                    backgroundColor: categoryColors[notice.category] || "#95a5a6",
+                                    color: "#fff",
+                                    fontSize: "10px",
+                                  }}
+                                >
+                                  <i className={`${categoryIcons[notice.category] || "fas fa-info-circle"} mr-1`}></i>
+                                  {notice.category}
+                                </span>
+                              </div>
+                              <small className="text-muted" style={{ fontSize: "11px", whiteSpace: "nowrap" }}>
+                                {timeAgo(notice.createdAt)}
+                              </small>
+                            </div>
+                            <h6 className="mb-1 font-weight-bold" style={{ fontSize: "13px" }}>{notice.title}</h6>
+                            <p className="mb-0 text-muted" style={{ fontSize: "12px", maxHeight: "36px", overflow: "hidden" }}>
+                              {notice.content}
+                            </p>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                  {notices.length > 5 && (
+                    <div className="card-footer text-center p-2" style={{ background: "#f8f9fa" }}>
+                      <button
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => navigate("/HRMDashboard")}
+                      >
+                        View All Announcements <i className="fas fa-arrow-right ml-1"></i>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 {/* Map card */}
                 <div className="card card bg-transparent blur-card text-light shadow">
                   <div className="card-header border-0">

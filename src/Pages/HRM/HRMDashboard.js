@@ -49,6 +49,7 @@ import Payroll from "./payroll";
 import HRMSettings from "./HRMSettings";
 import EmployeePerformance from "./EmployeePerformance";
 import EmployeeGrievance from "./EmployeeGrievance";
+import NoticeBoard from "./NoticeBoard";
 
 const tabsData = [
   { id: "leave-type", label: "Leave Type", component: <LeaveType /> },
@@ -61,6 +62,7 @@ const tabsData = [
   { id: "sales-targets", label: "Sales Targets", component: <SalesTargets /> },
   { id: "performance", label: "Performance Tracker", component: <EmployeePerformance /> },
   { id: "grievance", label: "Grievance Portal", component: <EmployeeGrievance /> },
+  { id: "notice-board", label: "Notice Board", component: <NoticeBoard /> },
   { id: "HRMSettings", label: "Settings", component: <HRMSettings /> },
 ];
 

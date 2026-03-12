@@ -166,6 +166,7 @@ import AllPayrollGroups from "./Pages/HRM/AllPayrollGroups";
 import PayComponents from "./Pages/HRM/PayComponents";
 import HRMSettings from "./Pages/HRM/HRMSettings";
 import EmployeeGrievance from "./Pages/HRM/EmployeeGrievance";
+import NoticeBoard from "./Pages/HRM/NoticeBoard";
 import FaceAttendancePage from "./Pages/HRM/FaceAttendance";
 import WorkingHoursReport from "./Pages/HRM/WorkingHoursReport";
 import CRMDashboard from "./Pages/CRM/CRMDashboard";
@@ -177,6 +178,7 @@ import BusinessDetails from "./Pages/Setting/BusinessDetails";
 import PrintLabel from "./Pages/Products/PrintLabel";
 import ProductLabel from "./Pages/Products/ProductLabel";
 import EmployeeLayout from "./Pages/EmployeePortal/EmployeeLayout";
+import EmployeeLogin from "./Pages/EmployeePortal/EmployeeLogin";
 import EmployeePortalWrapper from "./Pages/EmployeePortal/EmployeePortalWrapper";
 import EmployeeDashboard from "./Pages/EmployeePortal/EmployeeDashboard";
 import EmployeeFaceAttendance from "./Pages/EmployeePortal/EmployeeFaceAttendance";
@@ -202,6 +204,7 @@ const App = () => {
           if (response.ok) {
             const userData = await response.json();
             setUserRoles(userData.roles || []);
+            sessionStorage.setItem("userProfileData", JSON.stringify(userData));
           }
         } catch (error) {
           console.error("Error fetching user roles:", error);
@@ -318,6 +321,7 @@ const App = () => {
     "/PayComponents": ["hrm.view"],
     "/HRMSettings": ["hrm.view"],
     "/EmployeeGrievance": ["hrm.view"],
+    "/NoticeBoard": ["hrm.view"],
     "/Campaigns": ["crm.view"],
     "/ContactLogin": ["crm.view"],
     "/Leads": ["crm.view"],
@@ -387,8 +391,8 @@ const App = () => {
       />
       <div className="app-background">
         <Routes>
-          {/* Employee Portal Routes - login is now unified at / */}
-          <Route path="/employee" element={<Navigate to="/" replace />} />
+          {/* Employee Portal - separate login for security */}
+          <Route path="/employee/login" element={<EmployeeLogin />} />
           <Route path="/employee/*" element={<EmployeeLayout />} />
 
           <Route
@@ -1632,6 +1636,16 @@ const App = () => {
                     element={
                       hasPermission("/EmployeeGrievance") ? (
                         <EmployeeGrievance />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/NoticeBoard"
+                    element={
+                      hasPermission("/NoticeBoard") ? (
+                        <NoticeBoard />
                       ) : (
                         <Navigate to="/" />
                       )

@@ -328,27 +328,32 @@ const Header = () => {
     const fetchUserData = async () => {
       try {
         const email = sessionStorage.getItem("userEmail");
-        if (email) {
-          // Call the endpoint that returns the full user object
-          const response = await axios.get(
-            `${process.env.REACT_APP_BASE_URL}/user/email/${email}`
+        if (!email) return;
+
+        // Try cached data first
+        const cached = sessionStorage.getItem("userProfileData");
+        if (cached) {
+          const userData = JSON.parse(cached);
+          setUserFirstName(userData.firstname);
+          setCurrentUserId(userData.id);
+          return;
+        }
+
+        // Only fetch if no cached data
+        const response = await axios.get(
+          `${process.env.REACT_APP_BASE_URL}/user/email/${email}`
+        );
+
+        if (response.data) {
+          setUserFirstName(response.data.firstname);
+          setCurrentUserId(response.data.id);
+          sessionStorage.setItem(
+            "userProfileData",
+            JSON.stringify(response.data)
           );
-
-          if (response.data) {
-            // Set the firstname from the user object
-            setUserFirstName(response.data.firstname);
-            setCurrentUserId(response.data.id);
-
-            // Store the full user data in session storage for profile page
-            sessionStorage.setItem(
-              "userProfileData",
-              JSON.stringify(response.data)
-            );
-          }
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
-        // Fallback to the username endpoint if the email endpoint fails
         try {
           const email = sessionStorage.getItem("userEmail");
           if (email) {
@@ -768,7 +773,7 @@ const Header = () => {
                         borderBottom: "1px solid #f0f0f0",
                         cursor: "pointer",
                         fontSize: "0.85rem",
-                        borderLeft: `3px solid ${n.type === "TASK_OVERDUE" ? "#dc3545" : n.type === "TASK_DUE_SOON" ? "#ffc107" : "#17a2b8"}`,
+                        borderLeft: `3px solid ${n.type === "TASK_OVERDUE" ? "#dc3545" : n.type === "TASK_DUE_SOON" ? "#ffc107" : n.type === "NOTICE_POSTED" ? "#6f42c1" : "#17a2b8"}`,
                       }}
                       onClick={() => markNotifAsRead(n.id)}
                     >
@@ -779,7 +784,7 @@ const Header = () => {
                             borderRadius: "3px",
                             fontSize: "0.7rem",
                             color: "#fff",
-                            background: n.type === "TASK_OVERDUE" ? "#dc3545" : n.type === "TASK_DUE_SOON" ? "#ffc107" : n.type === "TASK_ASSIGNED" ? "#17a2b8" : "#6c757d",
+                            background: n.type === "TASK_OVERDUE" ? "#dc3545" : n.type === "TASK_DUE_SOON" ? "#ffc107" : n.type === "TASK_ASSIGNED" ? "#17a2b8" : n.type === "NOTICE_POSTED" ? "#6f42c1" : "#6c757d",
                           }}
                         >
                           {n.type?.replace(/_/g, " ")}
