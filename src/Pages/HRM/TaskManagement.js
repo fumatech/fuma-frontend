@@ -14,6 +14,8 @@ import {
     faSearch,
     faFilter,
     faEye,
+    faDownload,
+    faFileAlt,
 } from "@fortawesome/free-solid-svg-icons";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
@@ -327,6 +329,12 @@ const TaskManagement = () => {
                                                         <FontAwesomeIcon icon={status.icon} className="mr-1" />
                                                         {status.label}
                                                     </span>
+                                                    {task.status === "COMPLETED" && task.completionReport && (
+                                                        <span className="badge badge-outline-success ml-1" title="Has completion report" style={{ cursor: "pointer", border: "1px solid #28a745", color: "#28a745", fontSize: "10px" }}
+                                                            onClick={() => { setSelectedTask(task); setShowDetailModal(true); }}>
+                                                            <FontAwesomeIcon icon={faFileAlt} className="mr-1" />Report
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td>{formatDateTime(task.deadline)}</td>
                                                 <td>
@@ -512,8 +520,47 @@ const TaskManagement = () => {
                                             <p className="mb-0">{formatDateTime(selectedTask.updatedAt)}</p>
                                         </div>
                                     </div>
+
+                                    {/* Completion Report Section */}
+                                    {selectedTask.status === "COMPLETED" && selectedTask.completionReport && (
+                                        <>
+                                            <hr />
+                                            <div className="mb-2">
+                                                <h6 className="font-weight-bold text-success">
+                                                    <FontAwesomeIcon icon={faFileAlt} className="mr-2" />
+                                                    Completion Report
+                                                </h6>
+                                                {selectedTask.completedAt && (
+                                                    <small className="text-muted d-block mb-2">
+                                                        Completed on: {formatDateTime(selectedTask.completedAt)}
+                                                    </small>
+                                                )}
+                                                <div className="p-3 rounded" style={{ backgroundColor: "#f8f9fa", whiteSpace: "pre-wrap", fontSize: "14px", lineHeight: "1.6", border: "1px solid #e9ecef" }}>
+                                                    {selectedTask.completionReport}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                                 <div className="modal-footer">
+                                    {selectedTask.status === "COMPLETED" && selectedTask.completionReport && (
+                                        <button
+                                            className="btn btn-outline-primary"
+                                            onClick={() => {
+                                                const content = `Task Completion Report\n${'='.repeat(40)}\n\nTask: ${selectedTask.title}\nAssigned To: ${getEmployeeName(selectedTask.assignedTo)}\nAssigned By: ${getEmployeeName(selectedTask.assignedBy)}\nPriority: ${selectedTask.priority}\nDeadline: ${formatDateTime(selectedTask.deadline)}\nCompleted: ${formatDateTime(selectedTask.completedAt)}\n\nReport:\n${'-'.repeat(40)}\n${selectedTask.completionReport}\n`;
+                                                const blob = new Blob([content], { type: "text/plain" });
+                                                const url = URL.createObjectURL(blob);
+                                                const a = document.createElement("a");
+                                                a.href = url;
+                                                a.download = `Task_Report_${selectedTask.title.replace(/[^a-zA-Z0-9]/g, '_')}.txt`;
+                                                a.click();
+                                                URL.revokeObjectURL(url);
+                                            }}
+                                        >
+                                            <FontAwesomeIcon icon={faDownload} className="mr-1" />
+                                            Download Report
+                                        </button>
+                                    )}
                                     <button className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>Close</button>
                                 </div>
                             </div>

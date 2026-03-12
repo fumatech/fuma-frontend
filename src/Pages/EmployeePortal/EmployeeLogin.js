@@ -25,7 +25,7 @@ const EmployeeLogin = () => {
 
         try {
             const response = await axios.post(
-                `${process.env.REACT_APP_BASE_URL}/user/login`,
+                `${process.env.REACT_APP_BASE_URL}/user/employee-login`,
                 { email, password },
                 { withCredentials: true }
             );

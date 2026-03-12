@@ -48,7 +48,7 @@ const EmployeeLayout = () => {
         const fetchEmployee = async () => {
             const email = sessionStorage.getItem("employeeEmail");
             if (!email) {
-                navigate("/");
+                navigate("/employee/login");
                 return;
             }
             try {
@@ -58,11 +58,11 @@ const EmployeeLayout = () => {
                 if (res.data) {
                     setEmployee(res.data);
                 } else {
-                    navigate("/");
+                    navigate("/employee/login");
                 }
             } catch (error) {
                 console.error("Error fetching employee data:", error);
-                navigate("/");
+                navigate("/employee/login");
             }
             setLoading(false);
         };
