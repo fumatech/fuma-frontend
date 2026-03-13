@@ -22,6 +22,8 @@ import EmployeeMyLeave from "./EmployeeMyLeave";
 import EmployeeMyPayslips from "./EmployeeMyPayslips";
 import EmployeeViewPayslip from "./EmployeeViewPayslip";
 import EmployeeNotices from "./EmployeeNotices";
+import HRDocs from "../HRM/HRDocs";
+import EmployeeHRDocs from "./EmployeeHRDocs";
 
 const menuItems = [
     { path: "/employee/dashboard", label: "Dashboard", icon: faTachometerAlt },
@@ -29,8 +31,11 @@ const menuItems = [
     { path: "/employee/my-attendance", label: "My Attendance", icon: faCalendarCheck },
     { path: "/employee/my-leave", label: "My Leave", icon: faCalendarMinus },
     { path: "/employee/my-payslips", label: "My Payslips", icon: faFileInvoiceDollar },
+    // HR Docs will be conditionally inserted below
     { path: "/employee/notices", label: "Notices", icon: faBullhorn },
 ];
+
+
 
 const EmployeeLayout = () => {
     const [employee, setEmployee] = useState(null);
@@ -144,7 +149,12 @@ const EmployeeLayout = () => {
         );
     }
 
+
     if (!employee) return null;
+    // Check HR Docs permission inside the component
+    const hasHRDocs = (employee.roles || []).some(role =>
+        (role.permissions || []).some(perm => perm.name === "hr_docs.view")
+    );
 
     return (
         <div className="d-flex" style={{ minHeight: "100vh" }}>
@@ -154,7 +164,7 @@ const EmployeeLayout = () => {
                 style={{
                     width: sidebarOpen ? "260px" : "70px",
                     minHeight: "100vh",
-                    background: "#003cb3",
+                    background: "#0C4461",
                     transition: "width 0.3s ease",
                     position: "fixed",
                     top: 0,
@@ -204,26 +214,45 @@ const EmployeeLayout = () => {
 
                 {/* Menu Items */}
                 <nav className="flex-grow-1 py-2">
-                    {menuItems.map((item) => {
+                    {menuItems.map((item, idx) => {
+                        // Insert HR Docs after My Payslips (before Notices)
+                        const isAfterPayslips = item.path === "/employee/notices" && hasHRDocs;
                         const isActive = location.pathname === item.path;
                         return (
-                            <Link
-                                key={item.path}
-                                to={item.path}
-                                className="d-flex align-items-center px-3 py-2 text-white text-decoration-none"
-                                style={{
-                                    background: isActive ? "rgba(255,255,255,0.15)" : "transparent",
-                                    borderLeft: isActive ? "3px solid #fff" : "3px solid transparent",
-                                    transition: "all 0.2s ease",
-                                    fontSize: "0.95rem",
-                                }}
-                            >
-                                <FontAwesomeIcon
-                                    icon={item.icon}
-                                    style={{ width: "20px", minWidth: "20px", textAlign: "center" }}
-                                />
-                                {sidebarOpen && <span className="ml-3">{item.label}</span>}
-                            </Link>
+                            <React.Fragment key={item.path}>
+                                {/* Insert HR Docs menu item before Notices if permission exists */}
+                                {isAfterPayslips && (
+                                    <Link
+                                        to="/employee/hr-docs"
+                                        className="d-flex align-items-center px-3 py-2 text-white text-decoration-none"
+                                        style={{
+                                            background: location.pathname === "/employee/hr-docs" ? "rgba(255,255,255,0.15)" : "transparent",
+                                            borderLeft: location.pathname === "/employee/hr-docs" ? "3px solid #fff" : "3px solid transparent",
+                                            transition: "all 0.2s ease",
+                                            fontSize: "0.95rem",
+                                        }}
+                                    >
+                                        <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ width: "20px", minWidth: "20px", textAlign: "center" }} />
+                                        {sidebarOpen && <span className="ml-3">HR Docs</span>}
+                                    </Link>
+                                )}
+                                <Link
+                                    to={item.path}
+                                    className="d-flex align-items-center px-3 py-2 text-white text-decoration-none"
+                                    style={{
+                                        background: isActive ? "rgba(255,255,255,0.15)" : "transparent",
+                                        borderLeft: isActive ? "3px solid #fff" : "3px solid transparent",
+                                        transition: "all 0.2s ease",
+                                        fontSize: "0.95rem",
+                                    }}
+                                >
+                                    <FontAwesomeIcon
+                                        icon={item.icon}
+                                        style={{ width: "20px", minWidth: "20px", textAlign: "center" }}
+                                    />
+                                    {sidebarOpen && <span className="ml-3">{item.label}</span>}
+                                </Link>
+                            </React.Fragment>
                         );
                     })}
                 </nav>
@@ -372,6 +401,7 @@ const EmployeeLayout = () => {
                         <Route path="my-payslips" element={<EmployeeMyPayslips employee={employee} />} />
                         <Route path="view-payslip" element={<EmployeeViewPayslip employee={employee} />} />
                         <Route path="notices" element={<EmployeeNotices />} />
+                        <Route path="hr-docs" element={<EmployeeHRDocs employee={employee} />} />
                         <Route path="*" element={<Navigate to="dashboard" replace />} />
                     </Routes>
                 </div>

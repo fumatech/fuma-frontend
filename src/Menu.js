@@ -463,7 +463,7 @@ const Menu = ({ userRoles }) => {
       <aside
         className={`main-sidebar sidebar-elevation-1 sidebar menuSidebar p-0 ${sideBarCollapsed ? "sidebar-collapse" : ""
           }`}
-        style={{ minHeight: "100vh" }}
+        style={{ minHeight: "100vh", backgroundColor: "#0C4461" }}
       >
         <div className="sidebar p-0 ">
           <div
@@ -2614,11 +2614,11 @@ const Menu = ({ userRoles }) => {
                     style={{
                       borderLeft:
                         activeMenu === "employeePortal"
-                          ? "3px solid #0040C1"
+                          ? "3px solid #0C4461"
                           : "none",
                       backgroundColor:
                         activeMenu === "employeePortal"
-                          ? "rgba(0, 64, 193, 0.05)"
+                          ? "rgba(12, 68, 97, 0.15)"
                           : "transparent",
                     }}
                   >
@@ -2627,7 +2627,7 @@ const Menu = ({ userRoles }) => {
                       style={{
                         color:
                           activeMenu === "employeePortal"
-                            ? "#0040C1"
+                            ? "#0C4461"
                             : "#4b5565",
                       }}
                     />
@@ -2635,7 +2635,7 @@ const Menu = ({ userRoles }) => {
                       style={{
                         color:
                           activeMenu === "employeePortal"
-                            ? "#0040C1"
+                            ? "#0C4461"
                             : "#4b5565",
                       }}
                       className="ms-1"
@@ -2646,7 +2646,7 @@ const Menu = ({ userRoles }) => {
                         style={{
                           color:
                             activeMenu === "employeePortal"
-                              ? "#0040C1"
+                              ? "#0C4461"
                               : "#4b5565",
                         }}
                       />
@@ -2747,6 +2747,25 @@ const Menu = ({ userRoles }) => {
                         <p>My Payslips</p>
                       </Link>
                     </li>
+                    {hasPermission("hr_docs.view") && (
+                      <li className="nav-item">
+                        <Link
+                          to="/HRDocs"
+                          className={getSubMenuItemClass("HRDocs")}
+                          style={{
+                            color:
+                              activeSubMenu === "HRDocs" ? "#0040C1" : "#4b5565",
+                            backgroundColor:
+                              activeSubMenu === "HRDocs"
+                                ? "rgba(0, 64, 193, 0.08)"
+                                : "transparent",
+                            paddingLeft: "52px",
+                          }}
+                        >
+                          <p>HR Docs</p>
+                        </Link>
+                      </li>
+                    )}
                     <li className="nav-item">
                       <Link
                         to="/MyNotices"
@@ -2799,6 +2818,8 @@ const Menu = ({ userRoles }) => {
                   </Link>
                 </li>
               )}
+
+
 
               {hasPermission("crm.view") && (
                 <li className="nav-item">
