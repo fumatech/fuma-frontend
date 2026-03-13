@@ -13,7 +13,7 @@ const modules = [
   "stock_adjustment_report", "item_report", "product_purchase_report", "product_sell_report",
   "purchase_payment_report", "sale_payment_report", "tax_rate", "business_details",
   "business_locations", "business_category", "permission", "image_upload", "signature_upload",
-  "hrm", "crm", "employee_portal"
+  "hrm", "crm", "employee_portal", "hr_docs"
 ];
 
 const actions = ["view", "add", "edit", "delete"];

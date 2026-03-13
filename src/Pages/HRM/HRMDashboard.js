@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import HRDocs from "./HRDocs";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUsers,
@@ -63,6 +64,7 @@ const tabsData = [
   { id: "performance", label: "Performance Tracker", component: <EmployeePerformance /> },
   { id: "grievance", label: "Grievance Portal", component: <EmployeeGrievance /> },
   { id: "notice-board", label: "Notice Board", component: <NoticeBoard /> },
+  { id: "hr-docs", label: "HR Docs", component: <HRDocs /> },
   { id: "HRMSettings", label: "Settings", component: <HRMSettings /> },
 ];
 

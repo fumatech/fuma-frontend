@@ -167,6 +167,7 @@ import PayComponents from "./Pages/HRM/PayComponents";
 import HRMSettings from "./Pages/HRM/HRMSettings";
 import EmployeeGrievance from "./Pages/HRM/EmployeeGrievance";
 import NoticeBoard from "./Pages/HRM/NoticeBoard";
+import HRDocs from "./Pages/HRM/HRDocs";
 import FaceAttendancePage from "./Pages/HRM/FaceAttendance";
 import WorkingHoursReport from "./Pages/HRM/WorkingHoursReport";
 import CRMDashboard from "./Pages/CRM/CRMDashboard";
@@ -322,6 +323,7 @@ const App = () => {
     "/HRMSettings": ["hrm.view"],
     "/EmployeeGrievance": ["hrm.view"],
     "/NoticeBoard": ["hrm.view"],
+    "/HRDocs": ["hr_docs.view", "hr_docs.manage"],
     "/Campaigns": ["crm.view"],
     "/ContactLogin": ["crm.view"],
     "/Leads": ["crm.view"],
@@ -1646,6 +1648,16 @@ const App = () => {
                     element={
                       hasPermission("/NoticeBoard") ? (
                         <NoticeBoard />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/HRDocs"
+                    element={
+                      hasPermission("/HRDocs") ? (
+                        <HRDocs />
                       ) : (
                         <Navigate to="/" />
                       )
