@@ -14,6 +14,7 @@ import {
     faUser,
     faBars,
     faBell,
+    faBullseye,
 } from "@fortawesome/free-solid-svg-icons";
 import EmployeeDashboard from "./EmployeeDashboard";
 import EmployeeFaceAttendance from "./EmployeeFaceAttendance";
@@ -24,6 +25,7 @@ import EmployeeViewPayslip from "./EmployeeViewPayslip";
 import EmployeeNotices from "./EmployeeNotices";
 import HRDocs from "../HRM/HRDocs";
 import EmployeeHRDocs from "./EmployeeHRDocs";
+import LeadPipeline from "../CRM/LeadPipeline";
 
 const menuItems = [
     { path: "/employee/dashboard", label: "Dashboard", icon: faTachometerAlt },
@@ -155,6 +157,10 @@ const EmployeeLayout = () => {
     const hasHRDocs = (employee.roles || []).some(role =>
         (role.permissions || []).some(perm => perm.name === "hr_docs.view")
     );
+    // Check CRM Pipeline permission
+    const hasCrmPipeline = (employee.roles || []).some(role =>
+        (role.permissions || []).some(perm => perm.name === "crm_pipeline.view")
+    );
 
     return (
         <div className="d-flex" style={{ minHeight: "100vh" }}>
@@ -222,19 +228,37 @@ const EmployeeLayout = () => {
                             <React.Fragment key={item.path}>
                                 {/* Insert HR Docs menu item before Notices if permission exists */}
                                 {isAfterPayslips && (
-                                    <Link
-                                        to="/employee/hr-docs"
-                                        className="d-flex align-items-center px-3 py-2 text-white text-decoration-none"
-                                        style={{
-                                            background: location.pathname === "/employee/hr-docs" ? "rgba(255,255,255,0.15)" : "transparent",
-                                            borderLeft: location.pathname === "/employee/hr-docs" ? "3px solid #fff" : "3px solid transparent",
-                                            transition: "all 0.2s ease",
-                                            fontSize: "0.95rem",
-                                        }}
-                                    >
-                                        <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ width: "20px", minWidth: "20px", textAlign: "center" }} />
-                                        {sidebarOpen && <span className="ml-3">HR Docs</span>}
-                                    </Link>
+                                    <>
+                                        <Link
+                                            to="/employee/hr-docs"
+                                            className="d-flex align-items-center px-3 py-2 text-white text-decoration-none"
+                                            style={{
+                                                background: location.pathname === "/employee/hr-docs" ? "rgba(255,255,255,0.15)" : "transparent",
+                                                borderLeft: location.pathname === "/employee/hr-docs" ? "3px solid #fff" : "3px solid transparent",
+                                                transition: "all 0.2s ease",
+                                                fontSize: "0.95rem",
+                                            }}
+                                        >
+                                            <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ width: "20px", minWidth: "20px", textAlign: "center" }} />
+                                            {sidebarOpen && <span className="ml-3">HR Docs</span>}
+                                        </Link>
+
+                                        {hasCrmPipeline && (
+                                            <Link
+                                                to="/employee/pipeline"
+                                                className="d-flex align-items-center px-3 py-2 text-white text-decoration-none"
+                                                style={{
+                                                    background: location.pathname === "/employee/pipeline" ? "rgba(255,255,255,0.15)" : "transparent",
+                                                    borderLeft: location.pathname === "/employee/pipeline" ? "3px solid #fff" : "3px solid transparent",
+                                                    transition: "all 0.2s ease",
+                                                    fontSize: "0.95rem",
+                                                }}
+                                            >
+                                                <FontAwesomeIcon icon={faBullseye} style={{ width: "20px", minWidth: "20px", textAlign: "center" }} />
+                                                {sidebarOpen && <span className="ml-3">My Deals</span>}
+                                            </Link>
+                                        )}
+                                    </>
                                 )}
                                 <Link
                                     to={item.path}
@@ -402,6 +426,7 @@ const EmployeeLayout = () => {
                         <Route path="view-payslip" element={<EmployeeViewPayslip employee={employee} />} />
                         <Route path="notices" element={<EmployeeNotices />} />
                         <Route path="hr-docs" element={<EmployeeHRDocs employee={employee} />} />
+                        <Route path="pipeline" element={<LeadPipeline isEmployeeView={true} />} />
                         <Route path="*" element={<Navigate to="dashboard" replace />} />
                     </Routes>
                 </div>
