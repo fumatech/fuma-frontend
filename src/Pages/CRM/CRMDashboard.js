@@ -50,11 +50,15 @@ import Campaigns from "./Campaigns";
 import ContactLogin from "./ContactLogin";
 import Leads from "./Leads";
 import FollowUps from "./FollowUps";
+import LeadPipeline from "./LeadPipeline";
+import interactionService from "../../utils/interactionService";
+import { faComments } from "@fortawesome/free-solid-svg-icons";
 
 const CRM_DASHBOARD_REFRESH_EVENT = "crm-dashboard-refresh";
 
 const tabsData = [
   { id: "Leads", label: "Leads", component: <Leads /> },
+  { id: "Pipeline", label: "Pipeline", component: <LeadPipeline /> },
   { id: "Follow-Ups", label: "Follow Ups", component: <FollowUps /> },
   { id: "Campaigns", label: "Campaigns", component: <Campaigns /> },
   { id: "Contacts-Login", label: "Contacts Login", component: <ContactLogin /> },
@@ -74,6 +78,7 @@ const CRMDashboard = () => {
     sources: [],
     lifeStages: [],
     followUps: [],
+    interactions: [],
   });
 
   // Colors for charts
@@ -102,12 +107,14 @@ const CRMDashboard = () => {
         campaignsRes,
         contactsRes,
         followUpsRes,
+        interactionsRes,
       ] = await Promise.allSettled([
         axios.get(`${process.env.REACT_APP_BASE_URL}/customer/getall`, { params: { _ts: ts } }),
         axios.get(`${process.env.REACT_APP_BASE_URL}/lead/getall`, { params: { _ts: ts } }),
         axios.get(`${process.env.REACT_APP_BASE_URL}/campaign/getall`, { params: { _ts: ts } }),
         axios.get(`${process.env.REACT_APP_BASE_URL}/contact-login/getall`, { params: { _ts: ts } }),
         axios.get(`${process.env.REACT_APP_BASE_URL}/follow-ups/getall`, { params: { _ts: ts } }),
+        interactionService.getAllInteractions(),
       ]);
 
       const getDataOrEmpty = (result) =>
@@ -168,6 +175,7 @@ const CRMDashboard = () => {
         followUps: getDataOrEmpty(followUpsRes).length > 0 || followUpsRes.status === "fulfilled"
           ? getDataOrEmpty(followUpsRes)
           : prev.followUps,
+        interactions: interactionsRes.status === "fulfilled" ? interactionsRes.value : prev.interactions,
         sources: sources,
         lifeStages: lifeStages,
       }));
@@ -351,7 +359,17 @@ const CRMDashboard = () => {
       color: COLORS.success,
     }));
 
-    return [...leadActivities, ...followUpActivities, ...campaignActivities]
+    const interactionActivities = (dashboardData.interactions || []).map((interaction, index) => ({
+      id: `interaction-${interaction.id || index}`,
+      type: "interaction",
+      title: `${interaction.interactionType || 'Unknown'} Interaction`,
+      description: `Outcome: ${(interaction.outcome || 'N/A').replace(/_/g, ' ')} - ${(interaction.notes || '').substring(0, 50)}${(interaction.notes || '').length > 50 ? '...' : ''}`,
+      date: parseDateValue(interaction.interactionDate),
+      icon: faComments,
+      color: COLORS.chart1[index % (COLORS.chart1?.length || 1)],
+    }));
+
+    return [...leadActivities, ...followUpActivities, ...campaignActivities, ...interactionActivities]
       .filter((item) => item.date)
       .sort((a, b) => b.date - a.date)
       .slice(0, 5);
