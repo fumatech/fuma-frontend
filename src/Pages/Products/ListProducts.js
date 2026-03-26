@@ -873,10 +873,10 @@ function ListProducts({ userRoles }) {
                             value={entriesPerPage}
                             onChange={handleEntriesChange}
                           >
+                            <option value={5}>5</option>
                             <option value={10}>10</option>
-                            <option value={25}>25</option>
+                            <option value={20}>20</option>
                             <option value={50}>50</option>
-                            <option value={75}>75</option>
                             <option value={100}>100</option>
                           </select>
                           Entries
@@ -951,7 +951,6 @@ function ListProducts({ userRoles }) {
 
                       <div id="table-container" style={{ overflowX: "auto" }}>
                         <table
-                          id="example1"
                           className="table table-bordered table-hover"
                           style={{ minWidth: "1000px" }}
                         >
@@ -1134,6 +1133,73 @@ function ListProducts({ userRoles }) {
                           </tbody>
                         </table>
                       </div>
+
+                      {/* React Pagination */}
+                      <div className="d-flex justify-content-between align-items-center mt-3 mb-4 mx-3">
+                        <div className="text-muted small">
+                          Showing {filteredProducts.length > 0 ? startIndex + 1 : 0} to{" "}
+                          {Math.min(endIndex, filteredProducts.length)} of{" "}
+                          {filteredProducts.length} entries
+                        </div>
+                        {Math.ceil(filteredProducts.length / entriesPerPage) > 1 && (
+                          <nav aria-label="Page navigation">
+                            <ul className="pagination pagination-sm mb-0">
+                              <li
+                                className={`page-item ${currentPage === 1 ? "disabled" : ""
+                                  }`}
+                              >
+                                <button
+                                  className="page-link"
+                                  onClick={() => setCurrentPage(currentPage - 1)}
+                                  disabled={currentPage === 1}
+                                >
+                                  Previous
+                                </button>
+                              </li>
+                              {Array.from(
+                                {
+                                  length: Math.ceil(
+                                    filteredProducts.length / entriesPerPage
+                                  ),
+                                },
+                                (_, i) => i + 1
+                              ).map((page) => (
+                                <li
+                                  key={page}
+                                  className={`page-item ${currentPage === page ? "active" : ""
+                                    }`}
+                                >
+                                  <button
+                                    className="page-link"
+                                    onClick={() => setCurrentPage(page)}
+                                  >
+                                    {page}
+                                  </button>
+                                </li>
+                              ))}
+                              <li
+                                className={`page-item ${currentPage ===
+                                  Math.ceil(filteredProducts.length / entriesPerPage)
+                                  ? "disabled"
+                                  : ""
+                                  }`}
+                              >
+                                <button
+                                  className="page-link"
+                                  onClick={() => setCurrentPage(currentPage + 1)}
+                                  disabled={
+                                    currentPage ===
+                                    Math.ceil(filteredProducts.length / entriesPerPage)
+                                  }
+                                >
+                                  Next
+                                </button>
+                              </li>
+                            </ul>
+                          </nav>
+                        )}
+                      </div>
+
                       {renderFooterButtons()}
                     </div>
                   </div>

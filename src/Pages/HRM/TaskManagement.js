@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -16,6 +16,9 @@ import {
     faEye,
     faDownload,
     faFileAlt,
+    faFolderOpen,
+    faBell,
+    faChartLine,
 } from "@fortawesome/free-solid-svg-icons";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
@@ -33,6 +36,21 @@ const STATUS_COLORS = {
     COMPLETED: { bg: "#28a745", text: "#fff", label: "Completed", icon: faCheckCircle },
 };
 
+const getProgressPercent = (task) => {
+    if (typeof task.progressPercent === "number") return Math.min(100, Math.max(0, task.progressPercent));
+    if (task.status === "COMPLETED") return 100;
+    if (task.status === "IN_PROGRESS") return 50;
+    return 10;
+};
+
+const reminderLabel = (minutes) => {
+    if (!minutes || Number(minutes) <= 0) return "No reminder";
+    const mins = Number(minutes);
+    if (mins < 60) return `${mins} min before`;
+    if (mins % 60 === 0) return `${mins / 60} hr before`;
+    return `${mins} min before`;
+};
+
 const TaskManagement = () => {
     const [tasks, setTasks] = useState([]);
     const [employees, setEmployees] = useState([]);
@@ -48,12 +66,16 @@ const TaskManagement = () => {
 
     const [form, setForm] = useState({
         title: "",
+        projectName: "",
         description: "",
         assignedTo: "",
         startTime: "",
         deadline: "",
         priority: "MEDIUM",
         status: "PENDING",
+        reminderMinutes: 120,
+        progressPercent: 0,
+        blockerNote: "",
     });
 
     useEffect(() => {
@@ -88,12 +110,16 @@ const TaskManagement = () => {
     const resetForm = () => {
         setForm({
             title: "",
+            projectName: "",
             description: "",
             assignedTo: "",
             startTime: "",
             deadline: "",
             priority: "MEDIUM",
             status: "PENDING",
+            reminderMinutes: 120,
+            progressPercent: 0,
+            blockerNote: "",
         });
         setEditingTask(null);
     };
@@ -107,12 +133,16 @@ const TaskManagement = () => {
         setEditingTask(task);
         setForm({
             title: task.title || "",
+            projectName: task.projectName || task.project || "",
             description: task.description || "",
             assignedTo: task.assignedTo || "",
             startTime: task.startTime ? task.startTime.slice(0, 16) : "",
             deadline: task.deadline ? task.deadline.slice(0, 16) : "",
             priority: task.priority || "MEDIUM",
             status: task.status || "PENDING",
+            reminderMinutes: Number(task.reminderMinutes || 120),
+            progressPercent: getProgressPercent(task),
+            blockerNote: task.blockerNote || "",
         });
         setShowModal(true);
     };
@@ -124,10 +154,18 @@ const TaskManagement = () => {
             return;
         }
 
+        const progressPercent = Number(form.progressPercent);
+        if (Number.isNaN(progressPercent) || progressPercent < 0 || progressPercent > 100) {
+            toast.warning("Progress should be between 0 and 100");
+            return;
+        }
+
         const payload = {
             ...form,
             assignedTo: Number(form.assignedTo),
             assignedBy: Number(localStorage.getItem("userId") || 0),
+            reminderMinutes: Number(form.reminderMinutes || 0),
+            progressPercent,
         };
 
         try {
@@ -182,16 +220,50 @@ const TaskManagement = () => {
         .filter((t) => filterStatus === "ALL" || t.status === filterStatus)
         .filter((t) => filterPriority === "ALL" || t.priority === filterPriority)
         .filter((t) => filterEmployee === "ALL" || String(t.assignedTo) === filterEmployee)
-        .filter((t) => !searchTerm || t.title.toLowerCase().includes(searchTerm.toLowerCase()))
+        .filter((t) => {
+            if (!searchTerm) return true;
+            const token = searchTerm.toLowerCase();
+            return `${t.title || ""} ${t.projectName || t.project || ""}`.toLowerCase().includes(token);
+        })
         .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
-    const stats = {
-        total: tasks.length,
-        pending: tasks.filter((t) => t.status === "PENDING").length,
-        inProgress: tasks.filter((t) => t.status === "IN_PROGRESS").length,
-        completed: tasks.filter((t) => t.status === "COMPLETED").length,
-        overdue: tasks.filter((t) => isOverdue(t)).length,
-    };
+    const stats = useMemo(() => {
+        const total = tasks.length;
+        const avgProgress = total
+            ? Math.round(tasks.reduce((sum, t) => sum + getProgressPercent(t), 0) / total)
+            : 0;
+        const highPriorityOpen = tasks.filter((t) => ["HIGH", "URGENT"].includes(t.priority) && t.status !== "COMPLETED").length;
+        return {
+            total,
+            pending: tasks.filter((t) => t.status === "PENDING").length,
+            inProgress: tasks.filter((t) => t.status === "IN_PROGRESS").length,
+            completed: tasks.filter((t) => t.status === "COMPLETED").length,
+            overdue: tasks.filter((t) => isOverdue(t)).length,
+            avgProgress,
+            highPriorityOpen,
+        };
+    }, [tasks]);
+
+    const employeeProductivity = useMemo(() => {
+        const byUser = {};
+        tasks.forEach((task) => {
+            const key = task.assignedTo;
+            if (!key) return;
+            if (!byUser[key]) byUser[key] = { employeeId: key, total: 0, completed: 0, overdue: 0, avgProgress: 0 };
+            byUser[key].total += 1;
+            byUser[key].completed += task.status === "COMPLETED" ? 1 : 0;
+            byUser[key].overdue += isOverdue(task) ? 1 : 0;
+            byUser[key].avgProgress += getProgressPercent(task);
+        });
+        return Object.values(byUser)
+            .map((e) => ({
+                ...e,
+                avgProgress: e.total ? Math.round(e.avgProgress / e.total) : 0,
+                completionRate: e.total ? Math.round((e.completed / e.total) * 100) : 0,
+            }))
+            .sort((a, b) => b.completionRate - a.completionRate)
+            .slice(0, 6);
+    }, [tasks]);
 
     if (loading) {
         return (
@@ -212,6 +284,8 @@ const TaskManagement = () => {
                     { label: "In Progress", value: stats.inProgress, color: "#17a2b8" },
                     { label: "Completed", value: stats.completed, color: "#28a745" },
                     { label: "Overdue", value: stats.overdue, color: "#dc3545" },
+                    { label: "Avg Progress", value: `${stats.avgProgress}%`, color: "#6f42c1" },
+                    { label: "High Priority Open", value: stats.highPriorityOpen, color: "#fd7e14" },
                 ].map((s, i) => (
                     <div className="col" key={i}>
                         <div className="card border-0 shadow-sm" style={{ borderTop: `3px solid ${s.color}` }}>
@@ -224,11 +298,52 @@ const TaskManagement = () => {
                 ))}
             </div>
 
+            <div className="card border-0 shadow-sm mb-3">
+                <div className="card-header bg-white border-0">
+                    <h6 className="mb-0">
+                        <FontAwesomeIcon icon={faChartLine} className="mr-2 text-primary" />
+                        Team Productivity Snapshot
+                    </h6>
+                </div>
+                <div className="card-body p-0">
+                    <div className="table-responsive">
+                        <table className="table table-sm table-hover mb-0">
+                            <thead className="thead-light">
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Total Tasks</th>
+                                    <th>Completed</th>
+                                    <th>Completion %</th>
+                                    <th>Avg Progress</th>
+                                    <th>Overdue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {employeeProductivity.length === 0 ? (
+                                    <tr><td colSpan="6" className="text-center text-muted py-3">No productivity data</td></tr>
+                                ) : (
+                                    employeeProductivity.map((item) => (
+                                        <tr key={item.employeeId}>
+                                            <td>{getEmployeeName(item.employeeId)}</td>
+                                            <td>{item.total}</td>
+                                            <td>{item.completed}</td>
+                                            <td>{item.completionRate}%</td>
+                                            <td>{item.avgProgress}%</td>
+                                            <td>{item.overdue}</td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             {/* Toolbar */}
             <div className="card border-0 shadow-sm mb-3">
                 <div className="card-body py-2 d-flex flex-wrap align-items-center" style={{ gap: 10 }}>
                     <button className="btn btn-primary btn-sm" onClick={openAddModal}>
-                        <FontAwesomeIcon icon={faPlus} className="mr-1" /> Assign Task
+                        <FontAwesomeIcon icon={faPlus} className="mr-1" /> Assign Task / Project Work
                     </button>
 
                     <FontAwesomeIcon icon={faFilter} className="text-muted ml-2" />
@@ -263,8 +378,8 @@ const TaskManagement = () => {
                     <div className="ml-auto position-relative">
                         <FontAwesomeIcon icon={faSearch} className="text-muted"
                             style={{ position: "absolute", left: 10, top: 8 }} />
-                        <input type="text" className="form-control form-control-sm" placeholder="Search tasks..."
-                            style={{ paddingLeft: 30, width: 200 }}
+                        <input type="text" className="form-control form-control-sm" placeholder="Search task/project..."
+                            style={{ paddingLeft: 30, width: 230 }}
                             value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                     </div>
                 </div>
@@ -279,10 +394,12 @@ const TaskManagement = () => {
                                 <tr>
                                     <th>#</th>
                                     <th>Title</th>
+                                    <th>Project</th>
                                     <th>Assigned To</th>
                                     <th>Priority</th>
                                     <th>Status</th>
                                     <th>Deadline</th>
+                                    <th>Reminder</th>
                                     <th>Progress</th>
                                     <th>Action</th>
                                 </tr>
@@ -290,7 +407,7 @@ const TaskManagement = () => {
                             <tbody>
                                 {filteredTasks.length === 0 ? (
                                     <tr>
-                                        <td colSpan="8" className="text-center py-4 text-muted">
+                                        <td colSpan="10" className="text-center py-4 text-muted">
                                             <FontAwesomeIcon icon={faTasks} size="2x" className="mb-2 d-block mx-auto" />
                                             No tasks found
                                         </td>
@@ -301,6 +418,7 @@ const TaskManagement = () => {
                                         const status = STATUS_COLORS[task.status] || STATUS_COLORS.PENDING;
                                         const overdue = isOverdue(task);
                                         const nearDeadline = isNearDeadline(task);
+                                        const progress = getProgressPercent(task);
 
                                         return (
                                             <tr key={task.id} className={overdue ? "table-danger" : nearDeadline ? "table-warning" : ""}>
@@ -317,6 +435,14 @@ const TaskManagement = () => {
                                                             <FontAwesomeIcon icon={faClock} className="mr-1" />Due Soon
                                                         </span>
                                                     )}
+                                                </td>
+                                                <td>
+                                                    {task.projectName || task.project ? (
+                                                        <span className="badge badge-light border">
+                                                            <FontAwesomeIcon icon={faFolderOpen} className="mr-1 text-primary" />
+                                                            {task.projectName || task.project}
+                                                        </span>
+                                                    ) : "-"}
                                                 </td>
                                                 <td>{getEmployeeName(task.assignedTo)}</td>
                                                 <td>
@@ -338,11 +464,20 @@ const TaskManagement = () => {
                                                 </td>
                                                 <td>{formatDateTime(task.deadline)}</td>
                                                 <td>
-                                                    <div className="progress" style={{ height: 6, width: 80 }}>
-                                                        <div className="progress-bar" style={{
-                                                            width: task.status === "COMPLETED" ? "100%" : task.status === "IN_PROGRESS" ? "50%" : "10%",
-                                                            backgroundColor: task.status === "COMPLETED" ? "#28a745" : task.status === "IN_PROGRESS" ? "#17a2b8" : "#ffc107",
-                                                        }} />
+                                                    <span className="badge badge-light border">
+                                                        <FontAwesomeIcon icon={faBell} className="mr-1 text-warning" />
+                                                        {reminderLabel(task.reminderMinutes)}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div className="d-flex align-items-center">
+                                                        <div className="progress" style={{ height: 6, width: 80 }}>
+                                                            <div className="progress-bar" style={{
+                                                                width: `${progress}%`,
+                                                                backgroundColor: progress >= 100 ? "#28a745" : progress >= 60 ? "#17a2b8" : "#ffc107",
+                                                            }} />
+                                                        </div>
+                                                        <small className="text-muted ml-2">{progress}%</small>
                                                     </div>
                                                 </td>
                                                 <td>
@@ -375,7 +510,7 @@ const TaskManagement = () => {
                                 <div className="modal-header bg-primary text-white">
                                     <h5 className="modal-title">
                                         <FontAwesomeIcon icon={editingTask ? faEdit : faPlus} className="mr-2" />
-                                        {editingTask ? "Edit Task" : "Assign New Task"}
+                                        {editingTask ? "Edit Task / Project Assignment" : "Assign New Task / Project Assignment"}
                                     </h5>
                                     <button type="button" className="close text-white" onClick={() => setShowModal(false)}>
                                         <span>&times;</span>
@@ -384,10 +519,20 @@ const TaskManagement = () => {
                                 <form onSubmit={handleSubmit}>
                                     <div className="modal-body">
                                         <div className="row">
-                                            <div className="col-md-12 mb-3">
+                                            <div className="col-md-7 mb-3">
                                                 <label className="font-weight-bold">Task Title *</label>
                                                 <input type="text" className="form-control" value={form.title}
                                                     onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+                                            </div>
+                                            <div className="col-md-5 mb-3">
+                                                <label className="font-weight-bold">Project Name</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="Optional"
+                                                    value={form.projectName}
+                                                    onChange={(e) => setForm({ ...form, projectName: e.target.value })}
+                                                />
                                             </div>
                                             <div className="col-md-12 mb-3">
                                                 <label className="font-weight-bold">Description</label>
@@ -426,6 +571,27 @@ const TaskManagement = () => {
                                                 <input type="datetime-local" className="form-control" value={form.deadline}
                                                     onChange={(e) => setForm({ ...form, deadline: e.target.value })} required />
                                             </div>
+                                            <div className="col-md-6 mb-3">
+                                                <label className="font-weight-bold">Reminder (minutes before deadline)</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    className="form-control"
+                                                    value={form.reminderMinutes}
+                                                    onChange={(e) => setForm({ ...form, reminderMinutes: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="col-md-6 mb-3">
+                                                <label className="font-weight-bold">Progress (%)</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max="100"
+                                                    className="form-control"
+                                                    value={form.progressPercent}
+                                                    onChange={(e) => setForm({ ...form, progressPercent: e.target.value })}
+                                                />
+                                            </div>
                                             {editingTask && (
                                                 <div className="col-md-6 mb-3">
                                                     <label className="font-weight-bold">Status</label>
@@ -437,12 +603,22 @@ const TaskManagement = () => {
                                                     </select>
                                                 </div>
                                             )}
+                                            <div className="col-md-12 mb-3">
+                                                <label className="font-weight-bold">Blockers / Manager Notes</label>
+                                                <textarea
+                                                    className="form-control"
+                                                    rows="2"
+                                                    value={form.blockerNote}
+                                                    onChange={(e) => setForm({ ...form, blockerNote: e.target.value })}
+                                                    placeholder="Optional notes to improve accountability and tracking"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="modal-footer">
                                         <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
                                         <button type="submit" className="btn btn-primary">
-                                            {editingTask ? "Update Task" : "Assign Task"}
+                                            {editingTask ? "Update Assignment" : "Assign Task"}
                                         </button>
                                     </div>
                                 </form>
@@ -473,12 +649,20 @@ const TaskManagement = () => {
                                     <hr />
                                     <div className="row">
                                         <div className="col-6 mb-2">
+                                            <small className="text-muted">Project</small>
+                                            <p className="mb-0 font-weight-bold">{selectedTask.projectName || selectedTask.project || "-"}</p>
+                                        </div>
+                                        <div className="col-6 mb-2">
                                             <small className="text-muted">Assigned To</small>
                                             <p className="mb-0 font-weight-bold">{getEmployeeName(selectedTask.assignedTo)}</p>
                                         </div>
                                         <div className="col-6 mb-2">
                                             <small className="text-muted">Assigned By</small>
                                             <p className="mb-0 font-weight-bold">{getEmployeeName(selectedTask.assignedBy)}</p>
+                                        </div>
+                                        <div className="col-6 mb-2">
+                                            <small className="text-muted">Reminder</small>
+                                            <p className="mb-0">{reminderLabel(selectedTask.reminderMinutes)}</p>
                                         </div>
                                         <div className="col-6 mb-2">
                                             <small className="text-muted">Priority</small>
@@ -510,6 +694,17 @@ const TaskManagement = () => {
                                         <div className="col-6 mb-2">
                                             <small className="text-muted">Deadline</small>
                                             <p className="mb-0">{formatDateTime(selectedTask.deadline)}</p>
+                                        </div>
+                                        <div className="col-12 mb-2">
+                                            <small className="text-muted">Progress</small>
+                                            <div className="progress" style={{ height: 8 }}>
+                                                <div className="progress-bar" style={{ width: `${getProgressPercent(selectedTask)}%` }} />
+                                            </div>
+                                            <small>{getProgressPercent(selectedTask)}%</small>
+                                        </div>
+                                        <div className="col-12 mb-2">
+                                            <small className="text-muted">Blockers / Notes</small>
+                                            <p className="mb-0">{selectedTask.blockerNote || "-"}</p>
                                         </div>
                                         <div className="col-6 mb-2">
                                             <small className="text-muted">Created</small>
@@ -547,7 +742,7 @@ const TaskManagement = () => {
                                         <button
                                             className="btn btn-outline-primary"
                                             onClick={() => {
-                                                const content = `Task Completion Report\n${'='.repeat(40)}\n\nTask: ${selectedTask.title}\nAssigned To: ${getEmployeeName(selectedTask.assignedTo)}\nAssigned By: ${getEmployeeName(selectedTask.assignedBy)}\nPriority: ${selectedTask.priority}\nDeadline: ${formatDateTime(selectedTask.deadline)}\nCompleted: ${formatDateTime(selectedTask.completedAt)}\n\nReport:\n${'-'.repeat(40)}\n${selectedTask.completionReport}\n`;
+                                                const content = `Task Completion Report\n${"=".repeat(40)}\n\nTask: ${selectedTask.title}\nProject: ${selectedTask.projectName || selectedTask.project || "-"}\nAssigned To: ${getEmployeeName(selectedTask.assignedTo)}\nAssigned By: ${getEmployeeName(selectedTask.assignedBy)}\nPriority: ${selectedTask.priority}\nDeadline: ${formatDateTime(selectedTask.deadline)}\nCompleted: ${formatDateTime(selectedTask.completedAt)}\n\nReport:\n${"-".repeat(40)}\n${selectedTask.completionReport}\n`;
                                                 const blob = new Blob([content], { type: "text/plain" });
                                                 const url = URL.createObjectURL(blob);
                                                 const a = document.createElement("a");

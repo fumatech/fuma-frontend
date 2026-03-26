@@ -273,7 +273,7 @@ const HRDocs = () => {
     };
 
     return (
-        <div className="wrapper" style={{ overflowY: "auto" }}>
+        <div className="w-100" style={{ overflowY: "auto" }}>
             <section className="content-header">
                 <div className="container-fluid">
                     <div className="row mb-2">
@@ -288,7 +288,7 @@ const HRDocs = () => {
             </section>
 
             <section className="content">
-                <div className="container-fluid">
+                <div className="container-fluid px-0">
                     {!canView && (
                         <div className="alert alert-warning">
                             You do not have permission to access this module.

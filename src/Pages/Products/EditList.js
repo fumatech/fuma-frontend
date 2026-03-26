@@ -1374,13 +1374,12 @@ function EditList() {
                                       id="productType"
                                       name="productType"
                                       value={productType}
-                                      readOnly
+                                      onChange={(e) => setProductType(e.target.value)}
                                     >
                                       <option value="4">None</option>
                                       <option value="SINGLE">Single</option>
                                       <option value="VARIABLE">Variable</option>
                                       <option value="COMBO">Combo</option>
-                                      readOnly
                                     </select>
                                   </div>
                                 </div>

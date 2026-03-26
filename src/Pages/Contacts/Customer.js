@@ -20,6 +20,7 @@ function Customer({ userRoles }) {
   const [columnsVisibility, setColumnsVisibility] = useState({
     franchiseId: true,
     franchiseName: true,
+    tags: true,
     name: true,
     email: true,
     mobileNumber: true,
@@ -40,6 +41,7 @@ function Customer({ userRoles }) {
     franchiseNames: [],
     emails: [],
     mobileNumbers: [],
+    tags: [],
   });
 
   const [activeFilters, setActiveFilters] = useState({
@@ -48,10 +50,14 @@ function Customer({ userRoles }) {
     franchiseName: "",
     email: "",
     mobileNumber: "",
+    tag: "",
   });
 
   const [searchText, setSearchText] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
+
+  const getTagNames = (customer) =>
+    (customer?.tags || []).map((tag) => tag.name).filter(Boolean);
 
   // Fetch customers data from API
   useEffect(() => {
@@ -78,6 +84,9 @@ function Customer({ userRoles }) {
       const mobileNumbers = [
         ...new Set(allCustomers.map((item) => item.mobileNumber)),
       ].filter(Boolean);
+      const tags = [...new Set(allCustomers.flatMap((item) => getTagNames(item)))].filter(
+        Boolean
+      );
 
       setFilterValues({
         cities,
@@ -85,6 +94,7 @@ function Customer({ userRoles }) {
         franchiseNames,
         emails,
         mobileNumbers,
+        tags,
       });
     }
   }, [customers, inactiveCustomers]);
@@ -103,6 +113,7 @@ function Customer({ userRoles }) {
         const mobileNumberStr = customer.mobileNumber?.toString() || "";
         const cityStr = customer.city?.toString() || "";
         const stateStr = customer.state?.toString() || "";
+        const tagsStr = getTagNames(customer).join(" ");
 
         // Text search across multiple fields
         const searchMatch =
@@ -114,7 +125,8 @@ function Customer({ userRoles }) {
           emailStr.toLowerCase().includes(searchText.toLowerCase()) ||
           mobileNumberStr.includes(searchText) || // No toLowerCase() for numbers
           cityStr.toLowerCase().includes(searchText.toLowerCase()) ||
-          stateStr.toLowerCase().includes(searchText.toLowerCase());
+          stateStr.toLowerCase().includes(searchText.toLowerCase()) ||
+          tagsStr.toLowerCase().includes(searchText.toLowerCase());
 
         // Dropdown filters
         const cityMatch =
@@ -129,6 +141,8 @@ function Customer({ userRoles }) {
         const mobileNumberMatch =
           activeFilters.mobileNumber === "" ||
           customer.mobileNumber?.toString() === activeFilters.mobileNumber;
+        const tagMatch =
+          activeFilters.tag === "" || getTagNames(customer).includes(activeFilters.tag);
 
         return (
           searchMatch &&
@@ -136,7 +150,8 @@ function Customer({ userRoles }) {
           stateMatch &&
           franchiseNameMatch &&
           emailMatch &&
-          mobileNumberMatch
+          mobileNumberMatch &&
+          tagMatch
         );
       });
     };
@@ -196,6 +211,7 @@ function Customer({ userRoles }) {
       franchiseName: "",
       email: "",
       mobileNumber: "",
+      tag: "",
     });
     setSearchText("");
   };
@@ -267,6 +283,7 @@ function Customer({ userRoles }) {
       "Franchise Name": customer.franchiseName,
       "First Name": customer.firstName,
       "Last Name": customer.lastName,
+      Tags: getTagNames(customer).join(", "),
       Email: customer.email,
       "Mobile Number": customer.mobileNumber,
       "Tax Number": customer.taxNumber,
@@ -380,6 +397,10 @@ function Customer({ userRoles }) {
               ? `<td>${customer.franchiseName || ""}</td>`
               : ""
             }
+          ${columnsVisibility.tags
+              ? `<td>${getTagNames(customer).join(", ") || ""}</td>`
+              : ""
+            }
           ${columnsVisibility.name
               ? `<td>${customer.firstName || ""} ${customer.lastName || ""
               }</td>`
@@ -433,6 +454,7 @@ function Customer({ userRoles }) {
         [
           "Franchise ID",
           "Franchise Name",
+          "Tags",
           "Name",
           "Email",
           "Mobile",
@@ -446,6 +468,7 @@ function Customer({ userRoles }) {
       body: dataToExport.map((customer) => [
         customer.franchiseId,
         customer.franchiseName,
+        getTagNames(customer).join(", "),
         `${customer.firstName} ${customer.lastName}`,
         customer.email,
         customer.mobileNumber,
@@ -654,6 +677,25 @@ function Customer({ userRoles }) {
                         </div>
                       </div>
 
+                      <div className="col-md-3">
+                        <div className="form-group">
+                          <label className="me-2">Tag:</label>
+                          <select
+                            className="form-select"
+                            name="tag"
+                            value={activeFilters.tag}
+                            onChange={handleFilterChange}
+                          >
+                            <option value="">All Tags</option>
+                            {filterValues.tags.map((tag, index) => (
+                              <option key={`tag-${index}`} value={tag}>
+                                {tag}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
                       {/* Reset Button */}
                       <div className="col-md-3 d-flex align-items-end">
                         <button
@@ -681,8 +723,8 @@ function Customer({ userRoles }) {
                 <div className="btn-group mr-2" style={{ float: "left" }}>
                   <button
                     className={`btn ${showActiveCustomers
-                        ? "btn-primary"
-                        : "btn-outline-primary"
+                      ? "btn-primary"
+                      : "btn-outline-primary"
                       }`}
                     onClick={() => setShowActiveCustomers(true)}
                   >
@@ -795,6 +837,7 @@ function Customer({ userRoles }) {
                         {columnsVisibility.franchiseName && (
                           <th>Franchise Name</th>
                         )}
+                        {columnsVisibility.tags && <th>Tags</th>}
                         {/* {columnsVisibility.name && <th>Franchise Name</th>} */}
                         {columnsVisibility.email && <th>Email</th>}
                         {columnsVisibility.mobileNumber && (
@@ -857,8 +900,8 @@ function Customer({ userRoles }) {
                                       <li>
                                         <button
                                           className={`dropdown-item ${customer.isActive
-                                              ? "text-danger"
-                                              : "text-success"
+                                            ? "text-danger"
+                                            : "text-success"
                                             }`}
                                           onClick={() =>
                                             customer.isActive
@@ -868,14 +911,14 @@ function Customer({ userRoles }) {
                                         >
                                           <div
                                             className={`d-inline-block w-75 btn-delete justify-content-center ${customer.isActive
-                                                ? "text-danger"
-                                                : "text-success"
+                                              ? "text-danger"
+                                              : "text-success"
                                               }`}
                                           >
                                             <i
                                               className={`fa ${customer.isActive
-                                                  ? "fa-trash"
-                                                  : "fa-check-circle"
+                                                ? "fa-trash"
+                                                : "fa-check-circle"
                                                 } me-3`}
                                             ></i>
                                             <span>
@@ -895,6 +938,25 @@ function Customer({ userRoles }) {
                               )}
                               {columnsVisibility.franchiseName && (
                                 <td>{customer.franchiseName}</td>
+                              )}
+                              {columnsVisibility.tags && (
+                                <td>
+                                  <div className="d-flex flex-wrap gap-1">
+                                    {getTagNames(customer).length > 0 ? (
+                                      getTagNames(customer).map((tagName) => (
+                                        <span
+                                          key={`${customer.id}-${tagName}`}
+                                          className="badge bg-info text-dark"
+                                          style={{ fontSize: "11px" }}
+                                        >
+                                          {tagName}
+                                        </span>
+                                      ))
+                                    ) : (
+                                      <span className="text-muted">-</span>
+                                    )}
+                                  </div>
+                                </td>
                               )}
                               {/* {columnsVisibility.name && (
                               <td>

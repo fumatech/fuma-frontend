@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import defaultFumaLogo from "../../assets/fuma-logo-lockup.svg";
 
 const ViewPayslip = () => {
   const { state } = useLocation();
@@ -17,6 +18,15 @@ const ViewPayslip = () => {
   const [showPayModal, setShowPayModal] = useState(false);
   const [paymentAccounts, setPaymentAccounts] = useState([]);
   const [payingNow, setPayingNow] = useState(false);
+  const buildMediaUrl = (path) => {
+    if (!path) return null;
+    if (/^data:image\//i.test(path)) return path;
+    if (/^https?:\/\//i.test(path)) return path;
+    if (path.startsWith("//")) return `https:${path}`;
+    return `${process.env.REACT_APP_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+  };
+  const isSupportedImage = (path) =>
+    !!path && (/^data:image\//i.test(path) || /\.(jpg|jpeg|png|gif|jfif|webp|svg)$/i.test(path));
   const [payForm, setPayForm] = useState({
     accountId: "",
     amount: "",
@@ -146,13 +156,18 @@ const ViewPayslip = () => {
       );
       if (res.data && res.data.length > 0) {
         const images = res.data.filter(
-          (f) => f.image && /\.(jpg|jpeg|png|gif|jfif)$/i.test(f.image),
+          (f) => isSupportedImage(f.image),
         );
         if (images.length > 0) {
           const latestSignature = images[images.length - 1];
-          setSignatureImage(
-            `${process.env.REACT_APP_BASE_URL}${latestSignature.image}`,
-          );
+          const latestSignatureUrl = buildMediaUrl(latestSignature.image);
+          if (!latestSignatureUrl) return;
+          try {
+            const signatureDataUrl = await toDataUrl(latestSignatureUrl);
+            setSignatureImage(signatureDataUrl);
+          } catch {
+            setSignatureImage(latestSignatureUrl);
+          }
         }
       }
     } catch (error) {
@@ -160,22 +175,67 @@ const ViewPayslip = () => {
     }
   };
 
+  const toDataUrl = async (url) => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+  const getFirstWorkingImage = async (paths = []) => {
+    for (const path of paths) {
+      const mediaUrl = buildMediaUrl(path);
+      if (!mediaUrl) continue;
+      try {
+        if (/^data:image\//i.test(mediaUrl)) return mediaUrl;
+        const dataUrl = await toDataUrl(mediaUrl);
+        if (dataUrl) return dataUrl;
+      } catch {
+        // try next candidate
+      }
+    }
+    return null;
+  };
+
   const fetchCompanyLogo = async () => {
     try {
+      const candidates = [];
+
+      try {
+        const businessRes = await axios.get(
+          `${process.env.REACT_APP_BASE_URL}/business-details/getall`,
+        );
+        const business =
+          Array.isArray(businessRes.data) && businessRes.data.length > 0
+            ? businessRes.data[0]
+            : null;
+        if (business) {
+          ["logo", "logoImage", "image", "businessLogo"].forEach((key) => {
+            if (isSupportedImage(business[key])) candidates.push(business[key]);
+          });
+        }
+      } catch {
+        // ignore and try file list
+      }
+
       const res = await axios.get(
         `${process.env.REACT_APP_BASE_URL}/file/get-all`,
       );
       if (res.data && res.data.length > 0) {
         const images = res.data.filter(
-          (f) => f.image && /\.(jpg|jpeg|png|gif|jfif)$/i.test(f.image),
+          (f) => isSupportedImage(f.image),
         );
         if (images.length > 0) {
-          const latestImage = images[images.length - 1];
-          setCompanyLogo(
-            `${process.env.REACT_APP_BASE_URL}${latestImage.image}`,
-          );
+          for (let i = images.length - 1; i >= 0; i--) {
+            candidates.push(images[i].image);
+          }
         }
       }
+      const resolvedLogo = await getFirstWorkingImage(candidates);
+      setCompanyLogo(resolvedLogo || null);
     } catch (error) {
       console.error("Failed to load company logo", error);
     }
@@ -314,7 +374,11 @@ const ViewPayslip = () => {
     const html2canvas = (await import("html2canvas")).default;
     const { jsPDF } = await import("jspdf");
     const element = document.getElementById("payslip-content");
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+    });
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jsPDF("p", "mm", "a4");
     const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -418,35 +482,27 @@ const ViewPayslip = () => {
             {/* ===== HEADER ===== */}
             <div style={styles.header}>
               <div className="row align-items-center">
-                <div className="col-2 text-center">
-                  {companyLogo ? (
-                    <img
-                      src={companyLogo}
-                      alt="Logo"
-                      style={{
-                        width: "70px",
-                        height: "70px",
-                        objectFit: "contain",
-                      }}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        width: "70px",
-                        height: "70px",
-                        backgroundColor: "#0c4166",
-                        borderRadius: "8px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#fff",
-                        fontWeight: "bold",
-                        fontSize: "20px",
-                      }}
-                    >
-                      {companyName.charAt(0)}
-                    </div>
-                  )}
+                <div
+                  className="col-2 text-center"
+                  style={{ paddingTop: "6px", paddingBottom: "6px" }}
+                >
+                  <img
+                    src={companyLogo || defaultFumaLogo}
+                    alt="Fuma Logo"
+                    crossOrigin="anonymous"
+                    onError={(e) => {
+                      setCompanyLogo(null);
+                      e.currentTarget.src = defaultFumaLogo;
+                    }}
+                    style={{
+                      width: "128px",
+                      maxWidth: "100%",
+                      height: "auto",
+                      objectFit: "contain",
+                      display: "block",
+                      margin: "0 auto",
+                    }}
+                  />
                 </div>
                 <div className="col-7">
                   <h4 style={{ fontWeight: "bold", color: "#0c4166", marginBottom: "2px" }}>
@@ -740,6 +796,8 @@ const ViewPayslip = () => {
                   <img
                     src={signatureImage}
                     alt="Authorized Signature"
+                    crossOrigin="anonymous"
+                    onError={() => setSignatureImage(null)}
                     style={{
                       width: "150px",
                       height: "50px",

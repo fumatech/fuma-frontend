@@ -175,6 +175,8 @@ import Campaigns from "./Pages/CRM/Campaigns";
 import ContactLogin from "./Pages/CRM/ContactLogin";
 import Leads from "./Pages/CRM/Leads";
 import FollowUps from "./Pages/CRM/FollowUps";
+import QuotationProposalGenerator from "./Pages/CRM/QuotationProposalGenerator";
+import ServiceTickets from "./Pages/CRM/ServiceTickets";
 import BusinessDetails from "./Pages/Setting/BusinessDetails";
 import PrintLabel from "./Pages/Products/PrintLabel";
 import ProductLabel from "./Pages/Products/ProductLabel";
@@ -188,6 +190,8 @@ import EmployeeMyLeave from "./Pages/EmployeePortal/EmployeeMyLeave";
 import EmployeeMyPayslips from "./Pages/EmployeePortal/EmployeeMyPayslips";
 import EmployeeViewPayslip from "./Pages/EmployeePortal/EmployeeViewPayslip";
 import EmployeeNotices from "./Pages/EmployeePortal/EmployeeNotices";
+import EmployeeAttendanceView from "./Pages/HRM/EmployeeAttendanceView";
+import AdminEmployeePayslips from "./Pages/EmployeePortal/AdminEmployeePayslips";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 const App = () => {
@@ -235,7 +239,7 @@ const App = () => {
     "/Vendor": ["vendor.view", "vendor.add", "vendor.edit", "vendor.delete"],
     "/AddVendor": ["vendor.add"],
     "/EditVendor": ["vendor.edit"],
-    "/ViewVendor": ["vendor.view"],
+    "/ViewVendor": ["user.view"],
     "/Customer": [
       "franchise.view",
       "franchise.add",
@@ -328,6 +332,20 @@ const App = () => {
     "/ContactLogin": ["crm.view"],
     "/Leads": ["crm.view"],
     "/FollowUps": ["crm.view"],
+    "/sales/create-quotation": [
+      "sale_entry.view",
+      "so_sale.view",
+      "di_sale.view",
+      "all_sale_orders.view",
+      "sale_return.view",
+    ],
+    "/sales/quotation-list": [
+      "sale_entry.view",
+      "so_sale.view",
+      "di_sale.view",
+      "all_sale_orders.view",
+      "sale_return.view",
+    ],
     "/ListWarrantyClaim": ["warranty_claim.view"],
     "/ListVendorWarrantyClaim": ["warranty_claim.view"],
     "/ListShippedWarrantyClaim": ["warranty_claim.view"],
@@ -354,6 +372,7 @@ const App = () => {
     "/MyPayslips": ["employee_portal.view"],
     "/MyViewPayslip": ["employee_portal.view"],
     "/MyNotices": ["employee_portal.view"],
+    "/ServiceTickets": ["service_ticket.view"],
   };
 
   const hasPermission = (path) => {
@@ -379,6 +398,12 @@ const App = () => {
       )
     );
   };
+
+  const isAdminUser = userRoles.some(
+    (role) =>
+      role.role?.toLowerCase() === "super admin" ||
+      role.role?.toLowerCase() === "admin"
+  );
 
   return (
     <BrowserRouter basename="/fumamain">
@@ -569,6 +594,16 @@ const App = () => {
                     element={
                       hasPermission("/ViewCustomer") ? (
                         <ViewCustomer />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/ServiceTickets"
+                    element={
+                      hasPermission("/ServiceTickets") ? (
+                        <ServiceTickets />
                       ) : (
                         <Navigate to="/" />
                       )
@@ -1733,6 +1768,26 @@ const App = () => {
                       )
                     }
                   />
+                  <Route
+                    path="/sales/create-quotation"
+                    element={
+                      hasPermission("/sales/create-quotation") ? (
+                        <QuotationProposalGenerator mode="create" />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/sales/quotation-list"
+                    element={
+                      hasPermission("/sales/quotation-list") ? (
+                        <QuotationProposalGenerator mode="list" />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
                   {/* <Route path="/" element={<div>No Access</div>} /> */}
                   <Route path="/Reporting" element={<Reporting />} />
 
@@ -1802,6 +1857,36 @@ const App = () => {
                     element={
                       hasPermission("/MyNotices") ? (
                         <EmployeePortalWrapper Component={EmployeeNotices} />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/EmployeeAttendanceAdmin"
+                    element={
+                      hasPermission("/MyAttendance") && isAdminUser ? (
+                        <EmployeeAttendanceView />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/EmployeePayslipsAdmin"
+                    element={
+                      hasPermission("/MyPayslips") && isAdminUser ? (
+                        <AdminEmployeePayslips />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/EmployeeViewPayslipAdmin"
+                    element={
+                      hasPermission("/MyPayslips") && isAdminUser ? (
+                        <EmployeeViewPayslip />
                       ) : (
                         <Navigate to="/" />
                       )

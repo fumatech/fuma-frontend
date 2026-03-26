@@ -51,6 +51,7 @@ import HRMSettings from "./HRMSettings";
 import EmployeePerformance from "./EmployeePerformance";
 import EmployeeGrievance from "./EmployeeGrievance";
 import NoticeBoard from "./NoticeBoard";
+import TrainingSkillTracker from "./TrainingSkillTracker";
 
 const tabsData = [
   { id: "leave-type", label: "Leave Type", component: <LeaveType /> },
@@ -62,6 +63,7 @@ const tabsData = [
   { id: "designations", label: "Designations", component: <Designations /> },
   { id: "sales-targets", label: "Sales Targets", component: <SalesTargets /> },
   { id: "performance", label: "Performance Tracker", component: <EmployeePerformance /> },
+  { id: "training-skill", label: "Training & Skills", component: <TrainingSkillTracker /> },
   { id: "grievance", label: "Grievance Portal", component: <EmployeeGrievance /> },
   { id: "notice-board", label: "Notice Board", component: <NoticeBoard /> },
   { id: "hr-docs", label: "HR Docs", component: <HRDocs /> },
@@ -277,10 +279,14 @@ const HRMTabComponent = () => {
 
         {/* Content Section */}
         {activeTab ? (
-          <div className="container-fluid">
-            <div className="card shadow-sm border-0">
-              <div className="card-body">{tabsData.find((t) => t.id === activeTab)?.component}</div>
-            </div>
+          <div className={`container-fluid ${activeTab === "hr-docs" ? "px-0" : ""}`}>
+            {activeTab === "hr-docs" ? (
+              tabsData.find((t) => t.id === activeTab)?.component
+            ) : (
+              <div className="card shadow-sm border-0">
+                <div className="card-body">{tabsData.find((t) => t.id === activeTab)?.component}</div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="container-fluid">

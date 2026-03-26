@@ -51,6 +51,9 @@ import ContactLogin from "./ContactLogin";
 import Leads from "./Leads";
 import FollowUps from "./FollowUps";
 import LeadPipeline from "./LeadPipeline";
+import TagManagement from "../Contacts/TagManagement";
+import SalesPerformanceReport from "../Report/SalesPerformanceReport";
+import QuotationProposalGenerator from "./QuotationProposalGenerator";
 import interactionService from "../../utils/interactionService";
 import { faComments } from "@fortawesome/free-solid-svg-icons";
 
@@ -64,6 +67,9 @@ const tabsData = [
   { id: "Contacts-Login", label: "Contacts Login", component: <ContactLogin /> },
   { id: "Sources", label: "Sources" },
   { id: "Life-Stage", label: "Life Stage" },
+  { id: "Customer-Segmentation-Tagging", label: "Customer Segmentation & Tagging", component: <TagManagement /> },
+  { id: "Sales-Performance-Reports", label: "Sales Performance Reports", component: <SalesPerformanceReport /> },
+  { id: "Quotation-Proposal-Generator", label: "Quotation & Proposal Generator", component: <QuotationProposalGenerator /> },
 ];
 
 const CRMDashboard = () => {

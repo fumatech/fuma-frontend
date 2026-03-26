@@ -12,8 +12,12 @@ import {
     faSpinner,
     faHourglassHalf,
     faEye,
+    faBell,
+    faBook,
 } from "@fortawesome/free-solid-svg-icons";
 import { toast } from "react-toastify";
+
+const TRAINING_MODULES_KEY = "hrm_training_modules_v1";
 
 const EmployeeDashboard = ({ employee }) => {
     const [todayAttendance, setTodayAttendance] = useState(null);
@@ -23,7 +27,18 @@ const EmployeeDashboard = ({ employee }) => {
     const [showReportModal, setShowReportModal] = useState(false);
     const [completingTask, setCompletingTask] = useState(null);
     const [completionReport, setCompletionReport] = useState("");
+    const [completionBlockers, setCompletionBlockers] = useState("");
+    const [taskProgressDraft, setTaskProgressDraft] = useState(0);
+    const [taskBlockerDraft, setTaskBlockerDraft] = useState("");
+    const [myTrainings, setMyTrainings] = useState([]);
     const BASE_URL = process.env.REACT_APP_BASE_URL;
+
+    const getProgressPercent = (task) => {
+        if (typeof task.progressPercent === "number") return Math.min(100, Math.max(0, task.progressPercent));
+        if (task.status === "COMPLETED") return 100;
+        if (task.status === "IN_PROGRESS") return 50;
+        return 10;
+    };
 
     const formatTime = (timeStr) => {
         if (!timeStr) return null;
@@ -42,7 +57,16 @@ const EmployeeDashboard = ({ employee }) => {
             fetchTodayStatus();
             fetchMonthlyStats();
             fetchTasks();
+            loadMyTrainings(employee.id);
         }
+    }, [employee]);
+
+    useEffect(() => {
+        const onStorage = () => {
+            if (employee?.id) loadMyTrainings(employee.id);
+        };
+        window.addEventListener("storage", onStorage);
+        return () => window.removeEventListener("storage", onStorage);
     }, [employee]);
 
     const fetchTodayStatus = async () => {
@@ -80,10 +104,69 @@ const EmployeeDashboard = ({ employee }) => {
         }
     };
 
-    const updateTaskStatus = async (taskId, newStatus, report) => {
+    const loadMyTrainings = (employeeId) => {
+        try {
+            const stored = localStorage.getItem(TRAINING_MODULES_KEY);
+            const modules = stored ? JSON.parse(stored) : [];
+            const mine = [];
+            modules.forEach((mod) => {
+                const assignee = (mod.assignees || []).find((a) => Number(a.employeeId) === Number(employeeId));
+                if (assignee) {
+                    mine.push({
+                        moduleId: mod.id,
+                        title: mod.title,
+                        category: mod.category,
+                        mandatory: !!mod.mandatory,
+                        dueDate: mod.dueDate || null,
+                        videoLessonUrl: mod.videoLessonUrl || "",
+                        status: assignee.status || "NOT_STARTED",
+                        progress: typeof assignee.progress === "number" ? assignee.progress : 0,
+                    });
+                }
+            });
+            setMyTrainings(mine);
+        } catch (err) {
+            console.error("Error loading trainings from local storage:", err);
+            setMyTrainings([]);
+        }
+    };
+
+    const updateTrainingProgress = (moduleId, progress) => {
+        try {
+            const stored = localStorage.getItem(TRAINING_MODULES_KEY);
+            const modules = stored ? JSON.parse(stored) : [];
+            const updatedModules = modules.map((mod) => {
+                if (Number(mod.id) !== Number(moduleId)) return mod;
+                return {
+                    ...mod,
+                    assignees: (mod.assignees || []).map((a) => {
+                        if (Number(a.employeeId) !== Number(employee.id)) return a;
+                        const p = Math.min(100, Math.max(0, Number(progress)));
+                        return {
+                            ...a,
+                            progress: p,
+                            status: p >= 100 ? "COMPLETED" : p > 0 ? "IN_PROGRESS" : "NOT_STARTED",
+                            completedAt: p >= 100 ? new Date().toISOString() : null,
+                            lastUpdated: new Date().toISOString(),
+                        };
+                    }),
+                };
+            });
+            localStorage.setItem(TRAINING_MODULES_KEY, JSON.stringify(updatedModules));
+            loadMyTrainings(employee.id);
+            toast.success("Training progress updated");
+        } catch (err) {
+            console.error("Error updating training progress:", err);
+            toast.error("Failed to update training progress");
+        }
+    };
+
+    const updateTaskStatus = async (taskId, newStatus, extra = {}) => {
         try {
             const body = { status: newStatus };
-            if (report) body.completionReport = report;
+            if (extra.completionReport) body.completionReport = extra.completionReport;
+            if (typeof extra.progressPercent === "number") body.progressPercent = extra.progressPercent;
+            if (extra.blockerNote !== undefined) body.blockerNote = extra.blockerNote;
             await axios.put(`${BASE_URL}/task/update-status/${taskId}`, body);
             toast.success("Task status updated!");
             fetchTasks();
@@ -95,6 +178,7 @@ const EmployeeDashboard = ({ employee }) => {
     const openReportModal = (task) => {
         setCompletingTask(task);
         setCompletionReport("");
+        setCompletionBlockers(task.blockerNote || "");
         setShowReportModal(true);
     };
 
@@ -103,10 +187,15 @@ const EmployeeDashboard = ({ employee }) => {
             toast.warning("Please write your task completion report before submitting");
             return;
         }
-        updateTaskStatus(completingTask.id, "COMPLETED", completionReport);
+        updateTaskStatus(completingTask.id, "COMPLETED", {
+            completionReport,
+            progressPercent: 100,
+            blockerNote: completionBlockers,
+        });
         setShowReportModal(false);
         setCompletingTask(null);
         setCompletionReport("");
+        setCompletionBlockers("");
     };
 
     const isOverdue = (deadline, status) => {
@@ -258,6 +347,77 @@ const EmployeeDashboard = ({ employee }) => {
                 </div>
             </div>
 
+            {/* My Learning */}
+            <div className="row">
+                <div className="col-12 mb-4">
+                    <div className="card card-success card-outline">
+                        <div className="card-header">
+                            <h3 className="card-title">
+                                <FontAwesomeIcon icon={faBook} className="mr-2" />
+                                My Learning & Training
+                            </h3>
+                        </div>
+                        <div className="card-body p-0">
+                            {myTrainings.length === 0 ? (
+                                <div className="text-center text-muted py-4">
+                                    <FontAwesomeIcon icon={faBook} size="2x" className="mb-2" />
+                                    <p>No training modules assigned yet.</p>
+                                </div>
+                            ) : (
+                                <div className="table-responsive">
+                                    <table className="table table-sm table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Module</th>
+                                                <th>Category</th>
+                                                <th>Mandatory</th>
+                                                <th>Due</th>
+                                                <th>Lesson</th>
+                                                <th>Status</th>
+                                                <th>Progress</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {myTrainings.map((t) => (
+                                                <tr key={t.moduleId}>
+                                                    <td>{t.title}</td>
+                                                    <td>{t.category || "-"}</td>
+                                                    <td>{t.mandatory ? <span className="badge badge-danger">Yes</span> : <span className="badge badge-secondary">No</span>}</td>
+                                                    <td>{t.dueDate || "-"}</td>
+                                                    <td>
+                                                        {t.videoLessonUrl ? (
+                                                            <a href={t.videoLessonUrl} target="_blank" rel="noreferrer">
+                                                                <FontAwesomeIcon icon={faBook} className="mr-1 text-primary" />
+                                                                Watch
+                                                            </a>
+                                                        ) : "-"}
+                                                    </td>
+                                                    <td><span className={`badge ${t.status === "COMPLETED" ? "badge-success" : t.status === "IN_PROGRESS" ? "badge-info" : "badge-warning"}`}>{t.status.replace("_", " ")}</span></td>
+                                                    <td style={{ minWidth: 130 }}>
+                                                        <div className="d-flex align-items-center">
+                                                            <div className="progress" style={{ height: 6, width: 80 }}>
+                                                                <div className="progress-bar" style={{ width: `${t.progress}%` }} />
+                                                            </div>
+                                                            <small className="ml-2">{t.progress}%</small>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <button className="btn btn-xs btn-outline-success" onClick={() => updateTrainingProgress(t.moduleId, Math.min(100, t.progress + 25))}>
+                                                            +25%
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Task Stats */}
             <div className="row">
                 <div className="col-md-3 col-6 mb-3">
@@ -320,8 +480,11 @@ const EmployeeDashboard = ({ employee }) => {
                                         <thead>
                                             <tr>
                                                 <th>Title</th>
+                                                <th>Project</th>
                                                 <th>Priority</th>
                                                 <th>Deadline</th>
+                                                <th>Reminder</th>
+                                                <th>Progress</th>
                                                 <th>Status</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -347,12 +510,32 @@ const EmployeeDashboard = ({ employee }) => {
                                                             <span className="badge badge-warning ml-2">Due Soon</span>
                                                         )}
                                                     </td>
+                                                    <td>{task.projectName || task.project || "-"}</td>
                                                     <td>
                                                         <span className={`badge ${priorityBadge(task.priority)}`}>
                                                             {task.priority}
                                                         </span>
                                                     </td>
                                                     <td>{new Date(task.deadline).toLocaleString("en-IN")}</td>
+                                                    <td>
+                                                        {task.reminderMinutes ? (
+                                                            <span className="badge badge-light border">
+                                                                <FontAwesomeIcon icon={faBell} className="mr-1 text-warning" />
+                                                                {task.reminderMinutes}m before
+                                                            </span>
+                                                        ) : "-"}
+                                                    </td>
+                                                    <td style={{ minWidth: 130 }}>
+                                                        <div className="d-flex align-items-center">
+                                                            <div className="progress" style={{ height: 6, width: 80 }}>
+                                                                <div
+                                                                    className="progress-bar"
+                                                                    style={{ width: `${getProgressPercent(task)}%` }}
+                                                                />
+                                                            </div>
+                                                            <small className="ml-2">{getProgressPercent(task)}%</small>
+                                                        </div>
+                                                    </td>
                                                     <td>
                                                         <span className={`badge ${statusBadge(task.status)}`}>
                                                             {task.status?.replace("_", " ")}
@@ -362,14 +545,18 @@ const EmployeeDashboard = ({ employee }) => {
                                                         <button
                                                             className="btn btn-xs btn-outline-info mr-1"
                                                             title="View Details"
-                                                            onClick={() => setSelectedTask(task)}
+                                                            onClick={() => {
+                                                                setTaskProgressDraft(getProgressPercent(task));
+                                                                setTaskBlockerDraft(task.blockerNote || "");
+                                                                setSelectedTask(task);
+                                                            }}
                                                         >
                                                             <FontAwesomeIcon icon={faEye} />
                                                         </button>
                                                         {task.status === "PENDING" && (
                                                             <button
                                                                 className="btn btn-xs btn-primary"
-                                                                onClick={() => updateTaskStatus(task.id, "IN_PROGRESS")}
+                                                                onClick={() => updateTaskStatus(task.id, "IN_PROGRESS", { progressPercent: 15 })}
                                                             >
                                                                 Start
                                                             </button>
@@ -411,6 +598,10 @@ const EmployeeDashboard = ({ employee }) => {
                                 <p className="text-muted">{selectedTask.description || "No description provided."}</p>
                                 <div className="row">
                                     <div className="col-6 mb-2">
+                                        <strong>Project:</strong><br />
+                                        {selectedTask.projectName || selectedTask.project || "-"}
+                                    </div>
+                                    <div className="col-6 mb-2">
                                         <strong>Priority:</strong>{" "}
                                         <span className={`badge ${priorityBadge(selectedTask.priority)}`}>
                                             {selectedTask.priority}
@@ -434,14 +625,48 @@ const EmployeeDashboard = ({ employee }) => {
                                             {new Date(selectedTask.deadline).toLocaleString("en-IN")}
                                         </span>
                                     </div>
+                                    <div className="col-12 mb-2">
+                                        <strong>Progress:</strong>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="100"
+                                            className="custom-range"
+                                            value={taskProgressDraft}
+                                            onChange={(e) => setTaskProgressDraft(Number(e.target.value))}
+                                        />
+                                        <small>{taskProgressDraft}%</small>
+                                    </div>
+                                    <div className="col-12 mb-2">
+                                        <strong>Blockers / Notes:</strong>
+                                        <textarea
+                                            className="form-control"
+                                            rows="2"
+                                            value={taskBlockerDraft}
+                                            onChange={(e) => setTaskBlockerDraft(e.target.value)}
+                                            placeholder="Optional blocker update for manager"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                             <div className="modal-footer">
+                                <button
+                                    className="btn btn-outline-info"
+                                    onClick={() => updateTaskStatus(selectedTask.id, selectedTask.status, {
+                                        progressPercent: taskProgressDraft,
+                                        blockerNote: taskBlockerDraft,
+                                    })}
+                                >
+                                    Save Progress
+                                </button>
                                 {selectedTask.status === "PENDING" && (
                                     <button
                                         className="btn btn-primary"
                                         onClick={() => {
-                                            updateTaskStatus(selectedTask.id, "IN_PROGRESS");
+                                            updateTaskStatus(selectedTask.id, "IN_PROGRESS", {
+                                                progressPercent: Math.max(15, taskProgressDraft),
+                                                blockerNote: taskBlockerDraft,
+                                            });
                                             setSelectedTask(null);
                                         }}
                                     >
@@ -477,7 +702,7 @@ const EmployeeDashboard = ({ employee }) => {
                                     <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
                                     Task Completion Report
                                 </h5>
-                                <button className="close text-white" onClick={() => { setShowReportModal(false); setCompletingTask(null); }}>
+                                <button className="close text-white" onClick={() => { setShowReportModal(false); setCompletingTask(null); setCompletionBlockers(""); }}>
                                     <span>&times;</span>
                                 </button>
                             </div>
@@ -498,9 +723,21 @@ const EmployeeDashboard = ({ employee }) => {
                                     ></textarea>
                                     <small className="text-muted">This report will be shared with your manager.</small>
                                 </div>
+                                <div className="form-group mb-0">
+                                    <label className="font-weight-bold">
+                                        Any blocker/escalation notes?
+                                    </label>
+                                    <textarea
+                                        className="form-control"
+                                        rows="2"
+                                        placeholder="Optional"
+                                        value={completionBlockers}
+                                        onChange={(e) => setCompletionBlockers(e.target.value)}
+                                    />
+                                </div>
                             </div>
                             <div className="modal-footer">
-                                <button className="btn btn-secondary" onClick={() => { setShowReportModal(false); setCompletingTask(null); }}>
+                                <button className="btn btn-secondary" onClick={() => { setShowReportModal(false); setCompletingTask(null); setCompletionBlockers(""); }}>
                                     Cancel
                                 </button>
                                 <button className="btn btn-success" onClick={handleSubmitReport}>
