@@ -8,7 +8,8 @@ const EmployeeMyPayslips = ({ employee, title = "My Payslips", viewPath }) => {
     const BASE_URL = process.env.REACT_APP_BASE_URL;
     const navigate = useNavigate();
     const location = useLocation();
-    const isAdminPanel = !location.pathname.startsWith("/employee/");
+    const isEmployeePortalRoute = /(^|\/)employee(\/|$)/.test(location.pathname);
+    const isAdminPanel = !isEmployeePortalRoute;
 
     useEffect(() => {
         if (employee?.id) {

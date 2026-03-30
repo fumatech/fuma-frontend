@@ -32,6 +32,8 @@ const AllPayrolls = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [entriesPerPage, setEntriesPerPage] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPayroll, setSelectedPayroll] = useState(null);
   const [paymentAccounts, setPaymentAccounts] = useState([]);
@@ -327,6 +329,17 @@ const AllPayrolls = () => {
     return `PR-${payroll.year}${month}${payrollId}`;
   };
 
+  const totalPages = Math.max(1, Math.ceil(payrollData.length / entriesPerPage));
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const endIndex = startIndex + entriesPerPage;
+  const paginatedPayrollData = payrollData.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   return (
     <>
       <div className=" cardHover rounded-4 border-0">
@@ -344,6 +357,11 @@ const AllPayrolls = () => {
                 <select
                   id="entriesPerPage"
                   className="form-control form-control-sm mr-2"
+                  value={entriesPerPage}
+                  onChange={(e) => {
+                    setEntriesPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
                 >
                   <option value={25}>25</option>
                   <option value={50}>50</option>
@@ -437,7 +455,7 @@ const AllPayrolls = () => {
                 </thead>
                 <tbody>
                   {payrollData.length > 0 ? (
-                    payrollData.map((payroll, index) => (
+                    paginatedPayrollData.map((payroll) => (
                       <tr key={`${payroll.payrollId}-${payroll.employeeId}`}>
                         {columnsVisibility.employee && (
                           <td>{getEmployeeName(payroll.employeeId)}</td>
@@ -552,6 +570,41 @@ const AllPayrolls = () => {
                 </tbody>
               </table>
             </div>
+            {payrollData.length > 0 && (
+              <div className="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                  Showing {startIndex + 1} to{" "}
+                  {Math.min(endIndex, payrollData.length)} of {payrollData.length}
+                </div>
+                <ul className="pagination pagination-sm mb-0">
+                  <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                    <button
+                      className="page-link"
+                      onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </button>
+                  </li>
+                  <li className="page-item active">
+                    <button className="page-link" disabled>
+                      {currentPage}
+                    </button>
+                  </li>
+                  <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                    <button
+                      className="page-link"
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                      }
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>

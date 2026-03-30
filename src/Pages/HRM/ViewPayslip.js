@@ -2,31 +2,19 @@ import { useLocation, useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import defaultFumaLogo from "../../assets/fuma-logo-lockup.svg";
+import fumaLogo from "../../assets/fuma.png";
 
 const ViewPayslip = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
-  const [companyLogo, setCompanyLogo] = useState(null);
-  const [signatureImage, setSignatureImage] = useState(null);
-  const [businesses, setBusinesses] = useState([]);
   const { payroll: initialPayroll, employee: passedEmployee } = state || {};
   const [payroll, setPayroll] = useState(initialPayroll);
   const [employee, setEmployee] = useState(passedEmployee || null);
   const [showPayModal, setShowPayModal] = useState(false);
   const [paymentAccounts, setPaymentAccounts] = useState([]);
   const [payingNow, setPayingNow] = useState(false);
-  const buildMediaUrl = (path) => {
-    if (!path) return null;
-    if (/^data:image\//i.test(path)) return path;
-    if (/^https?:\/\//i.test(path)) return path;
-    if (path.startsWith("//")) return `https:${path}`;
-    return `${process.env.REACT_APP_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
-  };
-  const isSupportedImage = (path) =>
-    !!path && (/^data:image\//i.test(path) || /\.(jpg|jpeg|png|gif|jfif|webp|svg)$/i.test(path));
   const [payForm, setPayForm] = useState({
     accountId: "",
     amount: "",
@@ -37,9 +25,6 @@ const ViewPayslip = () => {
   useEffect(() => {
     fetchDepartments();
     fetchDesignations();
-    fetchCompanyLogo();
-    fetchSignatureImage();
-    fetchBusinesses();
     fetchPaymentAccounts();
     if (!passedEmployee && initialPayroll?.employeeId) {
       fetchEmployee(initialPayroll.employeeId);
@@ -50,15 +35,10 @@ const ViewPayslip = () => {
     }
   }, []);
 
-  const fetchBusinesses = async () => {
-    try {
-      const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/business-details/getall`,
-      );
-      setBusinesses(res.data);
-    } catch (error) {
-      console.error("Failed to load business details", error);
-    }
+  const formatCurrency = (amount) => {
+    return `\u20B9${Number(amount || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+    })}`;
   };
 
   const fetchEmployee = async (employeeId) => {
@@ -149,98 +129,6 @@ const ViewPayslip = () => {
     }
   };
 
-  const fetchSignatureImage = async () => {
-    try {
-      const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/signature-image/get-all`,
-      );
-      if (res.data && res.data.length > 0) {
-        const images = res.data.filter(
-          (f) => isSupportedImage(f.image),
-        );
-        if (images.length > 0) {
-          const latestSignature = images[images.length - 1];
-          const latestSignatureUrl = buildMediaUrl(latestSignature.image);
-          if (!latestSignatureUrl) return;
-          try {
-            const signatureDataUrl = await toDataUrl(latestSignatureUrl);
-            setSignatureImage(signatureDataUrl);
-          } catch {
-            setSignatureImage(latestSignatureUrl);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Failed to load signature image", error);
-    }
-  };
-
-  const toDataUrl = async (url) => {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    return await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  };
-  const getFirstWorkingImage = async (paths = []) => {
-    for (const path of paths) {
-      const mediaUrl = buildMediaUrl(path);
-      if (!mediaUrl) continue;
-      try {
-        if (/^data:image\//i.test(mediaUrl)) return mediaUrl;
-        const dataUrl = await toDataUrl(mediaUrl);
-        if (dataUrl) return dataUrl;
-      } catch {
-        // try next candidate
-      }
-    }
-    return null;
-  };
-
-  const fetchCompanyLogo = async () => {
-    try {
-      const candidates = [];
-
-      try {
-        const businessRes = await axios.get(
-          `${process.env.REACT_APP_BASE_URL}/business-details/getall`,
-        );
-        const business =
-          Array.isArray(businessRes.data) && businessRes.data.length > 0
-            ? businessRes.data[0]
-            : null;
-        if (business) {
-          ["logo", "logoImage", "image", "businessLogo"].forEach((key) => {
-            if (isSupportedImage(business[key])) candidates.push(business[key]);
-          });
-        }
-      } catch {
-        // ignore and try file list
-      }
-
-      const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/file/get-all`,
-      );
-      if (res.data && res.data.length > 0) {
-        const images = res.data.filter(
-          (f) => isSupportedImage(f.image),
-        );
-        if (images.length > 0) {
-          for (let i = images.length - 1; i >= 0; i--) {
-            candidates.push(images[i].image);
-          }
-        }
-      }
-      const resolvedLogo = await getFirstWorkingImage(candidates);
-      setCompanyLogo(resolvedLogo || null);
-    } catch (error) {
-      console.error("Failed to load company logo", error);
-    }
-  };
-
   const fetchDepartments = async () => {
     try {
       const response = await axios.get(
@@ -281,12 +169,11 @@ const ViewPayslip = () => {
     return desig ? desig.name : "-";
   };
 
-  const companyName =
-    businesses.length > 0 ? businesses[0].name : "Your Company Name";
+  const companyNameLine1 = "Fusion Master Tech Innovation And";
+  const companyNameLine2 = "Development Private Limited";
+
   const companyAddress =
-    businesses.length > 0
-      ? `${businesses[0].address || ""}, ${businesses[0].city || ""}, ${businesses[0].state || ""} – ${businesses[0].zipCode || ""}`
-      : "";
+    "Office No.6, Sr. No. 23/2 Barne Estate, Opp. Padamji Papermill, Thergaon, Chinchwad, Pune - 411033, Maharashtra, India";
 
   const monthYear = new Date(payroll.year, payroll.month - 1).toLocaleString(
     "default",
@@ -307,6 +194,11 @@ const ViewPayslip = () => {
       ? payroll.deductions
       : [];
 
+  const getDeductionLabel = (description) => {
+    const label = (description || "").trim();
+    return /^tax$/i.test(label) ? "Profession Tax" : label;
+  };
+
   const totalEarnings = effectiveEarnings.reduce(
     (sum, e) => sum + e.amount,
     0,
@@ -317,19 +209,20 @@ const ViewPayslip = () => {
   );
   const netPay = payroll.total || totalEarnings - totalDeductions;
   const referenceNo = `PAY-${payroll.payrollId}-${String(payroll.month).padStart(2, "0")}${payroll.year}`;
+  const displayPayrollNote =
+    payroll?.note && payroll.note.includes("Type: FULL_TIME")
+      ? payroll.note.replace(/\.?\s*Days present:\s*\d+/i, "").trim()
+      : payroll?.note;
 
   const totalPaid = (payroll.transactions || []).reduce(
     (sum, t) => sum + Number(t.amount || 0),
     0,
   );
   let paymentStatus = "Due";
-  let paymentBadgeClass = "bg-warning text-dark";
   if (totalPaid >= netPay && netPay > 0) {
     paymentStatus = "Paid";
-    paymentBadgeClass = "bg-success";
   } else if (totalPaid > 0) {
     paymentStatus = "Partial";
-    paymentBadgeClass = "bg-info";
   }
 
   // Number to words converter for Indian currency
@@ -396,9 +289,87 @@ const ViewPayslip = () => {
       color: "#333",
     },
     header: {
-      borderBottom: "3px solid #0c4166",
-      paddingBottom: "15px",
+      display: "flex",
+      justifyContent: "flex-start",
+      alignItems: "center",
+      padding: "16px 20px",
+      backgroundColor: "#ffffff",
+      borderBottom: "2px solid #1e3a5f",
       marginBottom: "20px",
+      gap: "12px",
+      flexWrap: "nowrap",
+    },
+    headerLeft: {
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      flex: "0 0 auto",
+    },
+    logo: {
+      width: "100px",
+      maxWidth: "100%",
+      height: "auto",
+      objectFit: "contain",
+      flexShrink: 0,
+    },
+    companyGroup: {
+      display: "flex",
+      alignItems: "stretch",
+      gap: "10px",
+    },
+    companyDivider: {
+      width: "2px",
+      backgroundColor: "#1e3a5f",
+      alignSelf: "stretch",
+      flexShrink: 0,
+    },
+    companyBlock: {
+      textAlign: "left",
+      maxWidth: "420px",
+      whiteSpace: "normal",
+    },
+    companyName: {
+      margin: "0 0 2px 0",
+      fontWeight: "800",
+      fontSize: "19px",
+      color: "#1e3a5f",
+      textTransform: "uppercase",
+      textAlign: "left",
+      lineHeight: "1.25",
+    },
+    companyAddress: {
+      margin: 0,
+      fontSize: "12px",
+      color: "#6b7280",
+      lineHeight: "1.4",
+      textAlign: "left",
+    },
+    headerRight: {
+      textAlign: "right",
+      flex: "0 0 auto",
+      marginLeft: "auto",
+      minWidth: "120px",
+    },
+    payslipTitle: {
+      margin: 0,
+      fontWeight: "800",
+      textTransform: "uppercase",
+      color: "#1e3a5f",
+      letterSpacing: "0.4px",
+    },
+    payslipMonth: {
+      marginTop: "4px",
+      fontSize: "12px",
+      color: "#4b5563",
+    },
+    statusBadge: {
+      marginTop: "6px",
+      display: "inline-block",
+      fontSize: "11px",
+      fontWeight: "700",
+      color: "#ffffff",
+      borderRadius: "999px",
+      padding: "3px 9px",
     },
     sectionTitle: {
       backgroundColor: "#0c4166",
@@ -462,7 +433,7 @@ const ViewPayslip = () => {
                   onClick={() => {
                     setPayForm((prev) => ({
                       ...prev,
-                      amount: (netPay - totalPaid).toFixed(2),
+                      amount: (netPay - totalPaid).toFixed(2).toString(),
                     }));
                     setShowPayModal(true);
                   }}
@@ -481,57 +452,37 @@ const ViewPayslip = () => {
           >
             {/* ===== HEADER ===== */}
             <div style={styles.header}>
-              <div className="row align-items-center">
-                <div
-                  className="col-2 text-center"
-                  style={{ paddingTop: "6px", paddingBottom: "6px" }}
-                >
-                  <img
-                    src={companyLogo || defaultFumaLogo}
-                    alt="Fuma Logo"
-                    crossOrigin="anonymous"
-                    onError={(e) => {
-                      setCompanyLogo(null);
-                      e.currentTarget.src = defaultFumaLogo;
-                    }}
-                    style={{
-                      width: "128px",
-                      maxWidth: "100%",
-                      height: "auto",
-                      objectFit: "contain",
-                      display: "block",
-                      margin: "0 auto",
-                    }}
-                  />
-                </div>
-                <div className="col-7">
-                  <h4 style={{ fontWeight: "bold", color: "#0c4166", marginBottom: "2px" }}>
-                    {companyName}
-                  </h4>
-                  {companyAddress && (
-                    <small className="text-muted">{companyAddress}</small>
-                  )}
-                </div>
-                <div className="col-3 text-right">
-                  <h5
-                    style={{
-                      fontWeight: "bold",
-                      color: "#0c4166",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    PAYSLIP
-                  </h5>
-                  <div style={{ fontSize: "12px", color: "#666" }}>
-                    {monthYear}
+              <div style={styles.headerLeft}>
+                <img src={fumaLogo} alt="Fuma Logo" style={styles.logo} />
+                <div style={styles.companyGroup}>
+                  <div style={styles.companyDivider}></div>
+                  <div style={styles.companyBlock}>
+                    <h4 style={styles.companyName}>
+                      <span style={{ display: "block" }}>{companyNameLine1}</span>
+                      <span style={{ display: "block" }}>{companyNameLine2}</span>
+                    </h4>
+                    {companyAddress && (
+                      <p style={styles.companyAddress}>{companyAddress}</p>
+                    )}
                   </div>
-                  <span
-                    className={`badge mt-1 ${paymentBadgeClass}`}
-                    style={{ fontSize: "11px" }}
-                  >
-                    {paymentStatus}
-                  </span>
                 </div>
+              </div>
+              <div style={styles.headerRight}>
+                <h5 style={styles.payslipTitle}>PAYSLIP</h5>
+                <div style={styles.payslipMonth}>{monthYear}</div>
+                <span
+                  style={{
+                    ...styles.statusBadge,
+                    backgroundColor:
+                      paymentStatus === "Paid"
+                        ? "#198754"
+                        : paymentStatus === "Partial"
+                          ? "#fd7e14"
+                          : "#dc3545",
+                  }}
+                >
+                  {paymentStatus}
+                </span>
               </div>
             </div>
 
@@ -552,7 +503,7 @@ const ViewPayslip = () => {
                 <tr>
                   <td style={styles.tdLabel}>Employee Name</td>
                   <td style={styles.td}>
-                    {employee.prefix} {employee.firstname} {employee.lastname}
+                    {employee.firstname} {employee.lastname}
                   </td>
                   <td style={styles.tdLabel}>Employee ID</td>
                   <td style={styles.td}>{employee.id}</td>
@@ -616,7 +567,7 @@ const ViewPayslip = () => {
                           width: "120px",
                         }}
                       >
-                        Amount (₹)
+                        {"Amount (\u20B9)"}
                       </th>
                     </tr>
                   </thead>
@@ -629,7 +580,7 @@ const ViewPayslip = () => {
                             {earning ? earning.description : ""}
                           </td>
                           <td style={{ ...styles.td, textAlign: "right" }}>
-                            {earning ? `₹${earning.amount.toFixed(2)}` : ""}
+                            {earning ? formatCurrency(earning.amount) : ""}
                           </td>
                         </tr>
                       );
@@ -637,7 +588,7 @@ const ViewPayslip = () => {
                     <tr style={{ backgroundColor: "#e8f5e9", fontWeight: "bold" }}>
                       <td style={styles.td}>Total Earnings</td>
                       <td style={{ ...styles.td, textAlign: "right" }}>
-                        ₹{totalEarnings.toFixed(2)}
+                        {formatCurrency(totalEarnings)}
                       </td>
                     </tr>
                   </tbody>
@@ -662,7 +613,7 @@ const ViewPayslip = () => {
                           width: "120px",
                         }}
                       >
-                        Amount (₹)
+                        {"Amount (\u20B9)"}
                       </th>
                     </tr>
                   </thead>
@@ -672,11 +623,11 @@ const ViewPayslip = () => {
                       return (
                         <tr key={`ded-${i}`}>
                           <td style={styles.td}>
-                            {deduction ? deduction.description : ""}
+                            {deduction ? getDeductionLabel(deduction.description) : ""}
                           </td>
                           <td style={{ ...styles.td, textAlign: "right" }}>
                             {deduction
-                              ? `₹${deduction.amount.toFixed(2)}`
+                              ? formatCurrency(deduction.amount)
                               : ""}
                           </td>
                         </tr>
@@ -685,7 +636,7 @@ const ViewPayslip = () => {
                     <tr style={{ backgroundColor: "#ffebee", fontWeight: "bold" }}>
                       <td style={styles.td}>Total Deductions</td>
                       <td style={{ ...styles.td, textAlign: "right" }}>
-                        ₹{totalDeductions.toFixed(2)}
+                        {formatCurrency(totalDeductions)}
                       </td>
                     </tr>
                   </tbody>
@@ -699,78 +650,15 @@ const ViewPayslip = () => {
                 Net Pay
               </div>
               <div style={{ fontSize: "28px", fontWeight: "bold" }}>
-                ₹{netPay.toFixed(2)}
+                {formatCurrency(netPay)}
               </div>
               <div style={{ fontSize: "12px", opacity: 0.85, marginTop: "4px" }}>
                 {numberToWords(netPay)}
               </div>
             </div>
 
-            {/* ===== PAYMENT SUMMARY ===== */}
-            {payroll.transactions && payroll.transactions.length > 0 && (
-              <div className="mt-3">
-                <div style={styles.sectionTitle}>Payment History</div>
-                <table style={styles.table}>
-                  <thead>
-                    <tr>
-                      <th style={{ ...styles.td, backgroundColor: "#f1f3f5", fontWeight: "600" }}>
-                        Date
-                      </th>
-                      <th style={{ ...styles.td, backgroundColor: "#f1f3f5", fontWeight: "600" }}>
-                        Transaction ID
-                      </th>
-                      <th style={{ ...styles.td, backgroundColor: "#f1f3f5", fontWeight: "600" }}>
-                        Method
-                      </th>
-                      <th
-                        style={{
-                          ...styles.td,
-                          backgroundColor: "#f1f3f5",
-                          fontWeight: "600",
-                          textAlign: "right",
-                        }}
-                      >
-                        Amount (₹)
-                      </th>
-                      <th style={{ ...styles.td, backgroundColor: "#f1f3f5", fontWeight: "600" }}>
-                        Note
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {payroll.transactions.map((txn) => (
-                      <tr key={txn.transactionId}>
-                        <td style={styles.td}>
-                          {txn.date
-                            ? new Date(txn.date).toLocaleDateString("en-IN")
-                            : "-"}
-                        </td>
-                        <td style={styles.td}>{txn.transactionId}</td>
-                        <td style={styles.td}>{txn.paymentMethod || "-"}</td>
-                        <td style={{ ...styles.td, textAlign: "right" }}>
-                          ₹{Number(txn.amount).toFixed(2)}
-                        </td>
-                        <td style={styles.td}>{txn.note || "-"}</td>
-                      </tr>
-                    ))}
-                    <tr style={{ fontWeight: "bold", backgroundColor: "#f8f9fa" }}>
-                      <td style={styles.td} colSpan="3">
-                        Total Paid
-                      </td>
-                      <td style={{ ...styles.td, textAlign: "right" }}>
-                        ₹{totalPaid.toFixed(2)}
-                      </td>
-                      <td style={styles.td}>
-                        Balance: ₹{(netPay - totalPaid).toFixed(2)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            )}
-
             {/* ===== NOTE ===== */}
-            {payroll.note && (
+            {displayPayrollNote && (
               <div
                 className="mt-3 p-2"
                 style={{
@@ -780,7 +668,7 @@ const ViewPayslip = () => {
                   fontSize: "12px",
                 }}
               >
-                <strong>Note:</strong> {payroll.note}
+                <strong>Note:</strong> {displayPayrollNote}
               </div>
             )}
 
@@ -792,21 +680,7 @@ const ViewPayslip = () => {
                 </div>
               </div>
               <div className="col-6 text-right">
-                {signatureImage ? (
-                  <img
-                    src={signatureImage}
-                    alt="Authorized Signature"
-                    crossOrigin="anonymous"
-                    onError={() => setSignatureImage(null)}
-                    style={{
-                      width: "150px",
-                      height: "50px",
-                      objectFit: "contain",
-                    }}
-                  />
-                ) : (
-                  <div style={{ height: "50px" }}></div>
-                )}
+                <div style={{ height: "50px" }}></div>
                 <div style={{ borderTop: "1px solid #333", width: "200px", paddingTop: "5px", marginLeft: "auto" }}>
                   Authorized Signatory
                 </div>
@@ -817,10 +691,7 @@ const ViewPayslip = () => {
               className="text-center mt-4"
               style={{ fontSize: "11px", color: "#999" }}
             >
-              This is a computer-generated payslip and does not require a
-              physical signature. |{" "}
-              {companyName} | Generated on{" "}
-              {new Date().toLocaleDateString("en-IN")}
+              This is a system-generated payslip and does not require a physical signature.
             </p>
           </div>
         </div>
@@ -867,13 +738,13 @@ const ViewPayslip = () => {
                 <div className="modal-body">
                   <div className="mb-3 p-2 bg-light rounded">
                     <div className="d-flex justify-content-between">
-                      <span><strong>Net Pay:</strong> ₹{netPay.toFixed(2)}</span>
-                      <span><strong>Already Paid:</strong> ₹{totalPaid.toFixed(2)}</span>
+                      <span><strong>Net Pay:</strong> {formatCurrency(netPay)}</span>
+                      <span><strong>Already Paid:</strong> {formatCurrency(totalPaid)}</span>
                     </div>
                     <div className="text-right mt-1">
                       <strong>Balance Due:</strong>{" "}
                       <span className="text-danger font-weight-bold">
-                        ₹{(netPay - totalPaid).toFixed(2)}
+                        {formatCurrency(netPay - totalPaid)}
                       </span>
                     </div>
                   </div>
@@ -890,8 +761,7 @@ const ViewPayslip = () => {
                       <option value="">-- Select Account --</option>
                       {paymentAccounts.map((acc) => (
                         <option key={acc.id} value={acc.id}>
-                          {acc.accountName} ({acc.accountNumber}) - Balance: ₹
-                          {Number(acc.balance || 0).toFixed(2)}
+                          {acc.accountName} ({acc.accountNumber}) - Balance: {formatCurrency(acc.balance || 0)}
                         </option>
                       ))}
                     </select>

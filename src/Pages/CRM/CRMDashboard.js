@@ -54,6 +54,7 @@ import LeadPipeline from "./LeadPipeline";
 import TagManagement from "../Contacts/TagManagement";
 import SalesPerformanceReport from "../Report/SalesPerformanceReport";
 import QuotationProposalGenerator from "./QuotationProposalGenerator";
+import ServiceTickets from "./ServiceTickets";
 import interactionService from "../../utils/interactionService";
 import { faComments } from "@fortawesome/free-solid-svg-icons";
 
@@ -69,7 +70,8 @@ const tabsData = [
   { id: "Life-Stage", label: "Life Stage" },
   { id: "Customer-Segmentation-Tagging", label: "Customer Segmentation & Tagging", component: <TagManagement /> },
   { id: "Sales-Performance-Reports", label: "Sales Performance Reports", component: <SalesPerformanceReport /> },
-  { id: "Quotation-Proposal-Generator", label: "Quotation & Proposal Generator", component: <QuotationProposalGenerator /> },
+  //{ id: "Quotation-Proposal-Generator", label: "Quotation & Proposal Generator", component: <QuotationProposalGenerator /> },
+  { id: "Service-Tickets", label: "Service Tickets", component: <ServiceTickets isTab={true} /> },
 ];
 
 const CRMDashboard = () => {

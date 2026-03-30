@@ -772,7 +772,7 @@ const Menu = ({ userRoles }) => {
                             </Link>
                           </li>
                         )}
-                      {hasPermission("service_ticket.view") && (
+                      {/* {hasPermission("service_ticket.view") && (
                         <li className="nav-item">
                           <Link
                             to="/ServiceTickets"
@@ -792,7 +792,7 @@ const Menu = ({ userRoles }) => {
                             <p>Service Tickets</p>
                           </Link>
                         </li>
-                      )}
+                      )} */}
                     </ul>
                   </li>
                 )}
@@ -1470,47 +1470,47 @@ const Menu = ({ userRoles }) => {
                         hasPermission("di_sale.view") ||
                         hasPermission("all_sale_orders.view") ||
                         hasPermission("sale_return.view")) && (
-                        <>
-                          <li className="nav-item">
-                            <Link
-                              to="/sales/create-quotation"
-                              className={getSubMenuItemClass("CreateQuotation")}
-                              style={{
-                                color:
-                                  activeSubMenu === "CreateQuotation"
-                                    ? "#0040C1"
-                                    : "#4b5565",
-                                backgroundColor:
-                                  activeSubMenu === "CreateQuotation"
-                                    ? "rgba(0, 64, 193, 0.08)"
-                                    : "transparent",
-                                paddingLeft: "52px",
-                              }}
-                            >
-                              <p>Create Quotation</p>
-                            </Link>
-                          </li>
-                          <li className="nav-item">
-                            <Link
-                              to="/sales/quotation-list"
-                              className={getSubMenuItemClass("QuotationList")}
-                              style={{
-                                color:
-                                  activeSubMenu === "QuotationList"
-                                    ? "#0040C1"
-                                    : "#4b5565",
-                                backgroundColor:
-                                  activeSubMenu === "QuotationList"
-                                    ? "rgba(0, 64, 193, 0.08)"
-                                    : "transparent",
-                                paddingLeft: "52px",
-                              }}
-                            >
-                              <p>Quotation List</p>
-                            </Link>
-                          </li>
-                        </>
-                      )}
+                          <>
+                            <li className="nav-item">
+                              <Link
+                                to="/sales/create-quotation"
+                                className={getSubMenuItemClass("CreateQuotation")}
+                                style={{
+                                  color:
+                                    activeSubMenu === "CreateQuotation"
+                                      ? "#0040C1"
+                                      : "#4b5565",
+                                  backgroundColor:
+                                    activeSubMenu === "CreateQuotation"
+                                      ? "rgba(0, 64, 193, 0.08)"
+                                      : "transparent",
+                                  paddingLeft: "52px",
+                                }}
+                              >
+                                <p>Create Quotation</p>
+                              </Link>
+                            </li>
+                            <li className="nav-item">
+                              <Link
+                                to="/sales/quotation-list"
+                                className={getSubMenuItemClass("QuotationList")}
+                                style={{
+                                  color:
+                                    activeSubMenu === "QuotationList"
+                                      ? "#0040C1"
+                                      : "#4b5565",
+                                  backgroundColor:
+                                    activeSubMenu === "QuotationList"
+                                      ? "rgba(0, 64, 193, 0.08)"
+                                      : "transparent",
+                                  paddingLeft: "52px",
+                                }}
+                              >
+                                <p>Quotation List</p>
+                              </Link>
+                            </li>
+                          </>
+                        )}
 
                       {hasPermission("sale_return.view") && (
                         <>
