@@ -55,6 +55,7 @@ const AddUser = () => {
     const day = String(now.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   });
+  const [dateOfJoining, setDateOfJoining] = useState("");
 
   const [gender, setGender] = useState("");
   const [maritalStatus, setMaritalStatus] = useState("");
@@ -299,6 +300,9 @@ const AddUser = () => {
       case "dateOfBirth":
         setDateOfBirth(value);
         break;
+      case "dateOfJoining":
+        setDateOfJoining(value);
+        break;
       case "gender":
         setGender(value);
         break;
@@ -487,6 +491,7 @@ const AddUser = () => {
       ],
       language,
       dateOfBirth,
+      dateOfJoining: dateOfJoining || null,
       gender,
       maritalStatus,
       bloodGroup,
@@ -1431,7 +1436,7 @@ const AddUser = () => {
                       <h3 className="h4 font-weight-bold">HRM Details</h3>
                     </div>
                     <div className="row">
-                      <div className="col-md-6">
+                      <div className="col-md-4">
                         <div className="form-group">
                           <label htmlFor="department">Department:</label>
                           <select
@@ -1450,7 +1455,7 @@ const AddUser = () => {
                           </select>
                         </div>
                       </div>
-                      <div className="col-md-6">
+                      <div className="col-md-4">
                         <div className="form-group">
                           <label htmlFor="designation">Designation:</label>
                           <select
@@ -1470,6 +1475,19 @@ const AddUser = () => {
                               </option>
                             ))}
                           </select>
+                        </div>
+                      </div>
+                      <div className="col-md-4">
+                        <div className="form-group">
+                          <label htmlFor="dateOfJoining">Date of Joining:</label>
+                          <input
+                            type="date"
+                            className="form-control"
+                            id="dateOfJoining"
+                            name="dateOfJoining"
+                            value={dateOfJoining}
+                            onChange={handleChange}
+                          />
                         </div>
                       </div>
                     </div>

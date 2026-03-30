@@ -20,9 +20,18 @@ const Campaigns = () => {
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isSegmentModalOpen, setIsSegmentModalOpen] = useState(false);
   const [currentCampaign, setCurrentCampaign] = useState(null);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState(null);
+  const [segmentTags, setSegmentTags] = useState([]);
+  const [segmentAudience, setSegmentAudience] = useState([]);
+  const [isAudienceLoading, setIsAudienceLoading] = useState(false);
+  const [segmentForm, setSegmentForm] = useState({
+    tag: "",
+    objective: "Marketing",
+    type: "Email",
+  });
   const [formData, setFormData] = useState({
     name: "",
     type: "Email",
@@ -60,6 +69,28 @@ const Campaigns = () => {
 
         .catch((error) => console.error("Error fetching username:", error));
     }
+  }, []);
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      const baseUrl = process.env.REACT_APP_BASE_URL;
+      const endpoints = [`${baseUrl}/api/tags`, `${baseUrl}/tags`];
+      let lastError;
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await axios.get(endpoint);
+          setSegmentTags(response.data || []);
+          return;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      console.error("Error fetching tags:", lastError);
+    };
+
+    fetchTags();
   }, []);
 
   // Fetch campaigns from API
@@ -135,6 +166,80 @@ const Campaigns = () => {
 
   const closeViewModal = () => {
     setIsViewModalOpen(false);
+  };
+
+  const openSegmentModal = () => {
+    setSegmentForm({
+      tag: "",
+      objective: "Marketing",
+      type: "Email",
+    });
+    setSegmentAudience([]);
+    setIsSegmentModalOpen(true);
+  };
+
+  const closeSegmentModal = () => {
+    setIsSegmentModalOpen(false);
+  };
+
+  const fetchSegmentAudience = async (tagName) => {
+    if (!tagName) {
+      setSegmentAudience([]);
+      return;
+    }
+    setIsAudienceLoading(true);
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/customer/filter`, {
+        params: { tag: tagName },
+      });
+      setSegmentAudience(response.data || []);
+    } catch (error) {
+      console.error("Error fetching segment audience:", error);
+      toast.error("Unable to load audience for selected segment");
+      setSegmentAudience([]);
+    } finally {
+      setIsAudienceLoading(false);
+    }
+  };
+
+  const handleSegmentInputChange = (e) => {
+    const { name, value } = e.target;
+    setSegmentForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    if (name === "tag") {
+      fetchSegmentAudience(value);
+    }
+  };
+
+  const handleCreateSegmentCampaign = async (e) => {
+    e.preventDefault();
+    if (!segmentForm.tag) {
+      toast.warning("Please select a segment tag");
+      return;
+    }
+
+    const campaignPayload = {
+      name: `${segmentForm.objective} Campaign - ${segmentForm.tag} Segment (${segmentAudience.length})`,
+      type: segmentForm.type,
+      createdBy: userName,
+      createdAt: getCurrentLocalDateTime(),
+    };
+
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/campaign/save`,
+        campaignPayload
+      );
+      setCampaigns((prev) => [...prev, response.data]);
+      toast.success("Segment-based campaign created successfully");
+      window.dispatchEvent(new Event(CRM_DASHBOARD_REFRESH_EVENT));
+      closeSegmentModal();
+    } catch (error) {
+      console.error("Error creating segment campaign:", error);
+      toast.error("Failed to create segment-based campaign");
+    }
   };
 
   // Handle form input changes
@@ -282,6 +387,9 @@ const Campaigns = () => {
               <div className="text-right p-3">
                 <button className="btn btn-add" onClick={openAddModal}>
                   <i className="fas fa-plus"></i> Add
+                </button>
+                <button className="btn btn-outline-primary ml-2" onClick={openSegmentModal}>
+                  <i className="fas fa-bullseye"></i> Create From Segment
                 </button>
               </div>
 
@@ -641,6 +749,94 @@ const Campaigns = () => {
                       Close
                     </button>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isSegmentModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ display: "block" }}>
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Create Focused Campaign From Segment</h5>
+                  <button type="button" className="close" onClick={closeSegmentModal}>
+                    <span>&times;</span>
+                  </button>
+                </div>
+                <div className="modal-body">
+                  <form onSubmit={handleCreateSegmentCampaign}>
+                    <div className="form-group">
+                      <label htmlFor="tag">Segment Tag</label>
+                      <select
+                        className="form-control"
+                        id="tag"
+                        name="tag"
+                        value={segmentForm.tag}
+                        onChange={handleSegmentInputChange}
+                        required
+                      >
+                        <option value="">Select Tag</option>
+                        {segmentTags.map((tag) => (
+                          <option key={tag.id} value={tag.name}>
+                            {tag.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="objective">Objective</label>
+                      <select
+                        className="form-control"
+                        id="objective"
+                        name="objective"
+                        value={segmentForm.objective}
+                        onChange={handleSegmentInputChange}
+                      >
+                        <option value="Marketing">Marketing</option>
+                        <option value="Support">Support</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="type">Campaign Type</label>
+                      <select
+                        className="form-control"
+                        id="type"
+                        name="type"
+                        value={segmentForm.type}
+                        onChange={handleSegmentInputChange}
+                      >
+                        <option value="Email">Email</option>
+                        <option value="SMS">SMS</option>
+                        <option value="Social Media">Social Media</option>
+                        <option value="Direct Mail">Direct Mail</option>
+                      </select>
+                    </div>
+                    <div className="alert alert-light border">
+                      <strong>Audience Size:</strong>{" "}
+                      {isAudienceLoading ? "Loading..." : segmentAudience.length}
+                      {segmentAudience.length > 0 && (
+                        <div className="small text-muted mt-2">
+                          Example:{" "}
+                          {segmentAudience
+                            .slice(0, 3)
+                            .map((c) => c.franchiseName || `${c.firstname || ""} ${c.lastname || ""}`.trim())
+                            .join(", ")}
+                        </div>
+                      )}
+                    </div>
+                    <div className="modal-footer">
+                      <button type="button" className="btn btn-secondary" onClick={closeSegmentModal}>
+                        Close
+                      </button>
+                      <button type="submit" className="btn btn-primary">
+                        Create Campaign
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
             </div>

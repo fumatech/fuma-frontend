@@ -109,8 +109,64 @@ const AddCustomer = () => {
   // Loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [tagOptions, setTagOptions] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      const baseUrl = process.env.REACT_APP_BASE_URL;
+      const endpoints = [`${baseUrl}/api/tags`, `${baseUrl}/tags`];
+      let lastError;
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(endpoint);
+          if (!response.ok) {
+            throw new Error(`Failed with status ${response.status}`);
+          }
+          const tags = await response.json();
+          setTagOptions(
+            (tags || []).map((tag) => ({
+              value: tag.id,
+              label: tag.name,
+            }))
+          );
+          return;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      console.error("Error fetching tags:", lastError);
+      toast.error("Unable to load tags");
+    };
+
+    fetchTags();
+  }, []);
+
+  const assignCustomerTags = async (customerId, tagIds) => {
+    if (!customerId) return;
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/customer/${customerId}/tags`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(tagIds || []),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`Failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Error assigning tags:", error);
+      toast.error("Customer saved but failed to assign tags");
+    }
+  };
   const checkFranchiseIdAvailability = async (franchiseId) => {
     try {
       const response = await fetch(
@@ -494,6 +550,8 @@ const AddCustomer = () => {
       }
 
       const data = await response.json();
+      const selectedTagIds = selectedTags.map((tag) => tag.value);
+      await assignCustomerTags(data?.id, selectedTagIds);
       toast.success("Franchise added successfully!");
 
       setShowSuccessAlert(true);
@@ -1382,11 +1440,35 @@ const AddCustomer = () => {
                           </div>
                         </div>
                         <label>Database Name : {dbName}</label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card card-default rounded-4 border-0 cardHover mt-3">
+                  <div className="card-body">
+                    <div className="mb-4">
+                      <h3 className="h4 font-weight-bold">Customer Segmentation</h3>
+                    </div>
+                    <div className="row">
+                      <div className="col-md-12">
+                        <div className="form-group">
+                          <label htmlFor="customerTags">Tags</label>
+                          <Select
+                            inputId="customerTags"
+                            isMulti
+                            options={tagOptions}
+                            value={selectedTags}
+                            onChange={(value) => setSelectedTags(value || [])}
+                            placeholder="Select tags..."
+                            classNamePrefix="react-select"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  <div className="text-center">
+                <div className="text-center">
                     <button
                       type="submit"
                       className="btn btn-save btn-lg px-4 py-2 m-2"

@@ -458,7 +458,7 @@ const Header = () => {
   const currentDate = new Date().toLocaleDateString("en-US");
 
   const navItemStyle = {
-    backgroundColor: "#003cb3",
+    backgroundColor: "#0C4461",
     padding: "6px 12px",
     borderRadius: "8px",
     marginLeft: "8px",
@@ -474,7 +474,7 @@ const Header = () => {
   };
 
   const navItemHover = {
-    backgroundColor: "#0050d0",
+    backgroundColor: "#0a5a80",
   };
 
   const iconStyle = {
@@ -487,7 +487,7 @@ const Header = () => {
   };
 
   const handleMouseLeave = (e) => {
-    Object.assign(e.currentTarget.style, { backgroundColor: "#003cb3" });
+    Object.assign(e.currentTarget.style, { backgroundColor: "#0C4461" });
   };
 
   const dropdownRef = useRef(null);
@@ -514,7 +514,7 @@ const Header = () => {
     <>
       <nav
         style={{
-          backgroundColor: "#003cb3",
+          backgroundColor: "#0C4461",
           padding: "10px 20px",
           display: "flex",
           justifyContent: "space-between",

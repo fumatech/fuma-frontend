@@ -13,6 +13,11 @@ const Menu = ({ userRoles }) => {
   const [sideBarCollapsed, setSideBarCollapsed] = useState(true);
   const [activeMenu, setActiveMenu] = useState("");
   const [activeSubMenu, setActiveSubMenu] = useState("");
+  const isAdminUser = (userRoles || []).some(
+    (role) =>
+      role.role?.toLowerCase() === "super admin" ||
+      role.role?.toLowerCase() === "admin"
+  );
 
   // State for all dropdown menus
   const [isUserManagementOpen, setUserManagementOpen] = useState(false);
@@ -38,7 +43,11 @@ const Menu = ({ userRoles }) => {
     setUserManagementOpen(
       path.startsWith("/Users") || path.startsWith("/Roles")
     );
-    setContactOpen(path.startsWith("/Vendor") || path.startsWith("/Customer"));
+    setContactOpen(
+      path.startsWith("/Vendor") ||
+      path.startsWith("/Customer") ||
+      path.startsWith("/ServiceTickets")
+    );
     setProductOpen(
       path.startsWith("/AddProducts") ||
       path.startsWith("/ListProducts") ||
@@ -78,7 +87,9 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/AcceptedOrders") ||
       path.startsWith("/ShipOrders") ||
       path.startsWith("/EditAcceptedOrder") ||
-      path.startsWith("/RejectedOrders")
+      path.startsWith("/RejectedOrders") ||
+      path.startsWith("/sales/create-quotation") ||
+      path.startsWith("/sales/quotation-list")
     );
     setStockOpen(
       path.startsWith("/AddStockTransfer") ||
@@ -132,13 +143,20 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/MyLeave") ||
       path.startsWith("/MyPayslips") ||
       path.startsWith("/MyViewPayslip") ||
-      path.startsWith("/MyNotices")
+      path.startsWith("/MyNotices") ||
+      path.startsWith("/EmployeeAttendanceAdmin") ||
+      path.startsWith("/EmployeePayslipsAdmin") ||
+      path.startsWith("/EmployeeViewPayslipAdmin")
     );
 
     // Set active menu based on current path
     if (path.startsWith("/Users") || path.startsWith("/Roles")) {
       setActiveMenu("userManagement");
-    } else if (path.startsWith("/Vendor") || path.startsWith("/Customer")) {
+    } else if (
+      path.startsWith("/Vendor") ||
+      path.startsWith("/Customer") ||
+      path.startsWith("/ServiceTickets")
+    ) {
       setActiveMenu("contact");
     } else if (
       path.startsWith("/AddProducts") ||
@@ -181,7 +199,9 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/AcceptedOrders") ||
       path.startsWith("/ShipOrders") ||
       path.startsWith("/EditAcceptedOrder") ||
-      path.startsWith("/RejectedOrders")
+      path.startsWith("/RejectedOrders") ||
+      path.startsWith("/sales/create-quotation") ||
+      path.startsWith("/sales/quotation-list")
     ) {
       setActiveMenu("sell");
     } else if (
@@ -237,7 +257,10 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/MyLeave") ||
       path.startsWith("/MyPayslips") ||
       path.startsWith("/MyViewPayslip") ||
-      path.startsWith("/MyNotices")
+      path.startsWith("/MyNotices") ||
+      path.startsWith("/EmployeeAttendanceAdmin") ||
+      path.startsWith("/EmployeePayslipsAdmin") ||
+      path.startsWith("/EmployeeViewPayslipAdmin")
     ) {
       setActiveMenu("employeePortal");
     } else {
@@ -253,6 +276,8 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("Vendor");
     } else if (path === "/Customer") {
       setActiveSubMenu("Customer");
+    } else if (path === "/ServiceTickets") {
+      setActiveSubMenu("ServiceTickets");
     } else if (path === "/AddProducts") {
       setActiveSubMenu("AddProducts");
     } else if (path === "/ListProducts") {
@@ -309,6 +334,10 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("RejectedOrders");
     } else if (path === "/ShipOrders") {
       setActiveSubMenu("ShipOrders");
+    } else if (path.startsWith("/sales/create-quotation")) {
+      setActiveSubMenu("CreateQuotation");
+    } else if (path === "/sales/quotation-list") {
+      setActiveSubMenu("QuotationList");
     } else if (path === "/ListStockTransfer") {
       setActiveSubMenu("ListStockTransfer");
     } else if (path === "/AddStockTransfer") {
@@ -381,6 +410,13 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("MyPayslips");
     } else if (path === "/MyNotices") {
       setActiveSubMenu("MyNotices");
+    } else if (path === "/EmployeeAttendanceAdmin") {
+      setActiveSubMenu("EmployeeAttendanceAdmin");
+    } else if (
+      path === "/EmployeePayslipsAdmin" ||
+      path === "/EmployeeViewPayslipAdmin"
+    ) {
+      setActiveSubMenu("EmployeePayslipsAdmin");
     } else {
       setActiveSubMenu("");
     }
@@ -634,7 +670,8 @@ const Menu = ({ userRoles }) => {
 
               {/* Contacts */}
               {(hasPermission("vendor.view") ||
-                hasPermission("franchise.view")) && (
+                hasPermission("franchise.view") ||
+                hasPermission("service_ticket.view")) && (
                   <li
                     className={`nav-item ${activeMenu === "contact" ? "menu-open" : ""
                       } mb-2`}
@@ -735,6 +772,27 @@ const Menu = ({ userRoles }) => {
                             </Link>
                           </li>
                         )}
+                      {/* {hasPermission("service_ticket.view") && (
+                        <li className="nav-item">
+                          <Link
+                            to="/ServiceTickets"
+                            className={getSubMenuItemClass("ServiceTickets")}
+                            style={{
+                              color:
+                                activeSubMenu === "ServiceTickets"
+                                  ? "#0040C1"
+                                  : "#4b5565",
+                              backgroundColor:
+                                activeSubMenu === "ServiceTickets"
+                                  ? "rgba(0, 64, 193, 0.08)"
+                                  : "transparent",
+                              paddingLeft: "52px",
+                            }}
+                          >
+                            <p>Service Tickets</p>
+                          </Link>
+                        </li>
+                      )} */}
                     </ul>
                   </li>
                 )}
@@ -1407,6 +1465,52 @@ const Menu = ({ userRoles }) => {
                           </Link>
                         </li>
                       )}
+                      {(hasPermission("sale_entry.view") ||
+                        hasPermission("so_sale.view") ||
+                        hasPermission("di_sale.view") ||
+                        hasPermission("all_sale_orders.view") ||
+                        hasPermission("sale_return.view")) && (
+                          <>
+                            <li className="nav-item">
+                              <Link
+                                to="/sales/create-quotation"
+                                className={getSubMenuItemClass("CreateQuotation")}
+                                style={{
+                                  color:
+                                    activeSubMenu === "CreateQuotation"
+                                      ? "#0040C1"
+                                      : "#4b5565",
+                                  backgroundColor:
+                                    activeSubMenu === "CreateQuotation"
+                                      ? "rgba(0, 64, 193, 0.08)"
+                                      : "transparent",
+                                  paddingLeft: "52px",
+                                }}
+                              >
+                                <p>Create Quotation</p>
+                              </Link>
+                            </li>
+                            <li className="nav-item">
+                              <Link
+                                to="/sales/quotation-list"
+                                className={getSubMenuItemClass("QuotationList")}
+                                style={{
+                                  color:
+                                    activeSubMenu === "QuotationList"
+                                      ? "#0040C1"
+                                      : "#4b5565",
+                                  backgroundColor:
+                                    activeSubMenu === "QuotationList"
+                                      ? "rgba(0, 64, 193, 0.08)"
+                                      : "transparent",
+                                  paddingLeft: "52px",
+                                }}
+                              >
+                                <p>Quotation List</p>
+                              </Link>
+                            </li>
+                          </>
+                        )}
 
                       {hasPermission("sale_return.view") && (
                         <>
@@ -2713,6 +2817,27 @@ const Menu = ({ userRoles }) => {
                         <p>My Attendance</p>
                       </Link>
                     </li>
+                    {isAdminUser && (
+                      <li className="nav-item">
+                        <Link
+                          to="/EmployeeAttendanceAdmin"
+                          className={getSubMenuItemClass("EmployeeAttendanceAdmin")}
+                          style={{
+                            color:
+                              activeSubMenu === "EmployeeAttendanceAdmin"
+                                ? "#0040C1"
+                                : "#4b5565",
+                            backgroundColor:
+                              activeSubMenu === "EmployeeAttendanceAdmin"
+                                ? "rgba(0, 64, 193, 0.08)"
+                                : "transparent",
+                            paddingLeft: "52px",
+                          }}
+                        >
+                          <p>Employee Attendance</p>
+                        </Link>
+                      </li>
+                    )}
                     <li className="nav-item">
                       <Link
                         to="/MyLeave"
@@ -2747,6 +2872,28 @@ const Menu = ({ userRoles }) => {
                         <p>My Payslips</p>
                       </Link>
                     </li>
+                    {isAdminUser && (
+                      <li className="nav-item">
+                        <Link
+                          to="/EmployeePayslipsAdmin"
+                          className={getSubMenuItemClass("EmployeePayslipsAdmin")}
+                          style={{
+                            color:
+                              activeSubMenu === "EmployeePayslipsAdmin"
+                                ? "#0040C1"
+                                : "#4b5565",
+                            backgroundColor:
+                              activeSubMenu === "EmployeePayslipsAdmin"
+                                ? "rgba(0, 64, 193, 0.08)"
+                                : "transparent",
+                            paddingLeft: "52px",
+                          }}
+                        >
+                          <p>Employee Payslips</p>
+                        </Link>
+                      </li>
+                    )}
+                    {/*
                     {hasPermission("hr_docs.view") && (
                       <li className="nav-item">
                         <Link
@@ -2766,6 +2913,7 @@ const Menu = ({ userRoles }) => {
                         </Link>
                       </li>
                     )}
+                    */}
                     <li className="nav-item">
                       <Link
                         to="/MyNotices"

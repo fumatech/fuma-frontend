@@ -42,6 +42,7 @@ const EditUser = () => {
   // Personal Information
   const [language, setLanguage] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
+  const [dateOfJoining, setDateOfJoining] = useState("");
   const [gender, setGender] = useState("");
   const [maritalStatus, setMaritalStatus] = useState("");
   const [bloodGroup, setBloodGroup] = useState("");
@@ -177,6 +178,9 @@ const EditUser = () => {
       // Personal Information
       setLanguage(userData.language || "");
       setDateOfBirth(userData.dateOfBirth || "");
+      setDateOfJoining(
+        userData.dateOfJoining ? String(userData.dateOfJoining).split("T")[0] : ""
+      );
       setGender(userData.gender || "");
       setMaritalStatus(userData.maritalStatus || "");
       setBloodGroup(userData.bloodGroup || "");
@@ -355,6 +359,9 @@ const EditUser = () => {
         break;
       case "dateOfBirth":
         setDateOfBirth(value);
+        break;
+      case "dateOfJoining":
+        setDateOfJoining(value);
         break;
       case "gender":
         setGender(value);
@@ -537,6 +544,7 @@ const EditUser = () => {
       ],
       language,
       dateOfBirth,
+      dateOfJoining: dateOfJoining || null,
       gender,
       maritalStatus,
       bloodGroup,
@@ -1480,7 +1488,7 @@ const EditUser = () => {
                       <h3 className="h4 font-weight-bold">HRM Details</h3>
                     </div>
                     <div className="row">
-                      <div className="col-md-6">
+                      <div className="col-md-4">
                         <div className="form-group">
                           <label htmlFor="department">Department:</label>
                           <select
@@ -1499,7 +1507,7 @@ const EditUser = () => {
                           </select>
                         </div>
                       </div>
-                      <div className="col-md-6">
+                      <div className="col-md-4">
                         <div className="form-group">
                           <label htmlFor="designation">Designation:</label>
                           <select
@@ -1519,6 +1527,19 @@ const EditUser = () => {
                               </option>
                             ))}
                           </select>
+                        </div>
+                      </div>
+                      <div className="col-md-4">
+                        <div className="form-group">
+                          <label htmlFor="dateOfJoining">Date of Joining:</label>
+                          <input
+                            type="date"
+                            className="form-control"
+                            id="dateOfJoining"
+                            name="dateOfJoining"
+                            value={dateOfJoining}
+                            onChange={handleChange}
+                          />
                         </div>
                       </div>
                     </div>

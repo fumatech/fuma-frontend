@@ -8,6 +8,7 @@ import ClockInOut from "./ClockInOut";
 import FaceAttendance from "./FaceAttendance";
 import FaceRegistration from "./FaceRegistration";
 import WorkingHoursReport from "./WorkingHoursReport";
+import EmployeeAttendanceView from "./EmployeeAttendanceView";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -19,6 +20,7 @@ import {
   faFaceSmile,
   faIdCard,
   faChartBar,
+  faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 
 const tabsData = [
@@ -57,6 +59,12 @@ const tabsData = [
     label: "Face Registration",
     icon: faIdCard,
     component: <FaceRegistration />,
+  },
+  {
+    id: "EmployeeAttendance",
+    label: "Employee Attendance",
+    icon: faUsers,
+    component: <EmployeeAttendanceView embedded />,
   },
   {
     id: "WorkingHours",

@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 
-const EmployeeMyPayslips = ({ employee }) => {
+const EmployeeMyPayslips = ({ employee, title = "My Payslips", viewPath }) => {
     const [payrolls, setPayrolls] = useState([]);
     const [loading, setLoading] = useState(true);
     const BASE_URL = process.env.REACT_APP_BASE_URL;
     const navigate = useNavigate();
     const location = useLocation();
-    const isAdminPanel = !location.pathname.startsWith("/employee/");
+    const isEmployeePortalRoute = /(^|\/)employee(\/|$)/.test(location.pathname);
+    const isAdminPanel = !isEmployeePortalRoute;
 
     useEffect(() => {
         if (employee?.id) {
@@ -83,7 +84,7 @@ const EmployeeMyPayslips = ({ employee }) => {
         <div>
             <div className="card">
                 <div className="card-header">
-                    <h3 className="card-title">My Payslips</h3>
+                    <h3 className="card-title">{title}</h3>
                 </div>
                 <div className="card-body table-responsive p-0">
                     <table className="table table-hover table-striped">
@@ -137,9 +138,12 @@ const EmployeeMyPayslips = ({ employee }) => {
                                                 <button
                                                     className="btn btn-sm btn-info"
                                                     onClick={() =>
-                                                        navigate(isAdminPanel ? "/MyViewPayslip" : "/employee/view-payslip", {
-                                                            state: { payroll, employee },
-                                                        })
+                                                        navigate(
+                                                            viewPath || (isAdminPanel ? "/MyViewPayslip" : "/employee/view-payslip"),
+                                                            {
+                                                                state: { payroll, employee, backPath: viewPath ? "/EmployeePayslipsAdmin" : undefined },
+                                                            }
+                                                        )
                                                     }
                                                 >
                                                     <i className="fas fa-eye mr-1"></i>
