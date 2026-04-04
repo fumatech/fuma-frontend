@@ -251,9 +251,7 @@ const SalesPerformanceReport = () => {
   if (!reportData) return <div className="p-4">No data available</div>;
 
   return (
-    <div className="wrapper">
-      <div className="content-wrapper">
-        <div className="sales-performance-report">
+    <div className="sales-performance-report">
       <section className="content-header">
         <div className="container-fluid px-0">
           <h1>Sales Performance Dashboard</h1>
@@ -490,8 +488,6 @@ const SalesPerformanceReport = () => {
             </div>
         </div>
       </section>
-        </div>
-      </div>
     </div>
   );
 };
