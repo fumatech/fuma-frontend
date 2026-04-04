@@ -94,76 +94,74 @@ const TagManagement = () => {
   };
 
   return (
-    <div className="wrapper">
-      <div className="content-wrapper">
-        <section className="content-header">
-          <div className="container-fluid">
-            <h1>Tag Management</h1>
-          </div>
-        </section>
-        <section className="content">
-          <div className="container-fluid">
-            <div className="card cardHover rounded-4 border-0 p-4">
-              <form onSubmit={editTag ? handleUpdateTag : handleAddTag} className="mb-4">
-                <div className="input-group">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Enter tag name"
-                    value={editTag ? editTagName : newTagName}
-                    onChange={(e) => editTag ? setEditTagName(e.target.value) : setNewTagName(e.target.value)}
-                  />
-                  <button type="submit" className="btn btn-primary">
-                    {editTag ? "Update Tag" : "Add Tag"}
+    <div>
+      <section className="content-header">
+        <div className="container-fluid px-0">
+          <h1 className="all-heading m-0">Tag Management</h1>
+        </div>
+      </section>
+      <section className="content">
+        <div className="container-fluid px-0">
+          <div className="card cardHover rounded-4 border-0 p-4">
+            <form onSubmit={editTag ? handleUpdateTag : handleAddTag} className="mb-4">
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Enter tag name"
+                  value={editTag ? editTagName : newTagName}
+                  onChange={(e) => editTag ? setEditTagName(e.target.value) : setNewTagName(e.target.value)}
+                />
+                <button type="submit" className="btn btn-primary">
+                  {editTag ? "Update Tag" : "Add Tag"}
+                </button>
+                {editTag && (
+                  <button type="button" className="btn btn-secondary" onClick={() => setEditTag(null)}>
+                    Cancel
                   </button>
-                  {editTag && (
-                    <button type="button" className="btn btn-secondary" onClick={() => setEditTag(null)}>
-                      Cancel
-                    </button>
-                  )}
-                </div>
-              </form>
-
-              <div className="table-responsive">
-                <table className="table table-bordered">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Tag Name</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tags.map((tag) => (
-                      <tr key={tag.id}>
-                        <td>{tag.id}</td>
-                        <td>{tag.name}</td>
-                        <td>
-                          <button
-                            className="btn btn-sm btn-info me-2"
-                            onClick={() => {
-                              setEditTag(tag);
-                              setEditTagName(tag.name);
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => handleDeleteTag(tag.id)}
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                )}
               </div>
+            </form>
+
+            <div className="table-responsive">
+              <table className="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Tag Name</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tags.map((tag) => (
+                    <tr key={tag.id}>
+                      <td>{tag.id}</td>
+                      <td>{tag.name}</td>
+                      <td>
+                        <button
+                          className="btn btn-sm btn-info me-2"
+                          onClick={() => {
+                            setEditTag(tag);
+                            setEditTagName(tag.name);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleDeleteTag(tag.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
   );
 };
