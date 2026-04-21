@@ -9,10 +9,15 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../../assets/dist/css/adminlte.min.css";
 import BackButton from "../../components/BackButton";
+import useBarcodeScanner from "../../hooks/useBarcodeScanner";
+import playProductAddedBeep from "../../utils/playProductAddedBeep";
+
 
 function AddDIPurchase() {
   const navigate = useNavigate();
   const searchResultsRef = useRef(null);
+  const inFlightBarcodeRequests = useRef(new Set());
+
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [file, setFile] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
@@ -418,7 +423,121 @@ function AddDIPurchase() {
     updateSelectedProducts(product, newSelectedVariations);
   };
 
+  const addOrIncrementScannedProduct = (product, scannedBarcode) => {
+    setSelectedProducts((prev) => {
+      let matchedVariation = null;
+      if (product.productVariations && product.productVariations.length > 0) {
+        if (scannedBarcode) {
+          matchedVariation = product.productVariations.find(
+            (v) =>
+              (v.subSku && v.subSku.toLowerCase() === scannedBarcode.toLowerCase()) ||
+              (product.barcode && product.barcode.toLowerCase() === scannedBarcode.toLowerCase())
+          );
+        }
+        if (!matchedVariation) {
+          matchedVariation = product.productVariations[0];
+        }
+      }
+
+      // Find matching item (variation or product)
+      const existingIndex = prev.findIndex(
+        (p) =>
+          (p.productId === product.id || p.id === product.id) &&
+          (!matchedVariation || p.productVariationId === matchedVariation.id || p.variationId === matchedVariation.id)
+      );
+
+      if (existingIndex >= 0) {
+        const next = [...prev];
+        next[existingIndex] = {
+          ...next[existingIndex],
+          quantity: (next[existingIndex].quantity || 0) + 1,
+        };
+        return next;
+      }
+
+      // Handle variable products
+      if (matchedVariation) {
+        const variation = matchedVariation;
+        return [
+          ...prev,
+          {
+            id: product.id,
+            productId: product.id,
+            productName: product.productName,
+            sku: product.sku || variation.subSku || "",
+            variationId: variation.id,
+            variationValue: variation.variationValue,
+            variationName: variation.variationValue,
+            productVariationId: variation.id,
+            defaultPurchasePriceExcTax: variation.defaultPurchasePriceExcTax || variation.defaultSellingPrice || product.price || 0,
+            quantity: 1,
+            discountPercent: 0,
+            profitMargin: variation.profitMargin || product.profitMargin || 0,
+            taxRate: 0,
+            taxAmount: 0,
+            selectedTax: null,
+            taxRateId: null,
+          },
+        ];
+      }
+
+      // Handle single products
+      return [
+        ...prev,
+        {
+          id: product.id,
+          productId: product.id,
+          productName: product.productName,
+          sku: product.sku || "",
+          quantity: 1,
+          discountPercent: 0,
+          defaultPurchasePriceExcTax: product.defaultPurchasePriceExcTax || product.price || 0,
+          profitMargin: product.profitMargin || 0,
+          taxRate: 0,
+          taxAmount: 0,
+          selectedTax: null,
+          taxRateId: null,
+        },
+      ];
+    });
+  };
+
+  const handleBarcodeScan = async (barcode) => {
+    if (inFlightBarcodeRequests.current.has(barcode)) {
+      return;
+    }
+
+    inFlightBarcodeRequests.current.add(barcode);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/api/products/barcode/${encodeURIComponent(
+          barcode
+        )}`
+      );
+
+      if (!response.ok) {
+        toast.warning("Product not found");
+        return;
+      }
+
+      const product = await response.json();
+      addOrIncrementScannedProduct(product, barcode);
+      playProductAddedBeep();
+      toast.success(`Scanned: ${product.productName || barcode}`);
+    } catch (error) {
+      console.error("Error scanning barcode:", error);
+      toast.error("Unable to scan product right now");
+    } finally {
+      inFlightBarcodeRequests.current.delete(barcode);
+    }
+  };
+
+  useBarcodeScanner(handleBarcodeScan, {
+    allowManualInputEnter: false, 
+  });
+
   const updateSelectedProducts = (product, variations) => {
+
     if (product.productVariations.length > 0) {
       const selectedVars = product.productVariations.filter(
         (variation) => variations[variation.id]

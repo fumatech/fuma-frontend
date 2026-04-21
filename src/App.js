@@ -192,6 +192,15 @@ import EmployeeViewPayslip from "./Pages/EmployeePortal/EmployeeViewPayslip";
 import EmployeeNotices from "./Pages/EmployeePortal/EmployeeNotices";
 import EmployeeAttendanceView from "./Pages/HRM/EmployeeAttendanceView";
 import AdminEmployeePayslips from "./Pages/EmployeePortal/AdminEmployeePayslips";
+import LoyaltyScanner from "./Pages/Loyalty/LoyaltyScanner";
+import LoyaltyWallet from "./Pages/Loyalty/LoyaltyWallet";
+import LoyaltyReferral from "./Pages/Loyalty/LoyaltyReferral";
+import LoyaltyAdmin from "./Pages/Loyalty/LoyaltyAdmin";
+import LoyaltyCustomerLanding from "./Pages/LoyaltyCustomer/LoyaltyCustomerLanding";
+import LoyaltyCustomerAuth from "./Pages/LoyaltyCustomer/LoyaltyCustomerAuth";
+import LoyaltyCustomerClaim from "./Pages/LoyaltyCustomer/LoyaltyCustomerClaim";
+import LoyaltyCustomerWallet from "./Pages/LoyaltyCustomer/LoyaltyCustomerWallet";
+import LoyaltyCustomerReferral from "./Pages/LoyaltyCustomer/LoyaltyCustomerReferral";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 const App = () => {
@@ -332,6 +341,10 @@ const App = () => {
     "/ContactLogin": ["crm.view"],
     "/Leads": ["crm.view"],
     "/FollowUps": ["crm.view"],
+    "/LoyaltyScan": ["crm.view"],
+    "/LoyaltyWallet": ["crm.view"],
+    "/LoyaltyReferral": ["crm.view"],
+    "/LoyaltyAdmin": ["crm.view"],
     "/sales/create-quotation": [
       "sale_entry.view",
       "so_sale.view",
@@ -405,8 +418,12 @@ const App = () => {
       role.role?.toLowerCase() === "admin"
   );
 
+  const isCustomerPanelRoute =
+    typeof window !== "undefined" && window.location.pathname.startsWith("/reward");
+  const routerBasename = isCustomerPanelRoute ? "/" : "/fumamain";
+
   return (
-    <BrowserRouter basename="/fumamain">
+    <BrowserRouter basename={routerBasename}>
       <ToastContainer
         position="top-center"
         autoClose={3000}
@@ -418,6 +435,13 @@ const App = () => {
       />
       <div className="app-background">
         <Routes>
+          {/* Customer Loyalty Web Panel */}
+          <Route path="/reward" element={<LoyaltyCustomerLanding />} />
+          <Route path="/reward/auth" element={<LoyaltyCustomerAuth />} />
+          <Route path="/reward/claim" element={<LoyaltyCustomerClaim />} />
+          <Route path="/reward/wallet" element={<LoyaltyCustomerWallet />} />
+          <Route path="/reward/referral" element={<LoyaltyCustomerReferral />} />
+
           {/* Employee Portal - separate login for security */}
           <Route path="/employee/login" element={<EmployeeLogin />} />
           <Route path="/employee/*" element={<EmployeeLayout />} />
@@ -1763,6 +1787,46 @@ const App = () => {
                     element={
                       hasPermission("/FollowUps") ? (
                         <FollowUps />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/LoyaltyScan"
+                    element={
+                      hasPermission("/LoyaltyScan") ? (
+                        <LoyaltyScanner />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/LoyaltyWallet"
+                    element={
+                      hasPermission("/LoyaltyWallet") ? (
+                        <LoyaltyWallet />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/LoyaltyReferral"
+                    element={
+                      hasPermission("/LoyaltyReferral") ? (
+                        <LoyaltyReferral />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/LoyaltyAdmin"
+                    element={
+                      hasPermission("/LoyaltyAdmin") ? (
+                        <LoyaltyAdmin />
                       ) : (
                         <Navigate to="/" />
                       )

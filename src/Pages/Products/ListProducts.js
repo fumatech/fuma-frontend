@@ -1,1398 +1,1250 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Modal, Button, Form, Table } from "react-bootstrap";
-import "./ListProducts.css";
 import Dropdown from "react-bootstrap/Dropdown";
-import axios from "axios";
-import DropdownButton from "react-bootstrap/DropdownButton";
-import * as xlsx from "xlsx";
-import { Link, useNavigate } from "react-router-dom";
 import Collapse from "react-bootstrap/Collapse";
-import "bootstrap/dist/css/bootstrap.min.css";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
 import "../../assets/dist/css/adminlte.min.css";
 import "../../assets/plugins/fontawesome-free/css/all.min.css";
-import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
-import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
-import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
-import { toast } from "react-toastify";
+import "./ListProducts.css";
 
-const staticListProducts = [{}];
+function ListProducts() {
+    const [listProducts, setListProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState("active");
+    const [open, setOpen] = useState(true);
+    const [entriesPerPage, setEntriesPerPage] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [selectedRows, setSelectedRows] = useState(new Set());
 
-function ListProducts({ userRoles }) {
-  const [ListProducts, setListProducts] = useState(staticListProducts);
-  const [filteredProducts, setFilteredProducts] = useState(staticListProducts);
-  const [columnsVisibility, setColumnsVisibility] = useState({
-    productImage: true,
-    productName: true,
-    Action: true,
-    Products: true,
-    BusinessLocation: true,
-    UnitPurchasePrice: true,
-    SellingPrice: true,
-    CurrentStock: true,
-    ProductType: true,
-    Category: true,
-    Brand: true,
-    Tax: true,
-    sku: true,
-    taxNumber: true,
-    variation: true,
-  });
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedRows, setSelectedRows] = useState(new Set());
-  const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
-  const [showModal, setShowModal] = useState(false);
-  const [note, setNote] = useState();
-  const [selectedDate, setSelectedDate] = useState();
-  const [listProduct, setListProduct] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState([]);
-  const [currentStock, setCurrentStock] = useState();
-  const [categoriesMap, setCategoriesMap] = useState({});
-  const [brandsMap, setBrandsMap] = useState({});
-  const [activeTab, setActiveTab] = useState("active");
-  const [brands, setBrands] = useState([]);
-  const [taxes, setTaxes] = useState([]);
-  const [unitMap, setUnitMap] = useState({});
-  const [brandMap, setBrandMap] = useState({});
-  const [taxMap, setTaxMap] = useState({});
+    const [categories, setCategories] = useState([]);
+    const [brands, setBrands] = useState([]);
+    const [units, setUnits] = useState([]);
+    const [taxes, setTaxes] = useState([]);
+    const [businessLocations, setBusinessLocations] = useState([]);
 
-  const [filterValues, setFilterValues] = useState({
-    productType: "",
-    category: "",
-    unit: "",
-    brand: "",
-    tax: "",
-    businessLocation: "",
-    status: "",
-  });
+    const [categoryMap, setCategoryMap] = useState({});
+    const [brandMap, setBrandMap] = useState({});
+    const [unitMap, setUnitMap] = useState({});
+    const [taxMap, setTaxMap] = useState({});
 
-  const [categories, setCategories] = useState([]);
-  const [units, setUnits] = useState([]);
-  const [businessLocations, setBusinessLocations] = useState([]);
-  useEffect(() => {
-    const uMap = {};
-    units.forEach((u) => {
-      uMap[u.id] = `${u.name} (${u.shortName})`;
+    const [columnsVisibility, setColumnsVisibility] = useState({
+        select: true,
+        action: true,
+        image: true,
+        product: true,
+        sku: true,
+        location: true,
+        stock: true,
+        purchasePrice: true,
+        salePrice: true,
+        type: true,
+        category: true,
+        brand: true,
+        tax: true,
     });
-    setUnitMap(uMap);
 
-    const bMap = {};
-    brands.forEach((b) => {
-      bMap[b.id] = b.brandName;
+    const [filterValues, setFilterValues] = useState({
+        search: "",
+        productType: "",
+        category: "",
+        unit: "",
+        brand: "",
+        tax: "",
+        businessLocation: "",
+        status: "",
     });
-    setBrandMap(bMap);
 
-    const tMap = {};
-    taxes.forEach((t) => {
-      tMap[t.id] = `${t.taxName} (${t.taxValue}%)`;
-    });
-    setTaxMap(tMap);
-  }, [units, brands, taxes]);
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchMasterData = async () => {
-      try {
-        const [brandRes, unitRes, taxRes] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_BASE_URL}/brands/getall`),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/units/getall`),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/tax/getall`),
-        ]);
+    useEffect(() => {
+        const fetchMasterData = async () => {
+            try {
+                const [categoryRes, brandRes, unitRes, taxRes] = await Promise.all([
+                    axios.get(`${process.env.REACT_APP_BASE_URL}/categories/getall`),
+                    axios.get(`${process.env.REACT_APP_BASE_URL}/brands/getall`),
+                    axios.get(`${process.env.REACT_APP_BASE_URL}/units/getall`),
+                    axios.get(`${process.env.REACT_APP_BASE_URL}/tax/getall`),
+                ]);
 
-        setBrands(brandRes.data || []);
-        setUnits(unitRes.data || []); // overwrite earlier unit logic
-        setTaxes(taxRes.data || []);
-      } catch (error) {
-        console.error("Error fetching master data", error);
-      }
+                const flattenCategories = (input, map = {}) => {
+                    (input || []).forEach((cat) => {
+                        map[cat.id] = cat.categoryName;
+                        if (Array.isArray(cat.subCategories) && cat.subCategories.length) {
+                            flattenCategories(cat.subCategories, map);
+                        }
+                    });
+                    return map;
+                };
+
+                const builtBrandMap = (brandRes.data || []).reduce((acc, item) => {
+                    acc[item.id] = item.brandName;
+                    return acc;
+                }, {});
+
+                const builtUnitMap = (unitRes.data || []).reduce((acc, item) => {
+                    acc[item.id] = `${item.name} (${item.shortName})`;
+                    return acc;
+                }, {});
+
+                const builtTaxMap = (taxRes.data || []).reduce((acc, item) => {
+                    acc[item.id] = `${item.taxName} (${item.taxValue}%)`;
+                    return acc;
+                }, {});
+
+                setCategories(categoryRes.data || []);
+                setBrands(brandRes.data || []);
+                setUnits(unitRes.data || []);
+                setTaxes(taxRes.data || []);
+                setCategoryMap(flattenCategories(categoryRes.data || []));
+                setBrandMap(builtBrandMap);
+                setUnitMap(builtUnitMap);
+                setTaxMap(builtTaxMap);
+            } catch (error) {
+                console.error("Error fetching master data:", error);
+            }
+        };
+
+        fetchMasterData();
+    }, []);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            setLoading(true);
+            try {
+                const endpoint =
+                    activeTab === "active"
+                        ? `${process.env.REACT_APP_BASE_URL}/product/getallactive`
+                        : `${process.env.REACT_APP_BASE_URL}/product/getallinactive`;
+
+                const response = await axios.get(endpoint, { withCredentials: true });
+                const rawProducts = Array.isArray(response.data) ? response.data : [];
+                const sortedData = rawProducts.sort((a, b) => b.id - a.id);
+
+                const stockRequests = [];
+                sortedData.forEach((product) => {
+                    stockRequests.push({ productId: product.id, variationId: null });
+                    (product.productVariations || []).forEach((variation) => {
+                        stockRequests.push({ productId: product.id, variationId: variation.id });
+                    });
+                });
+
+                let stockMap = {};
+                try {
+                    const stockResponse = await fetch(
+                        `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/bulk`,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(stockRequests),
+                        },
+                    );
+                    if (stockResponse.ok) {
+                        stockMap = await stockResponse.json();
+                    }
+                } catch (error) {
+                    console.error("Error fetching bulk stock:", error);
+                }
+
+                const normalizedProducts = sortedData.map((product) => {
+                    const productStockKey = `${product.id}_null`;
+                    const productStock =
+                        stockMap[productStockKey] !== undefined
+                            ? stockMap[productStockKey]
+                            : "N/A";
+
+                    const updatedVariations = (product.productVariations || []).map(
+                        (variation) => {
+                            const variationStockKey = `${product.id}_${variation.id}`;
+                            const variationStock =
+                                stockMap[variationStockKey] !== undefined
+                                    ? stockMap[variationStockKey]
+                                    : "N/A";
+                            return { ...variation, currentStock: variationStock };
+                        },
+                    );
+
+                    return {
+                        ...product,
+                        currentStock: productStock,
+                        productVariations: updatedVariations,
+                        isActive: activeTab === "active",
+                    };
+                });
+
+                setListProducts(normalizedProducts);
+                setBusinessLocations(
+                    [...new Set(normalizedProducts.map((p) => p.businessLocation))].filter(
+                        Boolean,
+                    ),
+                );
+                setSelectedRows(new Set());
+                setCurrentPage(1);
+            } catch (error) {
+                console.error(`Error fetching ${activeTab} products:`, error);
+                setListProducts([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, [activeTab]);
+
+    const filteredProducts = useMemo(() => {
+        return listProducts.filter((product) => {
+            const text = filterValues.search.trim().toLowerCase();
+            const productCategoryName = categoryMap[product.category] || "";
+            const productBrandName = brandMap[product.brand] || "";
+            const productTaxName = taxMap[product.applicableTax] || "";
+
+            const searchable = [
+                product.productName,
+                product.sku,
+                product.productType,
+                product.businessLocation,
+                productCategoryName,
+                productBrandName,
+                productTaxName,
+            ]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase();
+
+            const matchesSearch = !text || searchable.includes(text);
+            const matchesProductType =
+                !filterValues.productType || product.productType === filterValues.productType;
+            const matchesCategory =
+                !filterValues.category || String(product.category) === String(filterValues.category);
+            const matchesUnit =
+                !filterValues.unit || String(product.unit) === String(filterValues.unit);
+            const matchesBrand =
+                !filterValues.brand || String(product.brand) === String(filterValues.brand);
+            const matchesTax =
+                !filterValues.tax || String(product.applicableTax) === String(filterValues.tax);
+            const matchesLocation =
+                !filterValues.businessLocation ||
+                product.businessLocation === filterValues.businessLocation;
+            const matchesStatus =
+                !filterValues.status || String(product.status) === String(filterValues.status);
+
+            return (
+                matchesSearch &&
+                matchesProductType &&
+                matchesCategory &&
+                matchesUnit &&
+                matchesBrand &&
+                matchesTax &&
+                matchesLocation &&
+                matchesStatus
+            );
+        });
+    }, [filterValues, listProducts, categoryMap, brandMap, taxMap]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredProducts.length / entriesPerPage));
+    const safePage = Math.min(currentPage, totalPages);
+    const startIndex = (safePage - 1) * entriesPerPage;
+    const endIndex = startIndex + entriesPerPage;
+    const displayedProducts = filteredProducts.slice(startIndex, endIndex);
+
+    useEffect(() => {
+        if (safePage !== currentPage) {
+            setCurrentPage(safePage);
+        }
+    }, [safePage, currentPage]);
+
+    const toggleColumn = (column) => {
+        setColumnsVisibility((prev) => ({ ...prev, [column]: !prev[column] }));
     };
 
-    fetchMasterData();
-  }, []);
+    const handleEntriesChange = (event) => {
+        setEntriesPerPage(Number(event.target.value));
+        setCurrentPage(1);
+    };
 
-  useEffect(() => {
-    applyFilters();
-  }, [filterValues, ListProducts]);
+    const handleFilterChange = (event) => {
+        const { name, value } = event.target;
+        setFilterValues((prev) => ({ ...prev, [name]: value }));
+        setCurrentPage(1);
+    };
 
-  const applyFilters = () => {
-    const filtered = ListProducts.filter((product) => {
-      const matchesProductType =
-        filterValues.productType === "" ||
-        product.productType === filterValues.productType;
-
-      const matchesCategory =
-        filterValues.category === "" ||
-        product.category == filterValues.category;
-
-      const matchesUnit =
-        filterValues.unit === "" ||
-        String(product.unit) === String(filterValues.unit);
-
-      const matchesBrand =
-        filterValues.brand === "" || product.brand == filterValues.brand;
-
-      const matchesTax =
-        filterValues.tax === "" || product.applicableTax == filterValues.tax;
-
-      const matchesLocation =
-        filterValues.businessLocation === "" ||
-        product.businessLocation === filterValues.businessLocation;
-
-      const matchesStatus =
-        filterValues.status === "" || product.status == filterValues.status;
-
-      return (
-        matchesProductType &&
-        matchesCategory &&
-        matchesUnit &&
-        matchesBrand &&
-        matchesTax &&
-        matchesLocation &&
-        matchesStatus
-      );
-    });
-
-    setFilteredProducts(filtered);
-    setCurrentPage(1);
-  };
-
-  const fetchProducts = async (status) => {
-    try {
-      const endpoint =
-        status === "active"
-          ? `${process.env.REACT_APP_BASE_URL}/product/getallactive`
-          : `${process.env.REACT_APP_BASE_URL}/product/getallinactive`;
-
-      const response = await axios.get(endpoint, {
-        withCredentials: true,
-      });
-
-      if (Array.isArray(response.data)) {
-        const sortedData = response.data.sort((a, b) => b.id - a.id);
-
-        // Build bulk stock request for all products and variations
-        const stockRequests = [];
-        sortedData.forEach((product) => {
-          stockRequests.push({ productId: product.id, variationId: null });
-          if (product.productVariations) {
-            product.productVariations.forEach((variation) => {
-              stockRequests.push({ productId: product.id, variationId: variation.id });
-            });
-          }
+    const resetFilters = () => {
+        setFilterValues({
+            search: "",
+            productType: "",
+            category: "",
+            unit: "",
+            brand: "",
+            tax: "",
+            businessLocation: "",
+            status: "",
         });
+    };
 
-        // Single bulk API call instead of N+1 individual calls
-        let stockMap = {};
-        try {
-          const stockResponse = await fetch(
-            `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/bulk`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(stockRequests),
+    const handleRowSelect = (productId) => {
+        setSelectedRows((prevSelectedRows) => {
+            const nextRows = new Set(prevSelectedRows);
+            if (nextRows.has(productId)) {
+                nextRows.delete(productId);
+            } else {
+                nextRows.add(productId);
             }
-          );
-          if (stockResponse.ok) {
-            stockMap = await stockResponse.json();
-          }
-        } catch (error) {
-          console.error("Error fetching bulk stock:", error);
+            return nextRows;
+        });
+    };
+
+    const handleSelectAll = (event) => {
+        if (event.target.checked) {
+            setSelectedRows(new Set(displayedProducts.map((item) => item.id)));
+            return;
+        }
+        setSelectedRows(new Set());
+    };
+
+    const toggleSelectedStatus = async () => {
+        if (selectedRows.size === 0) {
+            toast.warning("Please select at least one product");
+            return;
         }
 
-        const updatedProducts = sortedData.map((product) => {
-          const productStockKey = product.id + "_null";
-          const productStock = stockMap[productStockKey] !== undefined ? stockMap[productStockKey] : "N/A";
+        const action = activeTab === "active" ? "deactivate" : "activate";
+        const nextStatus = activeTab === "active" ? 0 : 1;
 
-          const updatedVariations = (product.productVariations || []).map((variation) => {
-            const variationStockKey = product.id + "_" + variation.id;
-            const variationStock = stockMap[variationStockKey] !== undefined ? stockMap[variationStockKey] : "N/A";
-            return { ...variation, currentStock: variationStock };
-          });
+        if (!window.confirm(`Are you sure you want to ${action} selected products?`)) {
+            return;
+        }
 
-          return {
-            ...product,
-            currentStock: productStock,
-            productVariations: updatedVariations,
-            isActive: status === "active",
-          };
-        });
-
-        setListProducts(updatedProducts);
-        setListProduct(updatedProducts);
-
-        // Extract unique units and locations
-
-        const uniqueLocations = [
-          ...new Set(updatedProducts.map((p) => p.businessLocation)),
-        ].filter(Boolean);
-
-        setBusinessLocations(uniqueLocations);
-      }
-    } catch (error) {
-      console.error(`Error fetching ${status} products:`, error);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts(activeTab);
-
-    const fetchCategoriesAndBrands = async () => {
-      try {
-        const [categoriesResponse, brandsResponse] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_BASE_URL}/categories/getall`),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/brands/getall`),
-        ]);
-
-        const categoryMap = {};
-        const flattenCategories = (categories) => {
-          categories.forEach((cat) => {
-            categoryMap[cat.id] = cat.categoryName;
-            if (cat.subCategories && cat.subCategories.length > 0) {
-              flattenCategories(cat.subCategories);
-            }
-          });
-        };
-        flattenCategories(categoriesResponse.data);
-
-        const brandMap = {};
-        brandsResponse.data.forEach((brand) => {
-          brandMap[brand.id] = brand.brandName;
-        });
-
-        setCategoriesMap(categoryMap);
-        setBrandsMap(brandMap);
-        setCategories(categoriesResponse.data);
-      } catch (error) {
-        console.error("Error loading categories or brands:", error);
-      }
-    };
-
-    fetchCategoriesAndBrands();
-
-    // Load additional script
-    const script = document.createElement("script");
-    script.src = "js/JqueryContent.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    // Optional: cleanup to remove the script if needed
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, [activeTab]);
-
-  // Bulk status toggle
-  const toggleSelectedStatus = async () => {
-    if (selectedRows.size === 0) {
-      toast.warning("Please select at least one product");
-      return;
-    }
-
-    const action = activeTab === "active" ? "deactivate" : "activate";
-    if (
-      window.confirm(`Are you sure you want to ${action} selected products?`)
-    ) {
-      try {
-        await Promise.all(
-          Array.from(selectedRows).map((id) =>
-            axios.put(
-              `${process.env.REACT_APP_BASE_URL}/product/status/${id}`,
-              { status: activeTab === "active" ? 0 : 1 },
-              { withCredentials: true }
-            )
-          )
-        );
-
-        fetchProducts(activeTab);
-        setSelectedRows(new Set());
-        toast.success(`Products ${action}d successfully!`);
-      } catch (error) {
-        // console.error("Error updating product statuses:", error);
-        toast.error("Failed to update product statuses.");
-      }
-    }
-  };
-
-  // Single product status toggle
-  const toggleProductStatus = async (id) => {
-    const newStatus = activeTab === "active" ? 0 : 1;
-    const action = activeTab === "active" ? "deactivate" : "activate";
-
-    if (window.confirm(`Are you sure you want to ${action} this product?`)) {
-      try {
-        await axios.put(
-          `${process.env.REACT_APP_BASE_URL}/product/status/${id}?status=${newStatus}`,
-          null,
-          { withCredentials: true }
-        );
-
-        fetchProducts(activeTab);
-        toast.success(`Product ${action}d successfully!`);
-      } catch (error) {
-        // console.error("Error updating product status:", error);
-        toast.error("Failed to update product status.");
-      }
-    }
-  };
-
-  const exportCSV = () => {
-    const csvData = filteredProducts.map((product) => ({
-      Action: product.Action,
-      productImage: product.productImage,
-      Products: product.Products,
-      "Business Location": product.BusinessLocation,
-      UnitPurchasePrice: product.UnitPurchasePrice,
-      SellingPrice: product.SellingPrice,
-      CurrentStock: product.CurrentStock,
-      ProductType: product.ProductType,
-      Category: product.Category,
-      Brand: product.Brand,
-      Tax: product.Tax,
-      sku: product.sku,
-      "Tax Number": product.taxNumber,
-    }));
-
-    const csv = [
-      Object.keys(csvData[0]),
-      ...csvData.map((row) => Object.values(row)),
-    ]
-      .map((row) => row.join(","))
-      .join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv" });
-    saveAs(blob, "ListProducts.csv");
-  };
-
-  const exportExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(filteredProducts);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "ListProducts");
-    XLSX.writeFile(wb, "ListProducts.xlsx");
-  };
-
-  const printData = () => {
-    const printWindow = window.open("", "", "height=800,width=1200");
-    printWindow.document.write("<html><head><title>Print</title>");
-    printWindow.document.write(
-      '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">'
-    );
-    printWindow.document.write("</head><body >");
-    printWindow.document.write(
-      document.getElementById("table-container").innerHTML
-    );
-    printWindow.document.write("</body></html>");
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  };
-
-  const exportPDF = () => {
-    const doc = new jsPDF();
-    doc.autoTable({
-      head: [
-        [
-          "Action",
-          "Products",
-          "Business Location",
-          "UnitPurchasePrice",
-          "SellingPrice",
-          "CurrentStock",
-          "ProductType",
-          "Category",
-          "Brand",
-          "Tax",
-          "sku",
-          "Tax Number",
-        ],
-      ],
-      body: filteredProducts.map((product) => [
-        product.Action,
-        product.Products,
-        product.BusinessLocation,
-        product.UnitPurchasePrice,
-        product.SellingPrice,
-        product.CurrentStock,
-        product.ProductType,
-        product.Category,
-        product.Brand,
-        product.Tax,
-        product.sku,
-        product.taxNumber,
-      ]),
-    });
-    doc.save("ListProducts.pdf");
-  };
-
-  const toggleColumn = (column) => {
-    setColumnsVisibility((prev) => ({
-      ...prev,
-      [column]: !prev[column],
-    }));
-  };
-
-  const handleEntriesChange = (e) => {
-    setEntriesPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
-
-  const handleEditClick = (productId) => {
-    navigate(`/EditList/${productId}`);
-  };
-
-  const handleViewClick = (productId) => {
-    navigate(`/ViewList/${productId}`);
-  };
-
-  const handleLabelClick = (productId) => {
-    navigate(`/ProductLabel/${productId}`);
-  };
-
-  const handleDeleteClick = (id) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      fetch(`${process.env.REACT_APP_BASE_URL}/product/delete/${id}`, {
-        method: "DELETE",
-      })
-        .then((response) => {
-          if (response.status === 204) {
-            setListProduct((prevProducts) =>
-              prevProducts.filter((product) => product.id !== id)
+        try {
+            await Promise.all(
+                Array.from(selectedRows).map((id) =>
+                    axios.put(
+                        `${process.env.REACT_APP_BASE_URL}/product/status/${id}`,
+                        { status: nextStatus },
+                        { withCredentials: true },
+                    ),
+                ),
             );
-            toast.success("Product deleted successfully!");
-          } else {
-            toast.error("Failed to delete product.");
-          }
-        })
-        .catch((error) => toast.error("Error deleting product:", error));
-    }
-  };
 
-  const startIndex = (currentPage - 1) * entriesPerPage;
-  const endIndex = startIndex + entriesPerPage;
-  const displayedCustomers = filteredProducts.slice(startIndex, endIndex);
+            toast.success(`Products ${action}d successfully`);
+            setListProducts((prev) => prev.filter((item) => !selectedRows.has(item.id)));
+            setSelectedRows(new Set());
+        } catch (error) {
+            toast.error("Failed to update selected product statuses");
+        }
+    };
 
-  const hasPermission = (permissionName) => {
-    return true; // Temporarily bypassed
-    /*
-    return (role) =>
-      role.permissions((permission) => permission.name === permissionName);
-    */
-  };
+    const toggleProductStatus = async (id) => {
+        const nextStatus = activeTab === "active" ? 0 : 1;
+        const action = activeTab === "active" ? "deactivate" : "activate";
 
-  const handleRowSelect = (productId) => {
-    setSelectedRows((prevSelectedRows) => {
-      const newSelectedRows = new Set(prevSelectedRows);
-      if (newSelectedRows.has(productId)) {
-        newSelectedRows.delete(productId);
-      } else {
-        newSelectedRows.add(productId);
-      }
-      return newSelectedRows;
-    });
-  };
+        if (!window.confirm(`Are you sure you want to ${action} this product?`)) {
+            return;
+        }
 
-  const isRowSelected = (productId) => {
-    return selectedRows.has(productId);
-  };
+        try {
+            await axios.put(
+                `${process.env.REACT_APP_BASE_URL}/product/status/${id}?status=${nextStatus}`,
+                null,
+                { withCredentials: true },
+            );
+            toast.success(`Product ${action}d successfully`);
+            setListProducts((prev) => prev.filter((item) => item.id !== id));
+            setSelectedRows((prev) => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+        } catch (error) {
+            toast.error("Failed to update product status");
+        }
+    };
 
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedRows(new Set(displayedCustomers.map((p) => p.id)));
-    } else {
-      setSelectedRows(new Set());
-    }
-  };
+    const handleDeleteClick = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this product?")) {
+            return;
+        }
 
-  const handleDropdownItemClick = (col, e) => {
-    e.stopPropagation();
-    toggleColumn(col);
-  };
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_BASE_URL}/product/delete/${id}`,
+                { method: "DELETE" },
+            );
 
-  const renderStatusToggleButtons = () => (
-    <div className="btn-group ml-auto" role="group">
-      <button
-        type="button"
-        className={`btn ${activeTab === "active" ? "btn-primary" : "btn-outline-primary"
-          }`}
-        onClick={() => setActiveTab("active")}
-      >
-        Active
-      </button>
-      <button
-        type="button"
-        className={`btn ${activeTab === "inactive" ? "btn-danger" : "btn-outline-danger"
-          }`}
-        onClick={() => setActiveTab("inactive")}
-      >
-        Inactive
-      </button>
-    </div>
-  );
+            if (response.status === 204) {
+                setListProducts((prev) => prev.filter((item) => item.id !== id));
+                toast.success("Product deleted successfully");
+            } else {
+                toast.error("Failed to delete product");
+            }
+        } catch (error) {
+            toast.error("Error deleting product");
+        }
+    };
 
-  const renderStatusToggleDropdownItem = (product) => (
-    <Dropdown.Item as="button" onClick={() => toggleProductStatus(product.id)}>
-      <div
-        className={`d-inline-block w-75 justify-content-center ${activeTab === "active" ? "text-danger" : "text-success"
-          }`}
-      >
-        <i className={`dropdown_hover fa fa-power-off me-3`}></i>
-        <span>{activeTab === "active" ? "Deactivate" : "Activate"}</span>
-      </div>
-    </Dropdown.Item>
-  );
+    const exportRows = filteredProducts.map((product) => ({
+        "Product Name": product.productName || "N/A",
+        SKU: product.sku || "N/A",
+        "Business Location": product.businessLocation || "N/A",
+        "Current Stock": product.currentStock ?? "N/A",
+        "Unit Purchase Price":
+            product.productVariations && product.productVariations.length
+                ? product.productVariations[0].defaultPurchasePriceExcTax
+                : "N/A",
+        "Sale Price":
+            product.productVariations && product.productVariations.length
+                ? product.productVariations[0].defaultSellingPrice
+                : "N/A",
+        "Product Type": product.productType || "N/A",
+        Category: categoryMap[product.category] || "N/A",
+        Brand: brandMap[product.brand] || "N/A",
+        Tax: taxMap[product.applicableTax] || "N/A",
+        Status: String(product.status) === "1" ? "Active" : "Inactive",
+    }));
 
-  const renderFooterButtons = () => (
-    <div className="container my-2">
-      <div className="row">
-        <div className="col-12 col-lg-8 float-left d-flex">
-          <div className="mx-2">
-            <Button
-              className="select_btn p-lg-1"
-              variant={
-                activeTab === "active" ? "outline-danger" : "outline-success"
-              }
-              onClick={toggleSelectedStatus}
-            >
-              {activeTab === "active"
-                ? "Deactivate Selected"
-                : "Activate Selected"}
-            </Button>
-          </div>
-          <div className="mx-2">
-            <Button className="select_btn p-lg-1" variant="outline-secondary">
-              Add to Location
-            </Button>
-          </div>
-          <div className="mx-2">
-            <Button className="select_btn p-lg-1" variant="outline-success">
-              Remove From Function
-            </Button>
-          </div>
-          <div className="mx-2">
-            <Button className="select_btn p-lg-1" variant="outline-danger">
-              WooCommerce Sync
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    const exportCSV = () => {
+        const csv = [
+            Object.keys(exportRows[0] || {}).join(","),
+            ...exportRows.map((row) =>
+                Object.values(row)
+                    .map((value) => `"${value ?? ""}"`)
+                    .join(","),
+            ),
+        ].join("\n");
 
-  return (
-    <div className="wrapper" style={{ maxHeight: "", overflowY: "auto" }}>
-      <div className="content-wrapper">
-        <section className="content">
-          <div className="container-fluid py-2">
-            {/* Filter section */}
-            <div className="card card-default rounded-4 border-0 cardHover">
-              <div className=" mx-4 my-3">
-                <a
-                  className="btn-icon-only btn-light p-3 mb-4 fw-bold bg-transparent filter_color "
-                  onClick={() => setOpen(!open)}
-                  aria-controls="example-collapse-text"
-                  aria-expanded={open}
-                  style={{
-                    color: "#78b833",
-                    border: "none",
-                    transition: "background-color 0.3s ease",
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.Color = "#78b833";
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.Color = "#78b833";
-                  }}
-                >
-                  <i className="fa fa-filter me-3"></i>
-                  filter
-                </a>
-                <Collapse in={open}>
-                  <div id="example-collapse-text">
-                    <hr />
-                    <div className="card-body">
-                      <div className="row py-2 g-2">
-                        <div className="col-md-3">
-                          <div className="dropdown">
-                            <div className="">
-                              <label className="me-2 d-md-inline">
-                                Product Type:
-                              </label>
-                              <div className="d-flex align-items-center">
-                                <select
-                                  className="form-select me-2"
-                                  name="productType"
-                                  value={filterValues.productType}
-                                  onChange={(e) =>
-                                    setFilterValues({
-                                      ...filterValues,
-                                      productType: e.target.value,
-                                    })
-                                  }
-                                >
-                                  <option value="">All</option>
-                                  <option value="SINGLE">Single</option>
-                                  <option value="VARIABLE">Variable</option>
-                                  <option value="COMBO">Combo</option>
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="col-md-3">
-                          <div className="dropdown">
-                            <div className="">
-                              <label className="me-2 d-md-inline">
-                                Category:
-                              </label>
-                              <div className="d-flex align-items-center">
-                                <select
-                                  className="form-select me-2"
-                                  name="category"
-                                  value={filterValues.category}
-                                  onChange={(e) =>
-                                    setFilterValues({
-                                      ...filterValues,
-                                      category: e.target.value,
-                                    })
-                                  }
-                                >
-                                  <option value="">All</option>
-                                  {categories.map((cat) => (
-                                    <option key={cat.id} value={cat.id}>
-                                      {cat.categoryName}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+        saveAs(new Blob([csv], { type: "text/csv" }), "ListProducts.csv");
+    };
 
-                        <div className="col-md-3">
-                          <label>Brand:</label>
-                          <select
-                            className="form-select"
-                            value={filterValues.brand}
-                            onChange={(e) =>
-                              setFilterValues({
-                                ...filterValues,
-                                brand: e.target.value,
-                              })
-                            }
-                          >
-                            <option value="">All</option>
-                            {brands.map((b) => (
-                              <option key={b.id} value={b.id}>
-                                {b.brandName}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="col-md-3">
-                          <label>Unit:</label>
-                          <select
-                            className="form-select"
-                            value={filterValues.unit}
-                            onChange={(e) =>
-                              setFilterValues({
-                                ...filterValues,
-                                unit: e.target.value,
-                              })
-                            }
-                          >
-                            <option value="">All</option>
-                            {units.map((u) => (
-                              <option key={u.id} value={String(u.id)}>
-                                {u.name} ({u.shortName})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="col-md-3">
-                          <label>Tax:</label>
-                          <select
-                            className="form-select"
-                            value={filterValues.tax}
-                            onChange={(e) =>
-                              setFilterValues({
-                                ...filterValues,
-                                tax: e.target.value,
-                              })
-                            }
-                          >
-                            <option value="">All</option>
-                            {taxes.map((t) => (
-                              <option key={t.id} value={t.id}>
-                                {t.taxName} ({t.taxValue}%)
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="col-md-3">
-                          <label>Status:</label>
-                          <select
-                            className="form-select"
-                            value={filterValues.status}
-                            onChange={(e) =>
-                              setFilterValues({
-                                ...filterValues,
-                                status: e.target.value,
-                              })
-                            }
-                          >
-                            <option value="">All</option>
-                            <option value="1">Active</option>
-                            <option value="0">Inactive</option>
-                          </select>
-                        </div>
-                        <div className="col-md-3">
-                          <div className="dropdown">
-                            <div className="">
-                              <label className="me-2 d-md-inline">
-                                Business Location:
-                              </label>
-                              <div className="d-flex align-items-center">
-                                <select
-                                  className="form-select me-2"
-                                  name="businessLocation"
-                                  value={filterValues.businessLocation}
-                                  onChange={(e) =>
-                                    setFilterValues({
-                                      ...filterValues,
-                                      businessLocation: e.target.value,
-                                    })
-                                  }
-                                >
-                                  <option value="">All</option>
-                                  {businessLocations.map((location, index) => (
-                                    <option key={index} value={location}>
-                                      {location}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="row">
-                        <div className="col-md-12 text-right">
-                          <button
-                            className="btn btn-secondary"
-                            onClick={() =>
-                              setFilterValues({
-                                productType: "",
-                                category: "",
-                                unit: "",
-                                brand: "",
-                                tax: "",
-                                businessLocation: "",
-                                status: "",
-                              })
-                            }
-                          >
-                            Reset Filters
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Collapse>
-              </div>
+    const exportExcel = () => {
+        const ws = XLSX.utils.json_to_sheet(exportRows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "ListProducts");
+        XLSX.writeFile(wb, "ListProducts.xlsx");
+    };
+
+    const exportPDF = () => {
+        const doc = new jsPDF();
+        doc.autoTable({
+            head: [Object.keys(exportRows[0] || {})],
+            body: exportRows.map((row) => Object.values(row)),
+            headStyles: { fillColor: [12, 68, 97] },
+            styles: { fontSize: 8 },
+        });
+        doc.save("ListProducts.pdf");
+    };
+
+    const printData = () => {
+        const printWindow = window.open("", "", "height=800,width=1200");
+        if (!printWindow) {
+            return;
+        }
+
+        const escapeHtml = (value) =>
+            String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/\"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+
+        const headers = Object.keys(exportRows[0] || {});
+        const baseUrl = process.env.REACT_APP_BASE_URL || "";
+        const appOrigin = window.location.origin;
+
+        const normalizeImagePath = (rawPath) => {
+            if (!rawPath) return "";
+
+            const imagePath = String(rawPath).trim().replace(/\\/g, "/");
+            if (!imagePath) return "";
+
+            return imagePath;
+        };
+
+        const resolveImageUrl = (rawPath) => {
+            const imagePath = normalizeImagePath(rawPath);
+            if (!imagePath) return "";
+
+            if (/^(https?:)?\/\//i.test(imagePath) || imagePath.startsWith("data:")) {
+                return imagePath;
+            }
+
+            const normalizedBase = String(baseUrl).replace(/\/+$/, "");
+            const normalizedPath = imagePath.startsWith("/")
+                ? imagePath
+                : `/${imagePath}`;
+
+            return `${normalizedBase}${normalizedPath}`;
+        };
+
+        const resolveImageFallbackUrl = (rawPath) => {
+            const imagePath = normalizeImagePath(rawPath);
+            if (!imagePath) return "";
+
+            if (/^(https?:)?\/\//i.test(imagePath) || imagePath.startsWith("data:")) {
+                return imagePath;
+            }
+
+            const normalizedPath = imagePath.startsWith("/")
+                ? imagePath
+                : `/${imagePath}`;
+
+            return `${appOrigin}${normalizedPath}`;
+        };
+
+        const rowsHtml = exportRows
+            .map(
+                (row, rowIndex) => `
+          <tr>
+            <td class="col-index">${rowIndex + 1}</td>
+            <td class="col-image">
+                            ${filteredProducts[rowIndex]?.productImage
+                                                ? `<img class="product-image" src="${escapeHtml(resolveImageUrl(filteredProducts[rowIndex].productImage))}" alt="${escapeHtml(filteredProducts[rowIndex]?.productName || "Product")}" onerror="if(!this.dataset.fallbackTried){this.dataset.fallbackTried='1';this.src='${escapeHtml(resolveImageFallbackUrl(filteredProducts[rowIndex].productImage))}';}else{this.style.display='none';}" />`
+                        : "-"
+                    }
+            </td>
+            ${headers
+                        .map((header) => `<td>${escapeHtml(row[header])}</td>`)
+                        .join("")}
+          </tr>
+        `,
+            )
+            .join("");
+
+        const tableHead = headers
+            .map((header) => `<th>${escapeHtml(header)}</th>`)
+            .join("");
+
+        const now = new Date().toLocaleString();
+
+        printWindow.document.write(`
+      <html>
+        <head>
+          <title>Product List</title>
+          <style>
+            @page {
+              size: A4 landscape;
+              margin: 14mm;
+            }
+
+            * {
+              box-sizing: border-box;
+            }
+
+            body {
+              font-family: Arial, sans-serif;
+              color: #1e293b;
+              margin: 0;
+              padding: 0;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+            }
+
+            .print-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              margin-bottom: 10px;
+              border-bottom: 2px solid #0d4e6d;
+              padding-bottom: 8px;
+            }
+
+            .print-title {
+              margin: 0;
+              color: #0d4e6d;
+              font-size: 20px;
+              font-weight: 700;
+            }
+
+            .print-subtitle {
+              margin: 2px 0 0;
+              color: #475569;
+              font-size: 12px;
+            }
+
+            .print-meta {
+              font-size: 12px;
+              color: #334155;
+              text-align: right;
+            }
+
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              table-layout: auto;
+              font-size: 11px;
+                            border: 1.2px solid #8ea3b5;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+            }
+
+            th,
+            td {
+                            border: 1.2px solid #8ea3b5;
+              padding: 6px 7px;
+              vertical-align: top;
+              word-break: break-word;
+            }
+
+            thead th {
+                            background: #0d4e6d !important;
+                            color: #ffffff !important;
+              font-weight: 700;
+              position: sticky;
+              top: 0;
+                            border: 1.2px solid #d6e2eb;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+            }
+
+            tbody tr:nth-child(even) {
+              background: #f8fafc;
+            }
+
+            .col-index {
+              width: 40px;
+              text-align: center;
+              font-weight: 700;
+            }
+
+            .col-image {
+              width: 62px;
+              text-align: center;
+            }
+
+            .product-image {
+              width: 42px;
+              height: 42px;
+              object-fit: cover;
+              border: 1px solid #cbd5e1;
+              border-radius: 6px;
+              display: inline-block;
+              background: #ffffff;
+            }
+
+            .summary {
+              margin: 0 0 8px;
+              color: #334155;
+              font-size: 12px;
+            }
+
+            .no-data {
+              border: 1px dashed #94a3b8;
+              padding: 12px;
+              text-align: center;
+              color: #64748b;
+              font-size: 12px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-header">
+            <div>
+              <h1 class="print-title">List Products</h1>
+              <p class="print-subtitle">Formatted product report</p>
             </div>
+            <div class="print-meta">
+              <div><strong>Printed:</strong> ${escapeHtml(now)}</div>
+              <div><strong>Total Rows:</strong> ${exportRows.length}</div>
+            </div>
+          </div>
 
-            <div className="card cardHover rounded-4 border-0 ">
-              <div className="card-body">
-                <ul
-                  className="nav nav-tabs"
-                  id="custom-content-above-tab"
-                  role="tablist"
-                >
-                  <li className="nav-item">
-                    <a
-                      className="nav-link active"
-                      id="custom-content-above-home-tab"
-                      data-toggle="pill"
-                      href="#custom-content-above-home"
-                      role="tab"
-                      aria-controls="custom-content-above-home"
-                      aria-selected="true"
-                    >
-                      {" "}
-                      <i className="fa fa-cubes"></i> All Products
-                    </a>
-                  </li>
-                  <li className="nav-item">
-                    <a
-                      className="nav-link"
-                      id="custom-content-above-profile-tab"
-                      data-toggle="pill"
-                      href="#custom-content-above-profile"
-                      role="tab"
-                      aria-controls="custom-content-above-profile"
-                      aria-selected="false"
-                    >
-                      <i className="fa fa-hourglass-half"></i> Stock Report
-                    </a>
-                  </li>
-                  <li className="nav-item ml-auto">
-                    {renderStatusToggleButtons()}
-                  </li>
-                </ul>
-                <div className="tab-custom-content border-0"></div>
-                <div
-                  className="tab-content"
-                  id="custom-content-above-tabContent"
-                >
-                  <div
-                    className="tab-pane fade show active"
-                    id="custom-content-above-home"
-                    role="tabpanel"
-                    aria-labelledby="custom-content-above-home-tab"
-                  >
-                    <div className="text-right">
-                      {hasPermission("ListProducts.add") && (
-                        <Link to="/AddProducts" className="btn btn-add">
-                          <i className="fas fa-plus"></i> Add
-                        </Link>
-                      )}
-                    </div>
-                    <div className="card-body">
-                      <div className="row mb-3 d-flex align-items-center">
-                        <div className="col-12 col-md-auto form-group mb-2 d-flex align-items-center text-bold mt-2 mb-2 mr-2">
-                          <label htmlFor="entriesPerPage" className="mb-0 mr-2">
-                            Show
-                          </label>
-                          <select
-                            id="entriesPerPage"
-                            className="form-control form-control-sm mr-2"
-                            value={entriesPerPage}
-                            onChange={handleEntriesChange}
-                          >
-                            <option value={5}>5</option>
-                            <option value={10}>10</option>
-                            <option value={20}>20</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                          </select>
-                          Entries
-                        </div>
-                        <div className="col d-flex flex-wrap align-items-center">
-                          <button
-                            onClick={exportCSV}
-                            className="btn Export-Btn mt-2 mb-2 mr-2"
-                          >
-                            <i className="fa fa-file-csv"></i> Export CSV
-                          </button>
-                          <button
-                            onClick={exportExcel}
-                            className="btn Export-Btn mt-2 mb-2 mr-2"
-                          >
-                            <i className="fa fa-file-excel"></i> Export Excel
-                          </button>
-                          <button
-                            onClick={printData}
-                            className="btn Export-Btn mt-2 mb-2 mr-2"
-                          >
-                            <i className="fa fa-print"></i> Print
-                          </button>
-                          <button
-                            onClick={exportPDF}
-                            className="btn Export-Btn mt-2 mb-2 mr-2"
-                          >
-                            <i className="fa fa-file-pdf"></i> Export PDF
-                          </button>
-                          <div className="dropdown mt-lg-2 mb-lg-2">
-                            <button
-                              className="btn Export-Btn dropdown-toggle"
-                              type="button"
-                              id="dropdownMenuButton"
-                              data-toggle="dropdown"
-                              aria-haspopup="true"
-                              aria-expanded="false"
-                            >
-                              <i className="fa fa-columns"></i> Column
-                              Visibility
-                            </button>
-                            <div
-                              className="dropdown-menu"
-                              aria-labelledby="dropdownMenuButton"
-                            >
-                              {Object.keys(columnsVisibility).map((col) => (
-                                <div
-                                  key={col}
-                                  className="dropdown-item d-flex align-items-center"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={columnsVisibility[col]}
-                                    onChange={() => toggleColumn(col)}
-                                    className="mr-2"
-                                  />
-                                  <span
-                                    onClick={(e) =>
-                                      handleDropdownItemClick(col, e)
-                                    }
-                                  >
-                                    {col
-                                      .replace(/([A-Z])/g, " $1")
-                                      .toUpperCase()}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+          ${exportRows.length
+                ? `
+                <p class="summary">Showing ${exportRows.length} products in print view.</p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th class="col-index">#</th>
+                      <th class="col-image">Image</th>
+                      ${tableHead}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rowsHtml}
+                  </tbody>
+                </table>
+              `
+                : '<div class="no-data">No products found to print.</div>'
+            }
+        </body>
+      </html>
+    `);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+    };
 
-                      <div id="table-container" style={{ overflowX: "auto" }}>
-                        <table
-                          className="table table-bordered table-hover"
-                          style={{ minWidth: "1000px" }}
+    const renderPagination = () => {
+        const pages = [];
+        const visibleRange = 2;
+
+        for (let page = 1; page <= totalPages; page += 1) {
+            if (
+                page === 1 ||
+                page === totalPages ||
+                (page >= safePage - visibleRange && page <= safePage + visibleRange)
+            ) {
+                pages.push(page);
+            }
+        }
+
+        const deduped = [...new Set(pages)].sort((a, b) => a - b);
+        const withGaps = [];
+        deduped.forEach((page, index) => {
+            if (index > 0 && page - deduped[index - 1] > 1) {
+                withGaps.push("gap");
+            }
+            withGaps.push(page);
+        });
+
+        return (
+            <div className="erp-pagination">
+                <button
+                    type="button"
+                    className="erp-page-btn"
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={safePage === 1}
+                >
+                    <i className="fa fa-chevron-left"></i>
+                </button>
+
+                {withGaps.map((item, index) =>
+                    item === "gap" ? (
+                        <span className="erp-page-gap" key={`gap-${index}`}>
+                            ...
+                        </span>
+                    ) : (
+                        <button
+                            type="button"
+                            className={`erp-page-btn ${item === safePage ? "active" : ""}`}
+                            key={`page-${item}`}
+                            onClick={() => setCurrentPage(item)}
                         >
-                          <thead>
-                            <tr>
-                              <th>
-                                <input
-                                  type="checkbox"
-                                  checked={
-                                    selectedRows.size ===
-                                    displayedCustomers.length
-                                  }
-                                  onChange={handleSelectAll}
-                                />
-                              </th>
-                              {columnsVisibility.productImage && (
-                                <th>Product Image</th>
-                              )}
-                              {columnsVisibility.Action && <th>Action</th>}
-                              {columnsVisibility.Products && (
-                                <th>Product Name</th>
-                              )}
-                              {columnsVisibility.BusinessLocation && (
-                                <th>Business Location</th>
-                              )}
-                              {columnsVisibility.UnitPurchasePrice && (
-                                <th>Unit Purchase Price</th>
-                              )}
-                              {columnsVisibility.SellingPrice && (
-                                <th>Selling Price</th>
-                              )}
-                              {columnsVisibility.Products && (
-                                <th>Current Stock</th>
-                              )}
-                              {columnsVisibility.ProductType && (
-                                <th>Product Type</th>
-                              )}
-                              {columnsVisibility.Category && <th>Category</th>}
-                              {columnsVisibility.Brand && <th>Brand</th>}
-                              {columnsVisibility.sku && <th>sku</th>}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {displayedCustomers.map((product) => (
-                              <tr
-                                key={product.id}
-                                style={{
-                                  backgroundColor: isRowSelected(product.id)
-                                    ? "#d3d3d3"
-                                    : "transparent",
-                                }}
-                              >
-                                <td>
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedRows.has(product.id)}
-                                    onChange={() => handleRowSelect(product.id)}
-                                  />
-                                </td>
-                                {columnsVisibility.productImage && (
-                                  <td>
-                                    <img
-                                      src={`${process.env.REACT_APP_BASE_URL}${product.productImage}`}
-                                      alt={product.productName}
-                                      style={{
-                                        maxHeight: "80px",
-                                        maxWidth: "80px",
-                                        objectFit: "contain",
-                                      }}
-                                    />
-                                  </td>
-                                )}
-                                {columnsVisibility.Action && (
-                                  <td>
-                                    <DropdownButton
-                                      id="dropdown-basic-button"
-                                      title="Custom"
-                                      variant="outline-success rounded-5 fs-6 fw-light border-1"
-                                      className="custom-outline-dropdown p-2"
-                                    >
-                                      <Dropdown.Item
-                                        as="button"
-                                        onClick={() =>
-                                          handleViewClick(product.id)
-                                        }
-                                      >
-                                        <div className="d-inline-block w-75 btn-view justify-content-center text-secondary">
-                                          <i className="dropdown_hover fa fa-eye me-3"></i>
-                                          <span>View</span>
-                                        </div>
-                                      </Dropdown.Item>
-                                      <Dropdown.Item
-                                        as="button"
-                                        onClick={() =>
-                                          handleEditClick(product.id)
-                                        }
-                                      >
-                                        <div className="d-inline-block w-75 btn-edit justify-content-center text-secondary">
-                                          <i className="dropdown_hover fa-solid fa-pen-to-square me-3"></i>
-                                          <span>Edit</span>
-                                        </div>
-                                      </Dropdown.Item>
-                                      {renderStatusToggleDropdownItem(product)}
-                                      <Dropdown.Item
-                                        as="button"
-                                        onClick={() =>
-                                          handleLabelClick(product.id)
-                                        }
-                                      >
-                                        <div className="d-inline-block w-75 btn-view justify-content-center text-secondary">
-                                          <i className="fa-solid fa-barcode me-3"></i>
-                                          <span>Labels</span>
-                                        </div>
-                                      </Dropdown.Item>
-                                      <Dropdown.Item
-                                        as="button"
-                                        onClick={() =>
-                                          navigate(
-                                            `/opening-stock/${product.id}`
-                                          )
-                                        }
-                                        hidden={product.productType === "COMBO"}
-                                      >
-                                        <div className="d-inline-block w-275 btn-edit justify-content-center text-secondary">
-                                          <i className="dropdown_hover fa fa-add me-3"></i>
-                                          <span>Manage Opening Stock</span>
-                                        </div>
-                                      </Dropdown.Item>
-                                    </DropdownButton>
-                                  </td>
-                                )}
-                                {columnsVisibility.Products && (
-                                  <td>{product.productName}</td>
-                                )}
-                                {columnsVisibility.BusinessLocation && (
-                                  <td>{product.businessLocation}</td>
-                                )}
-                                {columnsVisibility.UnitPurchasePrice && (
-                                  <td>
-                                    {product.productVariations &&
-                                      product.productVariations.length > 0
-                                      ? product.productVariations[0]
-                                        .defaultPurchasePriceExcTax
-                                      : "N/A"}
-                                  </td>
-                                )}
-                                {columnsVisibility.SellingPrice && (
-                                  <td>
-                                    {product.productVariations &&
-                                      product.productVariations.length > 0
-                                      ? product.productVariations[0]
-                                        .defaultSellingPrice
-                                      : "N/A"}
-                                  </td>
-                                )}
-                                {columnsVisibility.Products && (
-                                  <td>
-                                    {product.currentStock !== undefined
-                                      ? product.currentStock
-                                      : "N/A"}
-                                  </td>
-                                )}
-                                {columnsVisibility.ProductType && (
-                                  <td>{product.productType}</td>
-                                )}
-                                {columnsVisibility.Category && (
-                                  <td>
-                                    {categoriesMap[product.category] ||
-                                      product.category}
-                                  </td>
-                                )}
-                                {columnsVisibility.Brand && (
-                                  <td>{brandMap[product.brand] || "-"}</td>
-                                )}
-                                {columnsVisibility.sku && (
-                                  <td>{product.sku}</td>
-                                )}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                            {item}
+                        </button>
+                    ),
+                )}
 
-                      {/* React Pagination */}
-                      <div className="d-flex justify-content-between align-items-center mt-3 mb-4 mx-3">
-                        <div className="text-muted small">
-                          Showing {filteredProducts.length > 0 ? startIndex + 1 : 0} to{" "}
-                          {Math.min(endIndex, filteredProducts.length)} of{" "}
-                          {filteredProducts.length} entries
-                        </div>
-                        {Math.ceil(filteredProducts.length / entriesPerPage) > 1 && (
-                          <nav aria-label="Page navigation">
-                            <ul className="pagination pagination-sm mb-0">
-                              <li
-                                className={`page-item ${currentPage === 1 ? "disabled" : ""
-                                  }`}
-                              >
-                                <button
-                                  className="page-link"
-                                  onClick={() => setCurrentPage(currentPage - 1)}
-                                  disabled={currentPage === 1}
-                                >
-                                  Previous
-                                </button>
-                              </li>
-                              {Array.from(
-                                {
-                                  length: Math.ceil(
-                                    filteredProducts.length / entriesPerPage
-                                  ),
-                                },
-                                (_, i) => i + 1
-                              ).map((page) => (
-                                <li
-                                  key={page}
-                                  className={`page-item ${currentPage === page ? "active" : ""
-                                    }`}
-                                >
-                                  <button
-                                    className="page-link"
-                                    onClick={() => setCurrentPage(page)}
-                                  >
-                                    {page}
-                                  </button>
-                                </li>
-                              ))}
-                              <li
-                                className={`page-item ${currentPage ===
-                                  Math.ceil(filteredProducts.length / entriesPerPage)
-                                  ? "disabled"
-                                  : ""
-                                  }`}
-                              >
-                                <button
-                                  className="page-link"
-                                  onClick={() => setCurrentPage(currentPage + 1)}
-                                  disabled={
-                                    currentPage ===
-                                    Math.ceil(filteredProducts.length / entriesPerPage)
-                                  }
-                                >
-                                  Next
-                                </button>
-                              </li>
-                            </ul>
-                          </nav>
-                        )}
-                      </div>
-
-                      {renderFooterButtons()}
-                    </div>
-                  </div>
-
-                  <div
-                    className="tab-pane fade"
-                    id="custom-content-above-profile"
-                    role="tabpanel"
-                    aria-labelledby="custom-content-above-profile-tab"
-                  >
-                    <div
-                      className="tab-pane fade show active"
-                      id="custom-content-above-home"
-                      role="tabpanel"
-                      aria-labelledby="custom-content-above-home-tab"
-                    >
-                      <div className="card-body">
-                        <div className="row mb-3 d-flex align-items-center">
-                          <div className="col-12 col-md-auto form-group mb-2 d-flex align-items-center text-bold mt-2 mb-2 mr-2">
-                            <label
-                              htmlFor="entriesPerPage"
-                              className="mb-0 mr-2"
-                            >
-                              Show
-                            </label>
-                            <select
-                              id="entriesPerPage"
-                              className="form-control form-control-sm mr-2"
-                              value={entriesPerPage}
-                              onChange={handleEntriesChange}
-                            >
-                              <option value={10}>10</option>
-                              <option value={25}>25</option>
-                              <option value={50}>50</option>
-                              <option value={75}>75</option>
-                              <option value={100}>100</option>
-                            </select>
-                            Entries
-                          </div>
-                          <div className="col d-flex flex-wrap align-items-center">
-                            <button
-                              onClick={exportCSV}
-                              className="btn Export-Btn mt-2 mb-2 mr-2"
-                            >
-                              <i className="fa fa-file-csv"></i> Export CSV
-                            </button>
-                            <button
-                              onClick={exportExcel}
-                              className="btn Export-Btn mt-2 mb-2 mr-2"
-                            >
-                              <i className="fa fa-file-excel"></i> Export Excel
-                            </button>
-                            <button
-                              onClick={printData}
-                              className="btn Export-Btn mt-2 mb-2 mr-2"
-                            >
-                              <i className="fa fa-print"></i> Print
-                            </button>
-                            <button
-                              onClick={exportPDF}
-                              className="btn Export-Btn mt-2 mb-2 mr-2"
-                            >
-                              <i className="fa fa-file-pdf"></i> Export PDF
-                            </button>
-                            <div className="dropdown mt-lg-2 mb-lg-2">
-                              <button
-                                className="btn Export-Btn dropdown-toggle"
-                                type="button"
-                                id="dropdownMenuButton"
-                                data-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false"
-                              >
-                                <i className="fa fa-columns"></i> Column
-                                Visibility
-                              </button>
-                              <div
-                                className="dropdown-menu"
-                                aria-labelledby="dropdownMenuButton"
-                              >
-                                {Object.keys(columnsVisibility).map((col) => (
-                                  <div
-                                    key={col}
-                                    className="dropdown-item d-flex align-items-center"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={columnsVisibility[col]}
-                                      onChange={() => toggleColumn(col)}
-                                      className="mr-2"
-                                    />
-                                    {col
-                                      .replace(/([A-Z])/g, " $1")
-                                      .toUpperCase()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Stock Report Table */}
-                        <div id="table-container" style={{ overflowX: "auto" }}>
-                          <table
-                            id="variationReport"
-                            className="table table-bordered table-hover"
-                            style={{ minWidth: "1000px" }}
-                          >
-                            <thead>
-                              <tr>
-                                {columnsVisibility.Action && <th>Action</th>}
-                                {columnsVisibility.productName && (
-                                  <th>Product Name</th>
-                                )}
-                                {columnsVisibility.sku && <th>SKU</th>}
-                                {columnsVisibility.Category && (
-                                  <th>Category</th>
-                                )}
-                                {columnsVisibility.Brand && <th>Brand</th>}
-                                {columnsVisibility.Variation && (
-                                  <th>Variation</th>
-                                )}
-                                {columnsVisibility.Location && (
-                                  <th>Location</th>
-                                )}
-                                {columnsVisibility.UnitPurchasePrice && (
-                                  <th>Unit Selling Price</th>
-                                )}
-                                {columnsVisibility.CurrentStock && (
-                                  <th>Current Stock</th>
-                                )}
-                                {columnsVisibility.variation && (
-                                  <th>Variation Name</th>
-                                )}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {filteredProducts
-                                .filter((product) => product.productVariations) // Filter out products without variations
-                                .flatMap((product) =>
-                                  (product.productVariations || []).map(
-                                    (variation) => (
-                                      <tr key={`${product.id}-${variation.id}`}>
-                                        <td>
-                                          <Link
-                                            className="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline tw-dw-btn-info tw-w-max"
-                                            to={`/ProductStockHistory?productId=${product.id}&variationId=${variation.id}`}
-                                          >
-                                            <i className="fas fa-history"></i>{" "}
-                                            Product stock history
-                                          </Link>
-                                        </td>
-                                        <td>{product.productName}</td>
-                                        <td>
-                                          {variation.subSku || product.sku}
-                                        </td>
-                                        <td>
-                                          {categoriesMap[product.category] ||
-                                            product.category}
-                                        </td>
-                                        <td>
-                                          {brandsMap[product.brand] ||
-                                            product.brand}
-                                        </td>
-                                        <td>
-                                          {variation.defaultPurchasePriceExcTax ||
-                                            "N/A"}
-                                        </td>
-                                        <td>
-                                          {variation.currentStock !== undefined
-                                            ? variation.currentStock
-                                            : "N/A"}
-                                        </td>
-                                        <td>
-                                          {variation.variationValue || "-"}
-                                        </td>
-                                      </tr>
-                                    )
-                                  )
-                                )}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                <button
+                    type="button"
+                    className="erp-page-btn"
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={safePage === totalPages}
+                >
+                    <i className="fa fa-chevron-right"></i>
+                </button>
             </div>
-          </div>
-        </section>
-      </div>
-    </div>
-  );
+        );
+    };
+
+    const allCurrentRowsSelected =
+        displayedProducts.length > 0 &&
+        displayedProducts.every((item) => selectedRows.has(item.id));
+
+    const skeletonRows = Array.from({ length: entriesPerPage }, (_, index) => index);
+
+    return (
+        <div className="wrapper erp-product-page">
+            <div className="content-wrapper">
+                <section className="content">
+                    <div className="container-fluid py-3">
+                        <div className="erp-page-header card border-0 rounded-4">
+                            <div className="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                <div>
+                                    <h4 className="erp-page-title mb-1">List Products</h4>
+                                </div>
+
+                                <div className="erp-action-group">
+                                    <div className="erp-status-toggle">
+                                        <button
+                                            type="button"
+                                            className={`btn erp-btn ${activeTab === "active" ? "erp-btn-primary" : "erp-btn-soft"}`}
+                                            onClick={() => setActiveTab("active")}
+                                        >
+                                            <i className="fa fa-check-circle"></i>
+                                            Active
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`btn erp-btn ${activeTab === "inactive" ? "erp-btn-danger" : "erp-btn-soft"}`}
+                                            onClick={() => setActiveTab("inactive")}
+                                        >
+                                            <i className="fa fa-ban"></i>
+                                            Inactive
+                                        </button>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className="btn erp-btn erp-btn-soft"
+                                        onClick={toggleSelectedStatus}
+                                        disabled={selectedRows.size === 0}
+                                    >
+                                        <i className="fa fa-exchange-alt"></i>
+                                        {activeTab === "active" ? "Deactivate Selected" : "Activate Selected"}
+                                    </button>
+
+                                    <Link to="/AddProducts" className="btn erp-btn erp-btn-primary">
+                                        <i className="fa fa-plus"></i>
+                                        Add Product
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="erp-filter-card card border-0 rounded-4 mt-3">
+                            <div
+                                className="erp-filter-head"
+                                onClick={() => setOpen((prev) => !prev)}
+                                role="button"
+                                aria-expanded={open}
+                            >
+                                <div className="d-flex align-items-center gap-2">
+                                    <i className="fa fa-filter"></i>
+                                    <span>Filters</span>
+                                </div>
+                                <i className={`fa ${open ? "fa-chevron-up" : "fa-chevron-down"}`}></i>
+                            </div>
+
+                            <Collapse in={open}>
+                                <div className="card-body border-top erp-filter-body">
+                                    <div className="row g-2 align-items-end">
+                                        <div className="col-xl-3 col-lg-4 col-md-6">
+                                            <label className="erp-label">Search</label>
+                                            <div className="erp-search-box">
+                                                <i className="fa fa-search"></i>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="Search name, SKU, location..."
+                                                    name="search"
+                                                    value={filterValues.search}
+                                                    onChange={handleFilterChange}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="col-xl-2 col-lg-4 col-md-6">
+                                            <label className="erp-label">Product Type</label>
+                                            <select
+                                                className="form-select"
+                                                name="productType"
+                                                value={filterValues.productType}
+                                                onChange={handleFilterChange}
+                                            >
+                                                <option value="">All</option>
+                                                <option value="SINGLE">Single</option>
+                                                <option value="VARIABLE">Variable</option>
+                                                <option value="COMBO">Combo</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="col-xl-2 col-lg-4 col-md-6">
+                                            <label className="erp-label">Category</label>
+                                            <select
+                                                className="form-select"
+                                                name="category"
+                                                value={filterValues.category}
+                                                onChange={handleFilterChange}
+                                            >
+                                                <option value="">All</option>
+                                                {categories.map((cat) => (
+                                                    <option key={cat.id} value={cat.id}>
+                                                        {cat.categoryName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="col-xl-2 col-lg-4 col-md-6">
+                                            <label className="erp-label">Brand</label>
+                                            <select
+                                                className="form-select"
+                                                name="brand"
+                                                value={filterValues.brand}
+                                                onChange={handleFilterChange}
+                                            >
+                                                <option value="">All</option>
+                                                {brands.map((item) => (
+                                                    <option key={item.id} value={item.id}>
+                                                        {item.brandName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="col-xl-1 col-lg-4 col-md-6">
+                                            <label className="erp-label">Unit</label>
+                                            <select
+                                                className="form-select"
+                                                name="unit"
+                                                value={filterValues.unit}
+                                                onChange={handleFilterChange}
+                                            >
+                                                <option value="">All</option>
+                                                {units.map((item) => (
+                                                    <option key={item.id} value={item.id}>
+                                                        {item.name} ({item.shortName})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="col-xl-2 col-lg-4 col-md-6">
+                                            <label className="erp-label">Tax</label>
+                                            <select
+                                                className="form-select"
+                                                name="tax"
+                                                value={filterValues.tax}
+                                                onChange={handleFilterChange}
+                                            >
+                                                <option value="">All</option>
+                                                {taxes.map((item) => (
+                                                    <option key={item.id} value={item.id}>
+                                                        {item.taxName} ({item.taxValue}%)
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="col-xl-2 col-lg-4 col-md-6">
+                                            <label className="erp-label">Location</label>
+                                            <select
+                                                className="form-select"
+                                                name="businessLocation"
+                                                value={filterValues.businessLocation}
+                                                onChange={handleFilterChange}
+                                            >
+                                                <option value="">All</option>
+                                                {businessLocations.map((location, index) => (
+                                                    <option key={`loc-${index}`} value={location}>
+                                                        {location}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="col-xl-2 col-lg-4 col-md-6">
+                                            <label className="erp-label">Status</label>
+                                            <select
+                                                className="form-select"
+                                                name="status"
+                                                value={filterValues.status}
+                                                onChange={handleFilterChange}
+                                            >
+                                                <option value="">All</option>
+                                                <option value="1">Active</option>
+                                                <option value="0">Inactive</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="col-xl-2 col-lg-4 col-md-6 d-flex justify-content-lg-end">
+                                            <button
+                                                type="button"
+                                                className="btn erp-btn erp-btn-light"
+                                                onClick={resetFilters}
+                                            >
+                                                <i className="fa fa-undo"></i>
+                                                Reset
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Collapse>
+                        </div>
+
+                        <div className="erp-table-card card border-0 rounded-4 mt-3">
+                            <div className="card-body p-3 p-lg-4">
+                                <div className="erp-table-toolbar">
+                                    <div className="erp-toolbar-left">
+                                        <div className="erp-entries">
+                                            <label htmlFor="entriesPerPage" className="mb-0">
+                                                Show
+                                            </label>
+                                            <select
+                                                id="entriesPerPage"
+                                                className="form-select"
+                                                value={entriesPerPage}
+                                                onChange={handleEntriesChange}
+                                            >
+                                                <option value={10}>10</option>
+                                                <option value={25}>25</option>
+                                                <option value={50}>50</option>
+                                                <option value={100}>100</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="erp-export-group">
+                                            <button type="button" className="btn erp-btn erp-btn-light" onClick={exportCSV}>
+                                                <i className="fa fa-file-csv"></i>
+                                                CSV
+                                            </button>
+                                            <button type="button" className="btn erp-btn erp-btn-light" onClick={exportExcel}>
+                                                <i className="fa fa-file-excel"></i>
+                                                Excel
+                                            </button>
+                                            <button type="button" className="btn erp-btn erp-btn-light" onClick={exportPDF}>
+                                                <i className="fa fa-file-pdf"></i>
+                                                PDF
+                                            </button>
+                                            <button type="button" className="btn erp-btn erp-btn-light" onClick={printData}>
+                                                <i className="fa fa-print"></i>
+                                                Print
+                                            </button>
+                                        </div>
+
+                                        <Dropdown>
+                                            <Dropdown.Toggle className="btn erp-btn erp-btn-light erp-column-btn" id="column-visibility-dropdown">
+                                                <i className="fa fa-columns"></i>
+                                                Columns
+                                            </Dropdown.Toggle>
+                                            <Dropdown.Menu className="erp-column-menu">
+                                                {Object.keys(columnsVisibility).map((column) => (
+                                                    <Dropdown.Item
+                                                        key={column}
+                                                        as="button"
+                                                        className="erp-column-item"
+                                                        onClick={() => toggleColumn(column)}
+                                                    >
+                                                        <input type="checkbox" checked={columnsVisibility[column]} readOnly />
+                                                        <span>
+                                                            {column
+                                                                .replace(/([A-Z])/g, " $1")
+                                                                .replace(/^./, (char) => char.toUpperCase())}
+                                                        </span>
+                                                    </Dropdown.Item>
+                                                ))}
+                                            </Dropdown.Menu>
+                                        </Dropdown>
+                                    </div>
+
+                                    <div className="erp-toolbar-right">{renderPagination()}</div>
+                                </div>
+
+                                <div id="product-table-wrap" className="erp-table-wrap">
+                                    <table className="table table-hover align-middle erp-product-table">
+                                        <thead>
+                                            <tr>
+                                                {columnsVisibility.select && (
+                                                    <th className="erp-th-select">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={allCurrentRowsSelected}
+                                                            onChange={handleSelectAll}
+                                                        />
+                                                    </th>
+                                                )}
+                                                {columnsVisibility.action && <th>Actions</th>}
+                                                {columnsVisibility.image && <th>Image</th>}
+                                                {columnsVisibility.product && <th>Product</th>}
+                                                {columnsVisibility.sku && <th>SKU</th>}
+                                                {columnsVisibility.location && <th>Business Location</th>}
+                                                {columnsVisibility.stock && <th>Stock</th>}
+                                                {columnsVisibility.purchasePrice && <th>Unit Purchase Price</th>}
+                                                {columnsVisibility.salePrice && <th>Sale Price</th>}
+                                                {columnsVisibility.type && <th>Type</th>}
+                                                {columnsVisibility.category && <th>Category</th>}
+                                                {columnsVisibility.brand && <th>Brand</th>}
+                                                {columnsVisibility.tax && <th>Tax</th>}
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            {loading &&
+                                                skeletonRows.map((row) => (
+                                                    <tr key={`skeleton-${row}`}>
+                                                        <td colSpan={13}>
+                                                            <div className="erp-skeleton-row">
+                                                                <span className="erp-skeleton erp-skeleton-sm"></span>
+                                                                <span className="erp-skeleton"></span>
+                                                                <span className="erp-skeleton erp-skeleton-lg"></span>
+                                                                <span className="erp-skeleton erp-skeleton-sm"></span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+
+                                            {!loading && displayedProducts.length === 0 && (
+                                                <tr>
+                                                    <td colSpan={13}>
+                                                        <div className="erp-empty-state">
+                                                            <i className="fa fa-box-open"></i>
+                                                            <h6>No products found</h6>
+                                                            <p>
+                                                                Try changing filters or search text to find
+                                                                matching items.
+                                                            </p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+
+                                            {!loading &&
+                                                displayedProducts.map((product) => {
+                                                    const selected = selectedRows.has(product.id);
+                                                    const purchasePrice =
+                                                        product.productVariations && product.productVariations.length
+                                                            ? product.productVariations[0].defaultPurchasePriceExcTax
+                                                            : "N/A";
+                                                    const salePrice =
+                                                        product.productVariations && product.productVariations.length
+                                                            ? product.productVariations[0].defaultSellingPrice
+                                                            : "N/A";
+
+                                                    return (
+                                                        <tr
+                                                            key={product.id}
+                                                            className={selected ? "erp-row-selected" : ""}
+                                                        >
+                                                            {columnsVisibility.select && (
+                                                                <td>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={selected}
+                                                                        onChange={() => handleRowSelect(product.id)}
+                                                                    />
+                                                                </td>
+                                                            )}
+
+                                                            {columnsVisibility.action && (
+                                                                <td>
+                                                                    <div className="erp-action-icons">
+                                                                        <button
+                                                                            type="button"
+                                                                            className="erp-icon-btn"
+                                                                            title="View"
+                                                                            onClick={() => navigate(`/ViewList/${product.id}`)}
+                                                                        >
+                                                                            <i className="fa fa-eye"></i>
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="erp-icon-btn"
+                                                                            title="Edit"
+                                                                            onClick={() => navigate(`/EditList/${product.id}`)}
+                                                                        >
+                                                                            <i className="fa fa-pen"></i>
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="erp-icon-btn"
+                                                                            title="Labels"
+                                                                            onClick={() => navigate(`/ProductLabel/${product.id}`)}
+                                                                        >
+                                                                            <i className="fa fa-barcode"></i>
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="erp-icon-btn"
+                                                                            title={activeTab === "active" ? "Deactivate" : "Activate"}
+                                                                            onClick={() => toggleProductStatus(product.id)}
+                                                                        >
+                                                                            <i className="fa fa-power-off"></i>
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="erp-icon-btn danger"
+                                                                            title="Delete"
+                                                                            onClick={() => handleDeleteClick(product.id)}
+                                                                        >
+                                                                            <i className="fa fa-trash"></i>
+                                                                        </button>
+                                                                        {product.productType !== "COMBO" && (
+                                                                            <button
+                                                                                type="button"
+                                                                                className="erp-icon-btn"
+                                                                                title="Manage opening stock"
+                                                                                onClick={() => navigate(`/opening-stock/${product.id}`)}
+                                                                            >
+                                                                                <i className="fa fa-box"></i>
+                                                                            </button>
+                                                                        )}
+                                                                        <Link
+                                                                            to={`/ProductStockHistory?productId=${product.id}&variationId=${product.productVariations?.[0]?.id || ""
+                                                                                }`}
+                                                                            className="erp-icon-btn"
+                                                                            title="Stock history"
+                                                                        >
+                                                                            <i className="fa fa-ellipsis-h"></i>
+                                                                        </Link>
+                                                                    </div>
+                                                                </td>
+                                                            )}
+
+                                                            {columnsVisibility.image && (
+                                                                <td>
+                                                                    <img
+                                                                        className="erp-thumb"
+                                                                        src={`${process.env.REACT_APP_BASE_URL}${product.productImage}`}
+                                                                        alt={product.productName}
+                                                                    />
+                                                                </td>
+                                                            )}
+
+                                                            {columnsVisibility.product && (
+                                                                <td>
+                                                                    <div className="erp-product-name">
+                                                                        <strong>{product.productName || "N/A"}</strong>
+                                                                        <small>
+                                                                            {product.sku || "-"} | {product.productType || "N/A"}
+                                                                        </small>
+                                                                    </div>
+                                                                </td>
+                                                            )}
+
+                                                            {columnsVisibility.sku && <td>{product.sku || "N/A"}</td>}
+                                                            {columnsVisibility.location && (
+                                                                <td>{product.businessLocation || "N/A"}</td>
+                                                            )}
+                                                            {columnsVisibility.stock && (
+                                                                <td>{product.currentStock ?? "N/A"}</td>
+                                                            )}
+                                                            {columnsVisibility.purchasePrice && (
+                                                                <td>{purchasePrice}</td>
+                                                            )}
+                                                            {columnsVisibility.salePrice && <td>{salePrice}</td>}
+                                                            {columnsVisibility.type && (
+                                                                <td>{product.productType || "N/A"}</td>
+                                                            )}
+                                                            {columnsVisibility.category && (
+                                                                <td>{categoryMap[product.category] || "N/A"}</td>
+                                                            )}
+                                                            {columnsVisibility.brand && (
+                                                                <td>{brandMap[product.brand] || "N/A"}</td>
+                                                            )}
+                                                            {columnsVisibility.tax && (
+                                                                <td>
+                                                                    <span className="erp-tax-pill">
+                                                                        {taxMap[product.applicableTax] || "N/A"}
+                                                                    </span>
+                                                                </td>
+                                                            )}
+                                                        </tr>
+                                                    );
+                                                })}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div className="erp-table-footer">
+                                    <div className="erp-table-info">
+                                        Showing {filteredProducts.length === 0 ? 0 : startIndex + 1} to{" "}
+                                        {Math.min(endIndex, filteredProducts.length)} of{" "}
+                                        {filteredProducts.length} entries
+                                    </div>
+                                    {renderPagination()}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    );
 }
 
 export default ListProducts;

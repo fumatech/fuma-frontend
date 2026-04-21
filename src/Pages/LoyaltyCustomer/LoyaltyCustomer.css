@@ -1,0 +1,238 @@
+:root {
+    --reward-bg: radial-gradient(circle at 15% 20%, #fef3c7 0%, #fff7ed 35%, #f8fafc 100%);
+    --reward-card: #ffffff;
+    --reward-ink: #0f172a;
+    --reward-muted: #64748b;
+    --reward-accent: #0ea5a4;
+    --reward-accent-2: #f59e0b;
+    --reward-success: #16a34a;
+    --reward-danger: #dc2626;
+}
+
+.reward-page {
+    min-height: 100vh;
+    background: var(--reward-bg);
+    color: var(--reward-ink);
+    display: flex;
+    justify-content: center;
+    padding: 20px 14px;
+}
+
+.reward-shell {
+    width: 100%;
+    max-width: 480px;
+}
+
+.reward-card {
+    background: var(--reward-card);
+    border-radius: 24px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+    padding: 20px;
+    margin-bottom: 14px;
+}
+
+.reward-brand {
+    display: inline-block;
+    background: #0f172a;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: 0.6px;
+    margin-bottom: 12px;
+}
+
+.reward-title {
+    font-size: 24px;
+    line-height: 1.2;
+    margin: 0 0 8px;
+}
+
+.reward-subtitle {
+    color: var(--reward-muted);
+    margin: 0 0 18px;
+    font-size: 14px;
+}
+
+.reward-code-pill {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    word-break: break-all;
+}
+
+.reward-btn,
+.reward-btn-secondary {
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+    cursor: pointer;
+}
+
+.reward-btn {
+    background: linear-gradient(135deg, var(--reward-accent), #0ea5e9);
+    color: #fff;
+}
+
+.reward-btn-secondary {
+    background: #f1f5f9;
+    color: var(--reward-ink);
+}
+
+.reward-btn:disabled,
+.reward-btn-secondary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.reward-btn:active,
+.reward-btn-secondary:active {
+    transform: translateY(1px);
+}
+
+.reward-row {
+    display: flex;
+    gap: 10px;
+}
+
+.reward-form {
+    display: grid;
+    gap: 10px;
+}
+
+.reward-input {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    border-radius: 12px;
+    padding: 11px 12px;
+    font-size: 14px;
+}
+
+.reward-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.reward-tab {
+    flex: 1;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    padding: 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.reward-tab.active {
+    border-color: var(--reward-accent);
+    background: #ecfeff;
+}
+
+.reward-claim-ring {
+    width: 120px;
+    height: 120px;
+    border-radius: 999px;
+    margin: 4px auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    background: linear-gradient(180deg, #dcfce7, #bbf7d0);
+    animation: rewardPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes rewardPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.35);
+    }
+
+    70% {
+        transform: scale(1.03);
+        box-shadow: 0 0 0 16px rgba(22, 163, 74, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+    }
+}
+
+.reward-win {
+    color: var(--reward-success);
+    font-size: 30px;
+    margin: 0 0 6px;
+    text-align: center;
+}
+
+.reward-balance {
+    font-size: 36px;
+    margin: 0;
+    text-align: center;
+}
+
+.reward-center {
+    text-align: center;
+}
+
+.reward-alert {
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 13px;
+}
+
+.reward-alert.error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.reward-alert.ok {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.reward-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.reward-txn {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px;
+    display: grid;
+    gap: 4px;
+    margin-bottom: 8px;
+    background: #fff;
+}
+
+.reward-txn-top {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+}
+
+.reward-link {
+    color: #0369a1;
+    text-decoration: none;
+}
+
+@media (min-width: 700px) {
+    .reward-page {
+        padding-top: 36px;
+    }
+
+    .reward-card {
+        padding: 24px;
+    }
+}

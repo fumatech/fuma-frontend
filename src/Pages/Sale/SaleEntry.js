@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css";
 import { toast } from "react-toastify";
+import useBarcodeScanner from "../../hooks/useBarcodeScanner";
+import playProductAddedBeep from "../../utils/playProductAddedBeep";
 
 function SaleEntry() {
+  const pasteCandidateRef = useRef({ value: "", at: 0 });
   const [vendor, setVendor] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
   const [addedBy, setAddedBy] = useState("");
@@ -27,6 +30,7 @@ function SaleEntry() {
   const [totalUnits, setTotalUnits] = useState(0);
   const [userEmail, setUserEmail] = useState(null);
   const [userName, setUserName] = useState("");
+  const inFlightBarcodeRequests = useRef(new Set());
 
   useEffect(() => {
     const email = sessionStorage.getItem("userEmail");
@@ -85,8 +89,7 @@ function SaleEntry() {
   const searchProducts = async (query) => {
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
+        `${process.env.REACT_APP_BASE_URL
         }/product/search/active?query=${encodeURIComponent(query)}`
       );
       const data = await response.json();
@@ -145,6 +148,147 @@ function SaleEntry() {
   const handleRemoveProduct = (id) => {
     setSelectedProducts((prev) => prev.filter((product) => product.id !== id));
   };
+
+  const addOrIncrementScannedProduct = (product, scannedBarcode) => {
+    setSelectedProducts((prev) => {
+      let matchedVariation = null;
+      if (product.productVariations && product.productVariations.length > 0) {
+        if (scannedBarcode) {
+          matchedVariation = product.productVariations.find(
+            (v) =>
+              (v.subSku && v.subSku.toLowerCase() === scannedBarcode.toLowerCase()) ||
+              (product.barcode && product.barcode.toLowerCase() === scannedBarcode.toLowerCase())
+          );
+        }
+        if (!matchedVariation) {
+          matchedVariation = product.productVariations[0];
+        }
+      }
+
+      // Find matching item in the list
+      const existingIndex = prev.findIndex(
+        (p) =>
+          (p.productId === product.id || p.id === product.id) &&
+          (!matchedVariation || p.id === matchedVariation.id || p.productVariationId === matchedVariation.id)
+      );
+
+      if (existingIndex >= 0) {
+        const next = [...prev];
+        next[existingIndex] = {
+          ...next[existingIndex],
+          quantity: (next[existingIndex].quantity || 0) + 1,
+        };
+        return next;
+      }
+
+      // If the product has variations, use the matched one
+      if (matchedVariation) {
+        const variation = matchedVariation;
+        return [
+          ...prev,
+          {
+            ...product,
+            ...variation,
+            id: variation.id, // Ensure ID is the variation ID
+            productId: product.id,
+            productName: product.productName,
+            sku: product.sku || variation.subSku || "",
+            barcode: product.barcode,
+            quantity: 1,
+            variationValue: variation.variationValue || "",
+            defaultSellingPrice: Number(
+              variation.defaultSellingPrice || product.price || 0
+            ),
+          },
+        ];
+      }
+
+      return [
+        ...prev,
+        {
+          id: product.id,
+          productId: product.id,
+          productName: product.name || product.productName,
+          sku: product.sku || "",
+          barcode: product.barcode,
+          quantity: 1,
+          variationValue: "",
+          defaultSellingPrice: Number(product.price || 0),
+        },
+      ];
+    });
+  };
+
+  const handleBarcodeScan = async (barcode) => {
+    if (inFlightBarcodeRequests.current.has(barcode)) {
+      return;
+    }
+
+    inFlightBarcodeRequests.current.add(barcode);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/api/products/barcode/${encodeURIComponent(
+          barcode
+        )}`
+      );
+
+      if (!response.ok) {
+        toast.warning("Product not found");
+        return;
+      }
+
+      const product = await response.json();
+      addOrIncrementScannedProduct(product, barcode);
+      playProductAddedBeep();
+      toast.success(
+        `Scanned: ${product.name || product.productName || barcode}`
+      );
+    } catch (error) {
+      console.error("Error fetching product by barcode:", error);
+      toast.error("Unable to scan product right now");
+    } finally {
+      inFlightBarcodeRequests.current.delete(barcode);
+    }
+  };
+
+  useBarcodeScanner(handleBarcodeScan, {
+    allowManualInputEnter: false, // Strict barcode mode as we handle manual in handleSearchKeyDown
+  });
+
+  const handleSearchPaste = (e) => {
+    const pastedText = e?.clipboardData?.getData("text")?.trim() || "";
+    if (!pastedText) {
+      return;
+    }
+
+    pasteCandidateRef.current = { value: pastedText, at: Date.now() };
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key !== "Enter") {
+      return;
+    }
+
+    const now = Date.now();
+    const recentPaste =
+      pasteCandidateRef.current.value && now - pasteCandidateRef.current.at <= 5000;
+
+    if (recentPaste) {
+      const barcode = pasteCandidateRef.current.value;
+      const isBarcodeLike = /^[A-Za-z0-9_-]{3,}$/.test(barcode) && /\d/.test(barcode);
+
+      if (isBarcodeLike) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleBarcodeScan(barcode);
+        pasteCandidateRef.current = { value: "", at: 0 };
+        return;
+      }
+    }
+
+    handleKeyPress(e);
+  };
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
@@ -184,7 +328,7 @@ function SaleEntry() {
     // console.log("Payload:", payload); // Debug payload before submitting
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/SaleEntry/save`,
+        `${process.env.REACT_APP_BASE_URL}/sale/save`,
         {
           method: "POST",
           headers: {
@@ -355,6 +499,9 @@ function SaleEntry() {
                     <div className="row">
                       <div className="col-md-12">
                         <div className="search-bar">
+                          <small className="d-block text-muted mb-2">
+                            Scanner active: scan barcode and press Enter from anywhere on this page.
+                          </small>
                           <div className="search-input">
                             <i className="fa fa-search search-icon"></i>
                             <input
@@ -362,7 +509,8 @@ function SaleEntry() {
                               placeholder="Enter Product name / SKU / Scan bar code"
                               value={searchTerm}
                               onChange={handleSearch}
-                              onKeyPress={handleKeyPress} // Listen for Enter key press
+                              onPaste={handleSearchPaste}
+                              onKeyDown={handleSearchKeyDown}
                             />
                           </div>
                         </div>
@@ -386,7 +534,7 @@ function SaleEntry() {
                                                 type="checkbox"
                                                 checked={
                                                   selectedVariations[
-                                                    variation.id
+                                                  variation.id
                                                   ] || false
                                                 }
                                                 onChange={(e) =>
@@ -406,6 +554,7 @@ function SaleEntry() {
                                   </div>
                                 )}
                                 <button
+                                  type="button"
                                   onClick={() => handleAddProduct(product)}
                                   className="btn btn-add-variation btn-success"
                                 >
