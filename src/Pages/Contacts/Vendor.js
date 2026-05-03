@@ -8,6 +8,7 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Collapse } from "react-bootstrap";
 import { toast } from "react-toastify";
+import "../Shared/UnifiedERPTheme.css";
 
 function Vendor({ userRoles }) {
   const [vendors, setVendors] = useState([]);
@@ -506,8 +507,8 @@ function Vendor({ userRoles }) {
   };
 
   return (
-    <div className="wrapper" style={{ maxHeight: "", overflowY: "auto" }}>
-      <div className="content-wrapper">
+    <div className="wrapper contact-user-page" style={{ maxHeight: "", overflowY: "auto" }}>
+      <div className="content-wrapper erp-product-page erp-master-page">
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">

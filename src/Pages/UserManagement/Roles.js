@@ -7,6 +7,7 @@ import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
 import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
 import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
 import "./Roles.css"; // Adjust the stylesheet if necessary
+import "../Shared/UnifiedERPTheme.css";
 import "datatables.net";
 import "datatables.net-bs4";
 import "datatables.net-responsive";
@@ -178,8 +179,8 @@ const Roles = ({ userRoles }) => {
     toggleColumn(col); // Toggle column visibility
   };
   return (
-    <div className="wrapper">
-      <div className="content-wrapper">
+    <div className="wrapper contact-user-page">
+      <div className="content-wrapper erp-product-page erp-master-page">
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">

@@ -6,6 +6,8 @@ import axios from "axios";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import BackButton from "../../components/BackButton";
+import "./ListProducts.css";
+import "./ProductAdminTheme.css";
 
 function AddProducts() {
   const formRef = useRef(null);
@@ -926,13 +928,13 @@ function AddProducts() {
   return (
     <>
       <div className="wrapper">
-        <div className="content-wrapper">
+        <div className="content-wrapper erp-product-page erp-master-page erp-add-product-page">
           <section className="content-header">
             <div className="container-fluid">
               <div className="row mb-2">
                 <div className="col-sm-6 d-flex align-items-center">
                   <BackButton />
-                  <h1>Add Products</h1>
+                  <h1 className="erp-page-title mb-0">Add Product</h1>
                 </div>
               </div>
             </div>

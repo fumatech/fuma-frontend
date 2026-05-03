@@ -34,6 +34,7 @@ const Menu = ({ userRoles }) => {
   const [isSettingOpen, setSettingOpen] = useState(false);
   const [isHomeOpen, setHomeOpen] = useState(false);
   const [isEmployeePortalOpen, setEmployeePortalOpen] = useState(false);
+  const [isLoyaltyOpen, setLoyaltyOpen] = useState(false);
 
   useEffect(() => {
     const path = location.pathname;
@@ -66,6 +67,7 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/PurchaseOrder") ||
       path.startsWith("/AddDIPurchase") ||
       path.startsWith("/AddPoPurchase") ||
+      path.startsWith("/AddPurchaseReturn") ||
       path.startsWith("/ReturnPurchase") ||
       path.startsWith("/ListDIPurchaseOrder") ||
       path.startsWith("/ListPoPurchaseOrder") ||
@@ -148,6 +150,12 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/EmployeePayslipsAdmin") ||
       path.startsWith("/EmployeeViewPayslipAdmin")
     );
+    setLoyaltyOpen(
+      path.startsWith("/LoyaltyScan") ||
+      path.startsWith("/LoyaltyWallet") ||
+      path.startsWith("/LoyaltyReferral") ||
+      path.startsWith("/LoyaltyAdmin")
+    );
 
     // Set active menu based on current path
     if (path.startsWith("/Users") || path.startsWith("/Roles")) {
@@ -178,6 +186,7 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/PurchaseOrder") ||
       path.startsWith("/AddDIPurchase") ||
       path.startsWith("/AddPoPurchase") ||
+      path.startsWith("/AddPurchaseReturn") ||
       path.startsWith("/ReturnPurchase") ||
       path.startsWith("/ListDIPurchaseOrder") ||
       path.startsWith("/ListPoPurchaseOrder") ||
@@ -209,6 +218,8 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/ListStockTransfer")
     ) {
       setActiveMenu("stock");
+    } else if (path.startsWith("/WarehouseManagement")) {
+      setActiveMenu("warehouseManagement");
     } else if (
       path.startsWith("/AddStockAdjustment") ||
       path.startsWith("/ListStockAdjustment") ||
@@ -263,6 +274,13 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/EmployeeViewPayslipAdmin")
     ) {
       setActiveMenu("employeePortal");
+    } else if (
+      path.startsWith("/LoyaltyScan") ||
+      path.startsWith("/LoyaltyWallet") ||
+      path.startsWith("/LoyaltyReferral") ||
+      path.startsWith("/LoyaltyAdmin")
+    ) {
+      setActiveMenu("loyalty");
     } else {
       setActiveMenu("");
     }
@@ -312,6 +330,8 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("ListDIPurchaseOrder");
     } else if (path === "/ReturnPurchase") {
       setActiveSubMenu("ReturnPurchase");
+    } else if (path === "/AddPurchaseReturn") {
+      setActiveSubMenu("AddPurchaseReturn");
     } else if (path === "/AddSoSale") {
       setActiveSubMenu("AddSoSale");
     } else if (path === "/ListSoSale") {
@@ -342,6 +362,8 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("ListStockTransfer");
     } else if (path === "/AddStockTransfer") {
       setActiveSubMenu("AddStockTransfer");
+    } else if (path === "/WarehouseManagement") {
+      setActiveSubMenu("WarehouseManagement");
     } else if (path === "/AddStockAdjustment") {
       setActiveSubMenu("AddStockAdjustment");
     } else if (path === "/ListStockAdjustment") {
@@ -417,6 +439,14 @@ const Menu = ({ userRoles }) => {
       path === "/EmployeeViewPayslipAdmin"
     ) {
       setActiveSubMenu("EmployeePayslipsAdmin");
+    } else if (path === "/LoyaltyScan") {
+      setActiveSubMenu("LoyaltyScan");
+    } else if (path === "/LoyaltyWallet") {
+      setActiveSubMenu("LoyaltyWallet");
+    } else if (path === "/LoyaltyReferral") {
+      setActiveSubMenu("LoyaltyReferral");
+    } else if (path === "/LoyaltyAdmin") {
+      setActiveSubMenu("LoyaltyAdmin");
     } else {
       setActiveSubMenu("");
     }
@@ -441,6 +471,7 @@ const Menu = ({ userRoles }) => {
     setReportOpen(dropdown === "report" ? !isReportOpen : false);
     setSettingOpen(dropdown === "setting" ? !isSettingOpen : false);
     setEmployeePortalOpen(dropdown === "employeePortal" ? !isEmployeePortalOpen : false);
+    setLoyaltyOpen(dropdown === "loyalty" ? !isLoyaltyOpen : false);
 
     // Set active menu
     if (
@@ -456,7 +487,8 @@ const Menu = ({ userRoles }) => {
       dropdown === "payment" ||
       dropdown === "report" ||
       dropdown === "setting" ||
-      dropdown === "employeePortal"
+      dropdown === "employeePortal" ||
+      dropdown === "loyalty"
     ) {
       setActiveMenu(dropdown);
     }
@@ -536,13 +568,13 @@ const Menu = ({ userRoles }) => {
                     }}
                   >
                     <i
-                      className="fa-solid fa-house"
+                      className="nav-icon fas fa-tachometer-alt"
                       style={{
                         fontSize: "20px",
                         color: "black",
                         opacity: 0.7,
                       }}
-                    ></i>
+                    />
                     <p
                       style={{
                         color: "black",
@@ -581,7 +613,7 @@ const Menu = ({ userRoles }) => {
                       }}
                     >
                       <i
-                        className="nav-icon fas fa-user"
+                        className="nav-icon fas fa-users-cog"
                         style={{
                           color:
                             activeMenu === "userManagement"
@@ -1032,7 +1064,7 @@ const Menu = ({ userRoles }) => {
                       }}
                     >
                       <i
-                        className="nav-icon fa-solid fa-cart-shopping"
+                        className="nav-icon fas fa-shopping-cart"
                         style={{
                           color:
                             activeMenu === "purchase" ? "#0040C1" : "#4b5565",
@@ -1192,25 +1224,46 @@ const Menu = ({ userRoles }) => {
                         </>
                       )}
                       {hasPermission("return_purchase.view") && (
-                        <li className="nav-item">
-                          <Link
-                            to="/ReturnPurchase"
-                            className={getSubMenuItemClass("ReturnPurchase")}
-                            style={{
-                              color:
-                                activeSubMenu === "ReturnPurchase"
-                                  ? "#0040C1"
-                                  : "#4b5565",
-                              backgroundColor:
-                                activeSubMenu === "ReturnPurchase"
-                                  ? "rgba(0, 64, 193, 0.08)"
-                                  : "transparent",
-                              paddingLeft: "52px",
-                            }}
-                          >
-                            <p>List purchase return</p>
-                          </Link>
-                        </li>
+                        <>
+                          <li className="nav-item">
+                            <Link
+                              to="/AddPurchaseReturn"
+                              className={getSubMenuItemClass("AddPurchaseReturn")}
+                              style={{
+                                color:
+                                  activeSubMenu === "AddPurchaseReturn"
+                                    ? "#0040C1"
+                                    : "#4b5565",
+                                backgroundColor:
+                                  activeSubMenu === "AddPurchaseReturn"
+                                    ? "rgba(0, 64, 193, 0.08)"
+                                    : "transparent",
+                                paddingLeft: "52px",
+                              }}
+                            >
+                              <p>Add Purchase Return</p>
+                            </Link>
+                          </li>
+                          <li className="nav-item">
+                            <Link
+                              to="/ReturnPurchase"
+                              className={getSubMenuItemClass("ReturnPurchase")}
+                              style={{
+                                color:
+                                  activeSubMenu === "ReturnPurchase"
+                                    ? "#0040C1"
+                                    : "#4b5565",
+                                backgroundColor:
+                                  activeSubMenu === "ReturnPurchase"
+                                    ? "rgba(0, 64, 193, 0.08)"
+                                    : "transparent",
+                                paddingLeft: "52px",
+                              }}
+                            >
+                              <p>List purchase return</p>
+                            </Link>
+                          </li>
+                        </>
                       )}
                     </ul>
                   </li>
@@ -1246,7 +1299,7 @@ const Menu = ({ userRoles }) => {
                       }}
                     >
                       <i
-                        className="nav-icon fa-brands fa-sellsy"
+                        className="nav-icon fas fa-shopping-bag"
                         style={{
                           color: activeMenu === "sell" ? "#0040C1" : "#4b5565",
                         }}
@@ -1605,7 +1658,7 @@ const Menu = ({ userRoles }) => {
                     }}
                   >
                     <i
-                      className="nav-icon fa-brands fa-sellsy"
+                      className="nav-icon fas fa-exchange-alt"
                       style={{
                         color: activeMenu === "stock" ? "#0040C1" : "#4b5565",
                       }}
@@ -1681,6 +1734,47 @@ const Menu = ({ userRoles }) => {
                 </li>
               )}
 
+              {/* Warehouse Management */}
+              {(hasPermission("warehouse.view") || isAdminUser) && (
+                <li className={`nav-item mb-2`}>
+                  <Link
+                    to="/WarehouseManagement"
+                    className={getMenuItemClass("warehouseManagement")}
+                    style={{
+                      borderLeft:
+                        activeMenu === "warehouseManagement"
+                          ? "3px solid #0040C1"
+                          : "none",
+                      backgroundColor:
+                        activeMenu === "warehouseManagement"
+                          ? "rgba(0, 64, 193, 0.05)"
+                          : "transparent",
+                    }}
+                  >
+                    <i
+                      className="nav-icon fas fa-warehouse"
+                      style={{
+                        color:
+                          activeMenu === "warehouseManagement"
+                            ? "#0040C1"
+                            : "#4b5565",
+                      }}
+                    />
+                    <p
+                      className="ms-1"
+                      style={{
+                        color:
+                          activeMenu === "warehouseManagement"
+                            ? "#0040C1"
+                            : "#4b5565",
+                      }}
+                    >
+                      Warehouse Management
+                    </p>
+                  </Link>
+                </li>
+              )}
+
               {/* Stock Adjustment */}
               {hasPermission("stock_adjustment.view") && (
                 <li
@@ -1709,7 +1803,7 @@ const Menu = ({ userRoles }) => {
                     }}
                   >
                     <i
-                      className="nav-icon fa-brands fa-sellsy"
+                      className="nav-icon fas fa-sliders-h"
                       style={{
                         color:
                           activeMenu === "stockAdjustment"
@@ -2031,7 +2125,7 @@ const Menu = ({ userRoles }) => {
                     }}
                   >
                     <i
-                      className="nav-icon fa-solid fa-circle-dollar-to-slot"
+                      className="nav-icon fas fa-credit-card"
                       style={{
                         color: activeMenu === "payment" ? "#0040C1" : "#4b5565",
                       }}
@@ -2191,7 +2285,7 @@ const Menu = ({ userRoles }) => {
                     }}
                   >
                     <i
-                      className="nav-icon fa-solid fa-sack-dollar"
+                      className="nav-icon fas fa-chart-line"
                       style={{
                         color: activeMenu === "report" ? "#0040C1" : "#4b5565",
                       }}
@@ -2462,7 +2556,7 @@ const Menu = ({ userRoles }) => {
                       }}
                     >
                       <i
-                        className="nav-icon fa-solid fa-gear"
+                        className="nav-icon fas fa-cogs"
                         style={{
                           color: activeMenu === "setting" ? "#0040C1" : "#4b5565",
                         }}
@@ -2606,7 +2700,7 @@ const Menu = ({ userRoles }) => {
                       }}
                     >
                       <i
-                        className="nav-icon fa-solid fa-gear"
+                        className="nav-icon fas fa-shield-alt"
                         style={{
                           color: activeMenu === "extra" ? "#0040C1" : "#4b5565",
                         }}
@@ -2702,6 +2796,141 @@ const Menu = ({ userRoles }) => {
                     </ul>
                   </li>
                 )}
+
+              {/* Employee Portal */}
+              {hasPermission("crm.view") && (
+                <li
+                  className={`nav-item ${activeMenu === "loyalty" ? "menu-open" : ""} mb-2`}
+                >
+                  <a
+                    href="#"
+                    className={getMenuItemClass("loyalty")}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggleDropdown("loyalty");
+                    }}
+                    style={{
+                      borderLeft:
+                        activeMenu === "loyalty"
+                          ? "3px solid #0040C1"
+                          : "none",
+                      backgroundColor:
+                        activeMenu === "loyalty"
+                          ? "rgba(0, 64, 193, 0.05)"
+                          : "transparent",
+                    }}
+                  >
+                    <i
+                      className="nav-icon fas fa-wallet"
+                      style={{
+                        color:
+                          activeMenu === "loyalty"
+                            ? "#0040C1"
+                            : "#4b5565",
+                      }}
+                    />
+                    <p
+                      style={{
+                        color:
+                          activeMenu === "loyalty"
+                            ? "#0040C1"
+                            : "#4b5565",
+                      }}
+                      className="ms-1"
+                    >
+                      Loyalty Program
+                      <i
+                        className="right fas fa-angle-left"
+                        style={{
+                          color:
+                            activeMenu === "loyalty"
+                              ? "#0040C1"
+                              : "#4b5565",
+                        }}
+                      />
+                    </p>
+                  </a>
+                  <ul
+                    className="nav nav-treeview"
+                    style={{
+                      display: isLoyaltyOpen ? "block" : "none",
+                      backgroundColor:
+                        activeMenu === "loyalty"
+                          ? "rgba(0, 64, 193, 0.05)"
+                          : "transparent",
+                    }}
+                  >
+                    <li className="nav-item">
+                      <Link
+                        to="/LoyaltyScan"
+                        className={getSubMenuItemClass("LoyaltyScan")}
+                        style={{
+                          color:
+                            activeSubMenu === "LoyaltyScan" ? "#0040C1" : "#4b5565",
+                          backgroundColor:
+                            activeSubMenu === "LoyaltyScan"
+                              ? "rgba(0, 64, 193, 0.08)"
+                              : "transparent",
+                          paddingLeft: "52px",
+                        }}
+                      >
+                        <p>Scan QR</p>
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link
+                        to="/LoyaltyWallet"
+                        className={getSubMenuItemClass("LoyaltyWallet")}
+                        style={{
+                          color:
+                            activeSubMenu === "LoyaltyWallet" ? "#0040C1" : "#4b5565",
+                          backgroundColor:
+                            activeSubMenu === "LoyaltyWallet"
+                              ? "rgba(0, 64, 193, 0.08)"
+                              : "transparent",
+                          paddingLeft: "52px",
+                        }}
+                      >
+                        <p>Wallet</p>
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link
+                        to="/LoyaltyReferral"
+                        className={getSubMenuItemClass("LoyaltyReferral")}
+                        style={{
+                          color:
+                            activeSubMenu === "LoyaltyReferral" ? "#0040C1" : "#4b5565",
+                          backgroundColor:
+                            activeSubMenu === "LoyaltyReferral"
+                              ? "rgba(0, 64, 193, 0.08)"
+                              : "transparent",
+                          paddingLeft: "52px",
+                        }}
+                      >
+                        <p>Referral</p>
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link
+                        to="/LoyaltyAdmin"
+                        className={getSubMenuItemClass("LoyaltyAdmin")}
+                        style={{
+                          color:
+                            activeSubMenu === "LoyaltyAdmin" ? "#0040C1" : "#4b5565",
+                          backgroundColor:
+                            activeSubMenu === "LoyaltyAdmin"
+                              ? "rgba(0, 64, 193, 0.08)"
+                              : "transparent",
+                          paddingLeft: "52px",
+                        }}
+                      >
+                        <p>Admin</p>
+                      </Link>
+                    </li>
+                  </ul>
+                </li>
+              )}
 
               {/* Employee Portal */}
               {hasPermission("employee_portal.view") && (

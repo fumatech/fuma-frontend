@@ -5,6 +5,8 @@ import { Tooltip, OverlayTrigger } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
+import useBarcodeScanner from "../../hooks/useBarcodeScanner";
+import playProductAddedBeep from "../../utils/playProductAddedBeep";
 
 function AddStockTransfer() {
   const searchResultsRef = useRef(null);
@@ -12,9 +14,12 @@ function AddStockTransfer() {
   const navigate = useNavigate();
 
   const [status, setStatus] = useState("");
+  const [transferType, setTransferType] = useState("shop");
   const [locations, setLocations] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
   const [locationFrom, setLocationFrom] = useState("");
   const [locationTo, setLocationTo] = useState("");
+  const [targetWarehouseId, setTargetWarehouseId] = useState("");
   const [transferDate, setTransferDate] = useState(new Date());
   const [referenceNumber, setReferenceNumber] = useState("");
 
@@ -31,11 +36,22 @@ function AddStockTransfer() {
   const [shippingCharges, setShippingCharges] = useState(0);
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [totalShippingAmount, setTotalShippingAmount] = useState(0);
+  const inFlightBarcodeRequests = useRef(new Set());
   useEffect(() => {
     fetch(`${process.env.REACT_APP_BASE_URL}/business-locations/getall`)
       .then((res) => res.json())
       .then((data) => setLocations(data))
       .catch((err) => console.error("Error fetching locations:", err));
+  }, []);
+
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_BASE_URL}/warehouse/getall`)
+      .then((res) => res.json())
+      .then((data) => setWarehouses(Array.isArray(data) ? data : []))
+      .catch((err) => {
+        console.error("Error fetching warehouses:", err);
+        setWarehouses([]);
+      });
   }, []);
   const handleLocationFromChange = (e) => {
     const selectedFrom = e.target.value;
@@ -214,6 +230,111 @@ function AddStockTransfer() {
     setSelectedProducts((prev) => prev.filter((product) => product.id !== id));
   };
 
+  const addOrIncrementScannedProduct = (product, scannedBarcode) => {
+    setSelectedProducts((prev) => {
+      let matchedVariation = null;
+      if (product.productVariations && product.productVariations.length > 0) {
+        if (scannedBarcode) {
+          matchedVariation = product.productVariations.find(
+            (v) =>
+              (v.subSku && v.subSku.toLowerCase() === scannedBarcode.toLowerCase()) ||
+              (product.barcode && product.barcode.toLowerCase() === scannedBarcode.toLowerCase())
+          );
+        }
+        if (!matchedVariation) {
+          matchedVariation = product.productVariations[0];
+        }
+      }
+
+      // Find matching item (variation or product)
+      const existingIndex = prev.findIndex(
+        (p) =>
+          (p.productId === product.id || p.id === product.id) &&
+          (!matchedVariation || p.productVariationId === matchedVariation.id || p.variationId === matchedVariation.id)
+      );
+
+      if (existingIndex >= 0) {
+        const next = [...prev];
+        next[existingIndex] = {
+          ...next[existingIndex],
+          quantity: (next[existingIndex].quantity || 0) + 1,
+        };
+        return next;
+      }
+
+      // Handle variable products
+      if (matchedVariation) {
+        const variation = matchedVariation;
+        return [
+          ...prev,
+          {
+            id: `${product.id}-${variation.id}`,
+            productId: product.id,
+            productName: product.productName,
+            sku: product.sku || variation.subSku || "",
+            variationId: variation.id,
+            variationValue: variation.variationValue,
+            variationName: variation.variationValue,
+            productVariationId: variation.id,
+            defaultPurchasePriceExcTax: variation.defaultPurchasePriceExcTax || 0,
+            defaultSellingPrice: variation.defaultSellingPrice || product.price || 0,
+            quantity: 1,
+            profitMargin: variation.profitMargin || 0,
+          },
+        ];
+      }
+
+      // Handle single products
+      return [
+        ...prev,
+        {
+          id: product.id,
+          productId: product.id,
+          productName: product.productName,
+          sku: product.sku || "",
+          quantity: 1,
+          defaultPurchasePriceExcTax: product.defaultPurchasePriceExcTax || 0,
+          defaultSellingPrice: product.defaultSellingPrice || product.price || 0,
+          profitMargin: product.profitMargin || 0,
+        },
+      ];
+    });
+  };
+
+  const handleBarcodeScan = async (barcode) => {
+    if (inFlightBarcodeRequests.current.has(barcode)) {
+      return;
+    }
+
+    inFlightBarcodeRequests.current.add(barcode);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/api/products/barcode/${encodeURIComponent(
+          barcode
+        )}`
+      );
+
+      if (!response.ok) {
+        toast.warning("Product not found");
+        return;
+      }
+
+      const product = await response.json();
+      addOrIncrementScannedProduct(product, barcode);
+      playProductAddedBeep();
+      toast.success(`Scanned: ${product.productName || barcode}`);
+    } catch (error) {
+      console.error("Error scanning barcode:", error);
+      toast.error("Unable to scan product right now");
+    } finally {
+      inFlightBarcodeRequests.current.delete(barcode);
+    }
+  };
+
+  useBarcodeScanner(handleBarcodeScan, {
+    allowManualInputEnter: false, 
+  });
+
   // Calculate total units
   useEffect(() => {
     const units = selectedProducts.reduce(
@@ -240,11 +361,40 @@ function AddStockTransfer() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setError("");
+
+    if (!locationFrom) {
+      setError("Please select location (From)");
+      return;
+    }
+
+    if (transferType === "shop" && !locationTo) {
+      setError("Please select location (To)");
+      return;
+    }
+
+    if (transferType === "shop" && String(locationFrom) === String(locationTo)) {
+      setError("From and To locations cannot be the same");
+      return;
+    }
+
+    if (transferType === "warehouse" && !targetWarehouseId) {
+      setError("Please select target warehouse");
+      return;
+    }
+
+    if (selectedProducts.length === 0) {
+      setError("Please add at least one product");
+      return;
+    }
 
     const stockTransferData = {
       status,
+      transferType: transferType === "warehouse" ? "to_warehouse" : "to_shop",
       locationFrom,
-      locationTo,
+      locationTo: transferType === "shop" ? locationTo : null,
+      targetWarehouseId:
+        transferType === "warehouse" ? Number(targetWarehouseId) : null,
       date: transferDate,
       referenceNumber,
       totalAmount: Number(totalShippingAmount),
@@ -375,8 +525,32 @@ function AddStockTransfer() {
                         </select>
                       </div>
 
+                      {/* Transfer Type */}
+                      <div className="form-group col-md-4">
+                        <label htmlFor="transfer_type">Transfer Type:*</label>
+                        <select
+                          id="transfer_type"
+                          name="transfer_type"
+                          className="form-control"
+                          required
+                          value={transferType}
+                          onChange={(e) => {
+                            const nextType = e.target.value;
+                            setTransferType(nextType);
+                            if (nextType === "shop") {
+                              setTargetWarehouseId("");
+                            } else {
+                              setLocationTo("");
+                            }
+                          }}
+                        >
+                          <option value="shop">To Shop</option>
+                          <option value="warehouse">To Warehouse</option>
+                        </select>
+                      </div>
+
                       {/* Location (From) */}
-                      <div className="form-group col-md-6">
+                      <div className="form-group col-md-4">
                         <label htmlFor="location_id">Location (From):*</label>
                         <select
                           id="location_id"
@@ -397,32 +571,58 @@ function AddStockTransfer() {
                         </select>
                       </div>
 
-                      {/* Location (To) */}
-                      <div className="form-group col-md-6">
-                        <label htmlFor="transfer_location_id">
-                          Location (To):*
-                        </label>
-                        <select
-                          id="transfer_location_id"
-                          className="form-control"
-                          required
-                          value={locationTo}
-                          onChange={handleLocationToChange}
-                          disabled={!locationFrom} // optional UX improvement
-                        >
-                          <option value="" disabled>
-                            Please Select
-                          </option>
+                      {transferType === "shop" ? (
+                        <div className="form-group col-md-4">
+                          <label htmlFor="transfer_location_id">
+                            Location (To):*
+                          </label>
+                          <select
+                            id="transfer_location_id"
+                            className="form-control"
+                            required={transferType === "shop"}
+                            value={locationTo}
+                            onChange={handleLocationToChange}
+                            disabled={!locationFrom}
+                          >
+                            <option value="" disabled>
+                              Please Select
+                            </option>
 
-                          {locations
-                            .filter((loc) => loc.id.toString() !== locationFrom)
-                            .map((loc) => (
-                              <option key={loc.id} value={loc.id}>
-                                {loc.name}
+                            {locations
+                              .filter((loc) => loc.id.toString() !== locationFrom)
+                              .map((loc) => (
+                                <option key={loc.id} value={loc.id}>
+                                  {loc.name}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                      ) : (
+                        <div className="form-group col-md-4">
+                          <label htmlFor="target_warehouse_id">
+                            Target Warehouse:*
+                          </label>
+                          <select
+                            id="target_warehouse_id"
+                            className="form-control"
+                            required={transferType === "warehouse"}
+                            value={targetWarehouseId}
+                            onChange={(e) => setTargetWarehouseId(e.target.value)}
+                          >
+                            <option value="" disabled>
+                              Please Select
+                            </option>
+                            {warehouses.map((warehouse) => (
+                              <option key={warehouse.id} value={warehouse.id}>
+                                {warehouse.name}
                               </option>
                             ))}
-                        </select>
-                      </div>
+                          </select>
+                          <small className="text-muted d-block mt-1">
+                            Warehouse allocation is logical mapping only; main stock remains unchanged.
+                          </small>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -434,6 +634,9 @@ function AddStockTransfer() {
                       <div className="col-md-12">
                         <div className="form-group">
                           <label>Search Products</label>
+                          <small className="d-block text-muted mb-2">
+                            Scanner active: scan barcode and press Enter from anywhere on this page.
+                          </small>
                           <div className="search-container">
                             <input
                               type="text"
@@ -495,8 +698,8 @@ function AddStockTransfer() {
                                           </span>
                                           <span
                                             className={`stock ${product.stock > 0
-                                                ? "in-stock"
-                                                : "out-of-stock"
+                                              ? "in-stock"
+                                              : "out-of-stock"
                                               }`}
                                           >
                                             {product.stock > 0
@@ -518,10 +721,10 @@ function AddStockTransfer() {
                                                 <div
                                                   key={variation.id}
                                                   className={`variation-item py-0 border rounded px-2 ${selectedVariations[
-                                                      variation.id
-                                                    ]
-                                                      ? "selected"
-                                                      : ""
+                                                    variation.id
+                                                  ]
+                                                    ? "selected"
+                                                    : ""
                                                     }`}
                                                   onClick={(e) => {
                                                     e.stopPropagation();

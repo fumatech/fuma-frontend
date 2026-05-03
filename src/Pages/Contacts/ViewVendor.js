@@ -16,6 +16,7 @@ import moment from "moment";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
 import BackButton from "../../components/BackButton";
+import "../Shared/UnifiedERPTheme.css";
 
 const ViewVendor = () => {
   const [purchases, setPurchases] = useState([]);
@@ -155,7 +156,7 @@ const ViewVendor = () => {
       try {
         // Fetch purchases data
         const purchaseResponse = await axios.get(
-          `${process.env.REACT_APP_BASE_URL} /purchase-combined-orders/getbyvendor / ${vendor.firmName} `
+          `${process.env.REACT_APP_BASE_URL}/purchase-combined-orders/getbyvendor/${vendor.firmName}`
         );
         const purchasesData = purchaseResponse.data[vendor.firmName] || [];
 
@@ -172,7 +173,7 @@ const ViewVendor = () => {
           allStocks.map(async (stock) => {
             try {
               const productResponse = await axios.get(
-                `${process.env.REACT_APP_BASE_URL} /product/get / ${stock.productId} `
+                `${process.env.REACT_APP_BASE_URL}/product/get/${stock.productId}`
               );
               const product = productResponse.data;
 
@@ -197,7 +198,7 @@ const ViewVendor = () => {
         );
         // Fetch payment data
         const paymentResponse = await axios.get(
-          `${process.env.REACT_APP_BASE_URL} /payment-account/getbyvendor / ${vendor.firmName} `
+          `${process.env.REACT_APP_BASE_URL}/payment-account/getbyvendor/${vendor.firmName}`
         );
         const vendorPayments = paymentResponse.data[vendor.firmName] || [];
 
@@ -236,7 +237,7 @@ const ViewVendor = () => {
 
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL} /payment-account/transaction / update / ${selectedTransaction.id} `,
+        `${process.env.REACT_APP_BASE_URL}/payment-account/transaction/update/${selectedTransaction.id}`,
         {
           method: "PUT",
           headers: {
@@ -325,7 +326,7 @@ const ViewVendor = () => {
 
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL} /payment-account/transaction / ${accountId} `, // ✅ Ensure numeric ID
+        `${process.env.REACT_APP_BASE_URL}/payment-account/transaction/${accountId}`, // ✅ Ensure numeric ID
         {
           method: "POST",
           headers: {
@@ -360,7 +361,7 @@ const ViewVendor = () => {
   // Fetch payment methods
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_BASE_URL} /payment-method/active - names`)
+      .get(`${process.env.REACT_APP_BASE_URL}/payment-method/active-names`)
       .then((response) => {
         setPaymentMethods(response.data); // Store fetched methods
       })
@@ -371,7 +372,7 @@ const ViewVendor = () => {
   // Fetch payment accounts
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_BASE_URL} /payment-account/getall`)
+      .get(`${process.env.REACT_APP_BASE_URL}/payment-account/getall`)
       .then((response) => {
         // Filter active accounts (status === 1)
         const activeAccounts = response.data.filter(
@@ -398,7 +399,7 @@ const ViewVendor = () => {
   const fetchVendorData = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL} /vendor/${id} `
+        `${process.env.REACT_APP_BASE_URL}/vendor/${id}`
       );
       if (!response.data) throw new Error("Vendor not found");
       // console.log(response.data);
@@ -1438,8 +1439,8 @@ const ViewVendor = () => {
   };
 
   return (
-    <div className="wrapper">
-      <div className="content-wrapper">
+    <div className="wrapper contact-user-page contact-view-page">
+      <div className="content-wrapper erp-product-page erp-master-page">
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">

@@ -1,710 +1,596 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../assets/dist/css/adminlte.min.css";
 import "../../assets/plugins/fontawesome-free/css/all.min.css";
-import "../../assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css";
-import "../../assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css";
-import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
-import $ from "jquery";
-import { Collapse } from "react-bootstrap";
+import Collapse from "react-bootstrap/Collapse";
+import Dropdown from "react-bootstrap/Dropdown";
 import { toast } from "react-toastify";
 import BackButton from "../../components/BackButton";
+import "./ListProducts.css";
+import "./ProductAdminTheme.css";
 
-const Variation = () => {
+const initialForm = {
+  variationName: "",
+  values: [""],
+};
+
+function Variation() {
   const [variations, setVariations] = useState([]);
-  const [filteredVariations, setFilteredVariations] = useState([]);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filterOpen, setFilterOpen] = useState(true);
+  const [variationFilter, setVariationFilter] = useState("");
   const [columnsVisibility, setColumnsVisibility] = useState({
     variationName: true,
-    Value: true,
-    Action: true,
+    values: true,
+    actions: true,
   });
-  const [modalType, setModalType] = useState(null); // "add", "edit", or "view"
-  const [currentVariation, setCurrentVariation] = useState(null); // For viewing/editing
-  const [currentPage, setCurrentPage] = useState(1);
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [formData, setFormData] = useState({
-    variationName: "",
-    values: [""], // Changed to an array of values
-  });
-
-  // State variables for filters
-  const [filterValues, setFilterValues] = useState({
-    variationNames: [],
-  });
-
-  const [activeFilters, setActiveFilters] = useState({
-    variationName: "",
-  });
-
-  const [filterOpen, setFilterOpen] = useState(false);
+  const [modalMode, setModalMode] = useState(null);
+  const [currentVariation, setCurrentVariation] = useState(null);
+  const [formData, setFormData] = useState(initialForm);
 
   useEffect(() => {
-    const fetchVariations = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/variations/getall`
-        );
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          setVariations(
-            data.map((variation) => ({
-              ...variation,
-              values: Array.isArray(variation.values) ? variation.values : [], // Ensure values is always an array
-            }))
-          );
-          setFilteredVariations(
-            data.map((variation) => ({
-              ...variation,
-              values: Array.isArray(variation.values) ? variation.values : [],
-            }))
-          );
-        } else {
-          console.error("Fetched data is not an array");
-          setVariations([]);
-          setFilteredVariations([]);
-        }
-      } catch (error) {
-        console.error("Error fetching variations:", error);
-        setVariations([]);
-        setFilteredVariations([]);
-      }
-
-      const script = document.createElement("script");
-      script.src = "js/JqueryContent.js";
-      script.async = true;
-
-      document.body.appendChild(script);
-
-      return () => {
-        document.body.removeChild(script);
-      };
-    };
-
     fetchVariations();
   }, []);
 
-  // Extract filter values when variations data changes
-  useEffect(() => {
-    if (variations.length > 0) {
-      const variationNames = [
-        ...new Set(variations.map((item) => item.variationName)),
-      ].filter(Boolean);
-
-      setFilterValues({
-        variationNames,
-      });
+  const fetchVariations = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/variations/getall`);
+      const data = await response.json();
+      const normalized = Array.isArray(data)
+        ? data.map((item) => ({
+            ...item,
+            values: Array.isArray(item.values) ? item.values : [],
+          }))
+        : [];
+      setVariations(normalized);
+    } catch (error) {
+      setVariations([]);
+      toast.error("Error fetching variations");
     }
-  }, [variations]);
+  };
 
-  // Apply filters whenever activeFilters or variations changes
+  const variationOptions = useMemo(
+    () => [...new Set(variations.map((item) => item.variationName))].filter(Boolean),
+    [variations],
+  );
+
+  const filteredVariations = useMemo(() => {
+    if (!variationFilter) return variations;
+    return variations.filter((variation) => variation.variationName === variationFilter);
+  }, [variationFilter, variations]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredVariations.length / entriesPerPage));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * entriesPerPage;
+  const endIndex = startIndex + entriesPerPage;
+  const displayedVariations = filteredVariations.slice(startIndex, endIndex);
+
   useEffect(() => {
-    const filteredData = variations.filter((variation) => {
-      const variationNameMatch =
-        activeFilters.variationName === "" ||
-        variation.variationName === activeFilters.variationName;
+    if (safePage !== currentPage) {
+      setCurrentPage(safePage);
+    }
+  }, [safePage, currentPage]);
 
-      return variationNameMatch;
-    });
-
-    setFilteredVariations(filteredData);
-  }, [activeFilters, variations]);
-
-  // Filter change handler
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setActiveFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setCurrentPage(1);
+  const toggleColumn = (column) => {
+    setColumnsVisibility((prev) => ({ ...prev, [column]: !prev[column] }));
   };
 
-  // Reset filters function
-  const resetFilters = () => {
-    setActiveFilters({
-      variationName: "",
+  const openAddModal = () => {
+    setModalMode("add");
+    setCurrentVariation(null);
+    setFormData(initialForm);
+  };
+
+  const openEditModal = (variation) => {
+    setModalMode("edit");
+    setCurrentVariation(variation);
+    setFormData({
+      variationName: variation.variationName || "",
+      values: Array.isArray(variation.values) && variation.values.length
+        ? variation.values
+        : [""],
     });
   };
+
+  const openViewModal = (variation) => {
+    setCurrentVariation(variation);
+    setModalMode("view");
+  };
+
+  const closeModal = () => {
+    setModalMode(null);
+    setCurrentVariation(null);
+    setFormData(initialForm);
+  };
+
+  const handleVariationNameChange = (event) => {
+    setFormData((prev) => ({ ...prev, variationName: event.target.value }));
+  };
+
+  const handleValueChange = (index, value) => {
+    setFormData((prev) => {
+      const next = [...prev.values];
+      next[index] = value;
+      return { ...prev, values: next };
+    });
+  };
+
+  const addValueField = () => {
+    setFormData((prev) => ({ ...prev, values: [...prev.values, ""] }));
+  };
+
+  const removeValueField = (index) => {
+    setFormData((prev) => {
+      const next = prev.values.filter((_, idx) => idx !== index);
+      return { ...prev, values: next.length ? next : [""] };
+    });
+  };
+
+  const handleSaveVariation = async () => {
+    const cleanedValues = formData.values.map((value) => value.trim()).filter(Boolean);
+
+    if (!formData.variationName.trim()) {
+      toast.warning("Variation name is required");
+      return;
+    }
+
+    if (!cleanedValues.length) {
+      toast.warning("At least one variation value is required");
+      return;
+    }
+
+    try {
+      const isEdit = modalMode === "edit" && currentVariation?.id;
+      const url = isEdit
+        ? `${process.env.REACT_APP_BASE_URL}/variations/update/${currentVariation.id}`
+        : `${process.env.REACT_APP_BASE_URL}/variations/save`;
+
+      const payload = {
+        variationName: formData.variationName.trim(),
+        values: cleanedValues,
+        ...(isEdit ? { id: currentVariation.id } : {}),
+      };
+
+      const response = await fetch(url, {
+        method: isEdit ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Unable to save variation");
+      }
+
+      await fetchVariations();
+      closeModal();
+      toast.success(`Variation ${isEdit ? "updated" : "added"} successfully`);
+    } catch (error) {
+      toast.error("Error saving variation");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this variation?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/variations/delete/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Delete failed");
+      }
+
+      await fetchVariations();
+      toast.success("Variation deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete variation");
+    }
+  };
+
+  const exportRows = filteredVariations.map((row) => ({
+    "Variation Name": row.variationName || "-",
+    Values: (row.values || []).join(", ") || "-",
+  }));
 
   const exportCSV = () => {
-    const csvData = filteredVariations.map((variation) => ({
-      variationName: variation.variationName,
-      Value: variation.values.join(", "),
-    }));
-
+    if (!exportRows.length) return;
     const csv = [
-      ["Variation Name", "Value"],
-      ...csvData.map((row) => Object.values(row)),
-    ]
-      .map((row) => row.join(","))
-      .join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv" });
-    saveAs(blob, "variations.csv");
+      Object.keys(exportRows[0]).join(","),
+      ...exportRows.map((row) =>
+        Object.values(row)
+          .map((value) => `"${value ?? ""}"`)
+          .join(","),
+      ),
+    ].join("\n");
+    saveAs(new Blob([csv], { type: "text/csv" }), "Variations.csv");
   };
 
   const exportExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(
-      filteredVariations.map((variation) => ({
-        variationName: variation.variationName,
-        Value: variation.values.join(", "),
-      }))
-    );
+    const ws = XLSX.utils.json_to_sheet(exportRows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Variations");
-    XLSX.writeFile(wb, "variations.xlsx");
+    XLSX.writeFile(wb, "Variations.xlsx");
   };
 
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.autoTable({
-      head: [["Variation Name", "Value"]],
-      body: filteredVariations.map((variation) => [
-        variation.variationName,
-        variation.values.join(", "),
-      ]),
+      head: [Object.keys(exportRows[0] || {})],
+      body: exportRows.map((row) => Object.values(row)),
+      headStyles: { fillColor: [12, 68, 97] },
+      styles: { fontSize: 8 },
     });
-    doc.save("variations.pdf");
+    doc.save("Variations.pdf");
   };
 
-  const toggleColumn = (column) => {
-    setColumnsVisibility((prev) => ({
-      ...prev,
-      [column]: !prev[column],
-    }));
-  };
+  const printData = () => window.print();
 
-  const printData = () => {
-    const tableContainer = document.getElementById("table-container");
-    const clonedContainer = tableContainer.cloneNode(true);
-    const $clonedContainer = $(clonedContainer);
+  const renderPagination = () => {
+    const pages = [];
+    const visibleCount = 5;
+    let start = Math.max(1, safePage - Math.floor(visibleCount / 2));
+    const end = Math.min(totalPages, start + visibleCount - 1);
+    start = Math.max(1, end - visibleCount + 1);
 
-    $clonedContainer.find(".dataTables_filter").remove();
-    $clonedContainer.find(".dataTables_paginate").remove();
-    $clonedContainer.find(".dataTables_info").remove();
-    $clonedContainer.find("td button").remove();
+    for (let page = start; page <= end; page += 1) {
+      pages.push(
+        <button
+          key={page}
+          type="button"
+          className={`erp-page-btn ${page === safePage ? "active" : ""}`}
+          onClick={() => setCurrentPage(page)}
+        >
+          {page}
+        </button>,
+      );
+    }
 
-    const printWindow = window.open("", "", "height=800,width=1200");
-
-    printWindow.document.write("<html><head><title>Print</title>");
-    printWindow.document.write(
-      '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">'
+    return (
+      <div className="erp-pagination">
+        <button
+          type="button"
+          className="erp-page-btn"
+          onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+          disabled={safePage <= 1}
+        >
+          <i className="fa fa-chevron-left"></i>
+        </button>
+        {pages}
+        <button
+          type="button"
+          className="erp-page-btn"
+          onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+          disabled={safePage >= totalPages}
+        >
+          <i className="fa fa-chevron-right"></i>
+        </button>
+      </div>
     );
-    printWindow.document.write("</head><body>");
-    printWindow.document.write($clonedContainer.html());
-    printWindow.document.write("</body></html>");
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  };
-
-  const handleFormChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-  };
-
-  const handleValueChange = (index, newValue) => {
-    setFormData((prevFormData) => {
-      const updatedValues = [...prevFormData.values];
-      updatedValues[index] = newValue; // Update the specific index with the new value
-      return { ...prevFormData, values: updatedValues };
-    });
-  };
-
-  const addValueField = () => {
-    setFormData({ ...formData, values: [...formData.values, ""] });
-  };
-
-  const removeValueField = (index) => {
-    const values = formData.values.filter((_, i) => i !== index);
-    setFormData({ ...formData, values: values });
-  };
-
-  const handleEntriesChange = (e) => {
-    setEntriesPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
-
-  const startIndex = (currentPage - 1) * entriesPerPage;
-  const endIndex = startIndex + entriesPerPage;
-
-  const handleEdit = (id) => {
-    const variationToEdit = filteredVariations.find(
-      (variation) => variation.id === id
-    );
-    if (variationToEdit) {
-      setCurrentVariation(variationToEdit);
-      setFormData({
-        variationName: variationToEdit.variationName,
-        values: variationToEdit.values || [], // Corrected to ensure it's an array
-      });
-      setModalType("edit");
-    }
-  };
-
-  const handleSaveVariation = async () => {
-    try {
-      if (modalType === "edit" && currentVariation) {
-        const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/variations/update/${currentVariation.id}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ ...formData, id: currentVariation.id }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to update variation");
-        }
-
-        const updatedVariation = await response.json();
-        setVariations((prevVariations) =>
-          prevVariations.map((variation) =>
-            variation.id === updatedVariation.id ? updatedVariation : variation
-          )
-        );
-        closeModal();
-        toast.success("Variation updated successfully!");
-      } else if (modalType === "add") {
-        const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/variations/save`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData), // Ensure formData is structured correctly
-          }
-        );
-
-        if (response.status !== 201) {
-          throw new Error("Failed to add variation");
-        }
-
-        const newVariation = await response.json();
-        setVariations((prevVariations) => [...prevVariations, newVariation]);
-        closeModal();
-        toast.success("Variation added successfully!");
-      }
-    } catch (error) {
-      // console.error("Error saving variation:", error);
-      toast.error("Error saving variation");
-    }
-  };
-
-  const closeModal = () => {
-    setModalType(null);
-    setCurrentVariation(null);
-  };
-
-  const handleView = (id) => {
-    const variationToView = filteredVariations.find(
-      (variation) => variation.id === id
-    );
-    if (variationToView) {
-      setCurrentVariation(variationToView);
-      setModalType("view");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this variation?")) {
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/variations/delete/${id}`,
-          {
-            method: "DELETE",
-          }
-        );
-
-        if (response.status === 204) {
-          setVariations((prevVariations) =>
-            prevVariations.filter((variation) => variation.id !== id)
-          );
-          toast.success("Variation deleted successfully!");
-        } else {
-          toast.error("Failed to delete variation.");
-        }
-      } catch (error) {
-        //console.error("Error deleting variation:", error);
-        toast.error("Error deleting variation");
-      }
-    }
   };
 
   return (
     <div className="wrapper">
-      <div className="content-wrapper">
-        <section className="content-header">
+      <div className="content-wrapper erp-product-page erp-master-page">
+        <section className="content pt-3">
           <div className="container-fluid">
-            <div className="row mb-2">
-              <div className="col-12 col-md-6">
-                <div className="d-flex align-items-center">
-                  <BackButton />
-                  <h1>Variation</h1>
+            <div className="erp-page-header rounded-4 p-3 mb-3">
+              <div className="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                  <div className="d-flex align-items-center gap-2">
+                    <BackButton />
+                    <h1 className="erp-page-title mb-0">Variations</h1>
+                  </div>
                 </div>
-                <span className="d-inline d-md-block">Manage Variation</span>
+                <button type="button" className="erp-btn erp-btn-primary" onClick={openAddModal}>
+                  <i className="fa fa-plus"></i>
+                  Add Variation
+                </button>
               </div>
             </div>
-          </div>
-        </section>
-        <section className="content">
-          <div className="container-fluid">
-            {/* Filter Card */}
-            <div className="card card-default rounded-4 border-0 cardHover mb-3">
-              <div
-                className="my- p-3 d-flex align-items-center"
-                style={{
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
-                onClick={() => setFilterOpen(!filterOpen)}
-              >
-                <i className={`fa fa-filter me-3`}></i>
-                <span>Filter</span>
+
+            <div className="erp-filter-card rounded-4 mb-3">
+              <div className="erp-filter-head" onClick={() => setFilterOpen((prev) => !prev)}>
+                <span>
+                  <i className="fa fa-filter me-2"></i>
+                  Filter
+                </span>
+                <i className={`fa ${filterOpen ? "fa-chevron-up" : "fa-chevron-down"}`}></i>
               </div>
-
               <Collapse in={filterOpen}>
-                <div className="border-top">
-                  <div className="card-body">
-                    <div className="row py-2 g-2">
-                      {/* Variation Name Dropdown */}
-                      <div className="col-md-6">
-                        <div className="form-group">
-                          <label className="me-2">Variation Name:</label>
-                          <select
-                            className="form-select"
-                            name="variationName"
-                            value={activeFilters.variationName}
-                            onChange={handleFilterChange}
-                          >
-                            <option value="">All Variations</option>
-                            {filterValues.variationNames.map((name, index) => (
-                              <option key={`name-${index}`} value={name}>
-                                {name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Reset Button */}
-                      <div className="col-md-6 d-flex align-items-end">
-                        <button
-                          className="btn btn-sm btn-outline-secondary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            resetFilters();
-                          }}
-                          disabled={!Object.values(activeFilters).some(Boolean)}
-                        >
-                          <i className="fa fa-times me-1"></i> Reset All Filters
-                        </button>
-                      </div>
+                <div className="border-top erp-filter-body p-3">
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="erp-label">Variation Name</label>
+                      <select
+                        className="form-select"
+                        value={variationFilter}
+                        onChange={(event) => {
+                          setVariationFilter(event.target.value);
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <option value="">All Variations</option>
+                        {variationOptions.map((value) => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-md-6 d-flex align-items-end">
+                      <button
+                        type="button"
+                        className="erp-btn erp-btn-light"
+                        onClick={() => {
+                          setVariationFilter("");
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <i className="fa fa-undo"></i>
+                        Reset Filters
+                      </button>
                     </div>
                   </div>
                 </div>
               </Collapse>
             </div>
 
-            <div className="card cardHover rounded-4 border-0">
-              <div className="d-flex justify-content-end mb-3">
-                <button
-                  className="btn btn-add"
-                  onClick={() => setModalType("add")}
-                >
-                  <i className="fas fa-plus"></i> Add
-                </button>
-              </div>
-
-              <div className="card-body">
-                <div className="row mb-3 d-flex align-items-center">
-                  <div className="col-12 col-md-auto form-group mb-2 d-flex align-items-center text-bold mt-2 mb-2 mr-2">
-                    <label htmlFor="entriesPerPage" className="mb-0 mr-2">
-                      Show
-                    </label>
+            <div className="erp-table-card rounded-4 p-3">
+              <div className="erp-table-toolbar">
+                <div className="erp-toolbar-left">
+                  <label className="erp-entries">
+                    Show
                     <select
-                      id="entriesPerPage"
-                      className="form-control form-control-sm mr-2"
+                      className="form-select form-select-sm"
                       value={entriesPerPage}
-                      onChange={handleEntriesChange}
+                      onChange={(event) => {
+                        setEntriesPerPage(Number(event.target.value));
+                        setCurrentPage(1);
+                      }}
                     >
                       <option value={10}>10</option>
                       <option value={25}>25</option>
                       <option value={50}>50</option>
-                      <option value={75}>75</option>
                       <option value={100}>100</option>
                     </select>
                     Entries
+                  </label>
+
+                  <div className="erp-export-group">
+                    <button type="button" className="erp-btn erp-btn-light" onClick={exportCSV}>
+                      <i className="fa fa-file-csv"></i>
+                      CSV
+                    </button>
+                    <button type="button" className="erp-btn erp-btn-light" onClick={exportExcel}>
+                      <i className="fa fa-file-excel"></i>
+                      Excel
+                    </button>
+                    <button type="button" className="erp-btn erp-btn-light" onClick={exportPDF}>
+                      <i className="fa fa-file-pdf"></i>
+                      PDF
+                    </button>
+                    <button type="button" className="erp-btn erp-btn-light" onClick={printData}>
+                      <i className="fa fa-print"></i>
+                      Print
+                    </button>
                   </div>
 
-                  <div className="col d-flex flex-wrap align-items-center">
-                    <button
-                      onClick={exportCSV}
-                      className="btn Export-Btn mt-2 mb-2 mr-2"
-                    >
-                      <i className="fa fa-file-csv"></i> Export CSV
-                    </button>
-
-                    <button
-                      onClick={exportExcel}
-                      className="btn Export-Btn mt-2 mb-2 mr-2"
-                    >
-                      <i className="fa fa-file-excel"></i> Export Excel
-                    </button>
-
-                    <button
-                      onClick={printData}
-                      className="btn Export-Btn mt-2 mb-2 mr-2"
-                    >
-                      <i className="fa fa-print"></i> Print
-                    </button>
-
-                    <button
-                      onClick={exportPDF}
-                      className="btn Export-Btn mt-2 mb-2 mr-2"
-                    >
-                      <i className="fa fa-file-pdf"></i> Export PDF
-                    </button>
-
-                    <div className="dropdown mt-lg-2 mb-lg-2">
-                      <button
-                        className="btn Export-Btn dropdown-toggle"
-                        type="button"
-                        id="dropdownMenuButton"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                      >
-                        <i className="fa fa-columns"></i> Column Visibility
-                      </button>
-                      <div
-                        className="dropdown-menu pointer-event"
-                        aria-labelledby="dropdownMenuButton"
-                      >
-                        {Object.keys(columnsVisibility).map((col) => (
-                          <div
-                            key={col}
-                            className="dropdown-item d-flex align-items-center"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={columnsVisibility[col]}
-                              onChange={() => toggleColumn(col)}
-                              className="mr-2"
-                            />
-                            {col.replace(/([A-Z])/g, " $1").toUpperCase()}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                  <Dropdown>
+                    <Dropdown.Toggle className="btn erp-btn erp-btn-light erp-column-btn">
+                      <i className="fa fa-columns"></i>
+                      Columns
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu className="erp-column-menu">
+                      {Object.keys(columnsVisibility).map((column) => (
+                        <Dropdown.Item
+                          as="button"
+                          key={column}
+                          className="erp-column-item"
+                          onClick={() => toggleColumn(column)}
+                        >
+                          <input type="checkbox" checked={columnsVisibility[column]} readOnly />
+                          <span>{column.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase())}</span>
+                        </Dropdown.Item>
+                      ))}
+                    </Dropdown.Menu>
+                  </Dropdown>
                 </div>
-                <div id="table-container" style={{ overflowX: "auto" }}>
-                  <table
-                    id="example1"
-                    className="table table-bordered table-hover"
-                  >
-                    <thead>
+                <div className="erp-toolbar-right">{renderPagination()}</div>
+              </div>
+
+              <div className="erp-table-wrap">
+                <table className="table table-hover align-middle erp-product-table erp-master-table">
+                  <thead>
+                    <tr>
+                      {columnsVisibility.variationName && <th>Variation Name</th>}
+                      {columnsVisibility.values && <th>Values</th>}
+                      {columnsVisibility.actions && <th>Actions</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayedVariations.length === 0 && (
                       <tr>
-                        {columnsVisibility.variationName && (
-                          <th>Variation Name</th>
-                        )}
-                        {columnsVisibility.Value && <th>Value</th>}
-                        {columnsVisibility.Action && <th>Actions</th>}
+                        <td colSpan={3}>
+                          <div className="erp-empty-state">
+                            <i className="fa fa-sliders-h"></i>
+                            <h6>No variations found</h6>
+                            <p>Try changing filters or add a new variation.</p>
+                          </div>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {filteredVariations
-                        .slice(startIndex, endIndex)
-                        .map((variation) => (
-                          <tr key={variation.id}>
-                            {columnsVisibility.variationName && (
-                              <td>{variation.variationName}</td>
-                            )}
-                            {columnsVisibility.Value && (
-                              <td>{(variation.values || []).join(", ")}</td>
-                            )}
-                            {columnsVisibility.Action && (
-                              <td>
-                                <button
-                                  className="btn btn-edit btn-sm mr-2"
-                                  onClick={() => handleEdit(variation.id)}
-                                >
-                                  <i className="fas fa-edit"></i> Edit
-                                </button>
-                                <button
-                                  className="btn btn-view btn-sm mr-2"
-                                  onClick={() => handleView(variation.id)}
-                                >
-                                  <i className="fas fa-eye"></i> View
-                                </button>
-                                <button
-                                  className="btn btn-delete btn-sm"
-                                  onClick={() => handleDelete(variation.id)}
-                                >
-                                  <i className="fas fa-trash"></i> Delete
-                                </button>
-                              </td>
-                            )}
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
+                    )}
+                    {displayedVariations.map((row) => (
+                      <tr key={row.id}>
+                        {columnsVisibility.variationName && <td>{row.variationName || "-"}</td>}
+                        {columnsVisibility.values && (
+                          <td>
+                            <div className="erp-pill-wrap">
+                              {(row.values || []).length ? (
+                                row.values.map((value) => (
+                                  <span className="erp-tax-pill" key={`${row.id}-${value}`}>
+                                    {value}
+                                  </span>
+                                ))
+                              ) : (
+                                <span>-</span>
+                              )}
+                            </div>
+                          </td>
+                        )}
+                        {columnsVisibility.actions && (
+                          <td>
+                            <div className="erp-row-actions">
+                              <button
+                                type="button"
+                                className="erp-btn erp-btn-light btn-sm"
+                                onClick={() => openEditModal(row)}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                className="erp-btn erp-btn-light btn-sm"
+                                onClick={() => openViewModal(row)}
+                              >
+                                View
+                              </button>
+                              <button
+                                type="button"
+                                className="erp-btn erp-btn-danger btn-sm"
+                                onClick={() => handleDelete(row.id)}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="erp-table-footer">
+                <div className="erp-table-info">
+                  Showing {filteredVariations.length === 0 ? 0 : startIndex + 1} to{" "}
+                  {Math.min(endIndex, filteredVariations.length)} of {filteredVariations.length} entries
                 </div>
+                {renderPagination()}
               </div>
             </div>
           </div>
         </section>
 
-        {/* modal */}
-        {modalType && (
-          <div
-            className="modal fade show"
-            id="variationModal"
-            tabIndex="-1"
-            role="dialog"
-            aria-labelledby="variationModalLabel"
-            aria-hidden={!modalType}
-            style={{ display: modalType ? "block" : "none" }}
-          >
-            <div className="modal-dialog" role="document">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title" id="variationModalLabel">
-                    {modalType === "add"
+        {modalMode && (
+          <>
+            <div className="erp-modal-backdrop" onClick={closeModal}></div>
+            <div className="erp-modal-wrap" role="dialog" aria-modal="true">
+              <div className="erp-modal-card">
+                <div className="erp-modal-head">
+                  <h5>
+                    {modalMode === "add"
                       ? "Add Variation"
-                      : modalType === "edit"
+                      : modalMode === "edit"
                         ? "Edit Variation"
                         : "View Variation"}
                   </h5>
-                  <button
-                    type="button"
-                    className="close"
-                    onClick={closeModal}
-                    aria-label="Close"
-                  >
-                    <span aria-hidden="true">&times;</span>
+                  <button type="button" className="erp-icon-btn" onClick={closeModal}>
+                    <i className="fa fa-times"></i>
                   </button>
                 </div>
 
-                <div className="modal-body">
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      handleSaveVariation();
-                    }}
-                  >
-                    {(modalType === "add" || modalType === "edit") && (
-                      <div>
-                        <div className="form-group">
-                          <label htmlFor="variationName">Variation Name</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            id="variationName"
-                            value={formData.variationName}
-                            onChange={handleFormChange}
-                            placeholder="Enter variation name"
-                            required
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label htmlFor="Value">Add variation Value</label>
-                          {formData.values.map((value, index) => (
-                            <div className="input-group mb-3" key={index}>
-                              <input
-                                type="text"
-                                className="form-control"
-                                value={value}
-                                onChange={(e) =>
-                                  handleValueChange(index, e.target.value)
-                                }
-                                placeholder="Enter value"
-                                required
-                              />
-                              <div className="input-group-append">
-                                {/* Show the plus icon only for the first field */}
-                                {index === 0 && (
-                                  <button
-                                    type="button"
-                                    className="btn btn-success btn-sm mx-3"
-                                    onClick={addValueField}
-                                  >
-                                    <i className="fas fa-plus"></i>
-                                  </button>
-                                )}
-                                {/* Show the minus icon only for fields other than the first one */}
-                                {index > 0 && (
-                                  <button
-                                    type="button"
-                                    className="btn btn-danger btn-sm mx-3"
-                                    onClick={() => removeValueField(index)}
-                                  >
-                                    <i className="fas fa-minus"></i>
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                <div className="erp-modal-body">
+                  {(modalMode === "add" || modalMode === "edit") && (
+                    <div className="row g-3">
+                      <div className="col-12">
+                        <label className="erp-label">Variation Name</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={formData.variationName}
+                          onChange={handleVariationNameChange}
+                          placeholder="Enter variation name"
+                        />
                       </div>
-                    )}
-
-                    {modalType === "view" && currentVariation && (
-                      <div>
-                        <p>
-                          <strong>Variation Name:</strong>{" "}
-                          {currentVariation.variationName}
-                        </p>
-                        <p>
-                          <strong>Value:</strong>{" "}
-                          {(currentVariation.values || []).join(", ")}
-                        </p>
+                      <div className="col-12">
+                        <label className="erp-label">Variation Values</label>
+                        {formData.values.map((value, index) => (
+                          <div className="d-flex align-items-center gap-2 mb-2" key={`value-${index}`}>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={value}
+                              onChange={(event) => handleValueChange(index, event.target.value)}
+                              placeholder="Enter value"
+                            />
+                            {index === 0 ? (
+                              <button
+                                type="button"
+                                className="erp-btn erp-btn-soft"
+                                onClick={addValueField}
+                              >
+                                <i className="fa fa-plus"></i>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="erp-btn erp-btn-danger"
+                                onClick={() => removeValueField(index)}
+                              >
+                                <i className="fa fa-minus"></i>
+                              </button>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    )}
-                    <div className="modal-footer">
-                      {modalType === "add" || modalType === "edit" ? (
-                        <>
-                          <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={closeModal}
-                          >
-                            Close
-                          </button>
-                          <button type="submit" className="btn btn-primary">
-                            Save
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          className="btn btn-secondary"
-                          onClick={closeModal}
-                        >
-                          Close
-                        </button>
-                      )}
                     </div>
-                  </form>
+                  )}
+
+                  {modalMode === "view" && currentVariation && (
+                    <div className="row g-2">
+                      <div className="col-12">
+                        <label className="erp-label">Variation Name</label>
+                        <div className="erp-readonly-box">{currentVariation.variationName || "-"}</div>
+                      </div>
+                      <div className="col-12">
+                        <label className="erp-label">Values</label>
+                        <div className="erp-readonly-box">
+                          {(currentVariation.values || []).join(", ") || "-"}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="erp-modal-foot">
+                  <button type="button" className="erp-btn erp-btn-light" onClick={closeModal}>
+                    Cancel
+                  </button>
+                  {(modalMode === "add" || modalMode === "edit") && (
+                    <button
+                      type="button"
+                      className="erp-btn erp-btn-primary"
+                      onClick={handleSaveVariation}
+                    >
+                      Save
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>
   );
-};
+}
 
 export default Variation;

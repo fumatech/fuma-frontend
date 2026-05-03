@@ -6,6 +6,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import axios from "axios";
 import { toast } from "react-toastify";
+import useBarcodeScanner from "../../hooks/useBarcodeScanner";
+import playProductAddedBeep from "../../utils/playProductAddedBeep";
 
 function AddPurchaseReturn() {
   const navigate = useNavigate();
@@ -35,6 +37,7 @@ function AddPurchaseReturn() {
   const [taxAmount, setTaxAmount] = useState(0);
   const [subTotal, setSubTotal] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
+  const inFlightBarcodeRequests = useRef(new Set());
 
   useEffect(() => {
     const email = sessionStorage.getItem("userEmail");
@@ -122,8 +125,7 @@ function AddPurchaseReturn() {
   const searchProducts = async (query) => {
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
+        `${process.env.REACT_APP_BASE_URL
         }/product/search/active?query=${encodeURIComponent(query)}`
       );
       const data = await response.json();
@@ -318,6 +320,112 @@ function AddPurchaseReturn() {
       })
     );
   };
+
+  const addOrIncrementScannedProduct = async (product, scannedBarcode) => {
+    const stock = await fetchCurrentStock(product.id, null);
+
+    setSelectedProducts((prev) => {
+      let matchedVariation = null;
+      if (product.productVariations && product.productVariations.length > 0) {
+        if (scannedBarcode) {
+          matchedVariation = product.productVariations.find(
+            (v) =>
+              (v.subSku && v.subSku.toLowerCase() === scannedBarcode.toLowerCase()) ||
+              (product.barcode && product.barcode.toLowerCase() === scannedBarcode.toLowerCase())
+          );
+        }
+        if (!matchedVariation) {
+          matchedVariation = product.productVariations[0];
+        }
+      }
+
+      const existingIndex = prev.findIndex(
+        (item) => (item.productId === product.id || item.id === product.id) &&
+                  (!matchedVariation || item.productVariationId === matchedVariation.id || item.variationId === matchedVariation.id || !item.variationId && !matchedVariation)
+      );
+
+      if (existingIndex >= 0) {
+        const next = [...prev];
+        const currentQuantity = next[existingIndex].quantity || 0;
+        const nextQuantity = currentQuantity + 1;
+
+        if (stock > 0 && nextQuantity > stock) {
+          toast.warning("Quantity cannot exceed available stock!");
+          return prev;
+        }
+
+        next[existingIndex] = {
+          ...next[existingIndex],
+          quantity: nextQuantity,
+          stock,
+        };
+        return next;
+      }
+
+      if (matchedVariation) {
+          const variation = matchedVariation;
+          return [
+              ...prev,
+              {
+                  id: product.id,
+                  productId: product.id,
+                  productName: product.name || product.productName,
+                  sku: product.sku || variation.subSku || "",
+                  barcode: product.barcode,
+                  variationId: variation.id,
+                  productVariationId: variation.id,
+                  variationValue: variation.variationValue,
+                  quantity: 1,
+                  defaultSellingPrice: Number(variation.defaultSellingPrice || product.price || 0),
+                  stock,
+              }
+          ];
+      }
+
+      return [
+        ...prev,
+        {
+          id: product.id,
+          productId: product.id,
+          productName: product.name || product.productName,
+          sku: product.sku || "",
+          barcode: product.barcode,
+          quantity: 1,
+          defaultSellingPrice: Number(product.price || 0),
+          stock,
+        },
+      ];
+    });
+  };
+
+  useBarcodeScanner(async (barcode) => {
+    if (inFlightBarcodeRequests.current.has(barcode)) {
+      return;
+    }
+
+    inFlightBarcodeRequests.current.add(barcode);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/api/products/barcode/${encodeURIComponent(
+          barcode
+        )}`
+      );
+
+      if (!response.ok) {
+        toast.warning("Product not found");
+        return;
+      }
+
+      const product = await response.json();
+      await addOrIncrementScannedProduct(product, barcode);
+      playProductAddedBeep();
+    } catch (error) {
+      console.error("Error fetching product by barcode:", error);
+      toast.error("Unable to scan product right now");
+    } finally {
+      inFlightBarcodeRequests.current.delete(barcode);
+    }
+  }, { allowManualInputEnter: true, manualInputMinLength: 3 });
 
   const handleAdditionalNotesChange = (e) => {
     setAdditionalNotes(e.target.value);
@@ -561,6 +669,9 @@ function AddPurchaseReturn() {
                   <div className="card-body">
                     <div className="form-group">
                       <label>Search Products</label>
+                      <small className="d-block text-muted mb-2">
+                        Scanner active: scan barcode and press Enter from anywhere on this page.
+                      </small>
                       <div className="search-container">
                         <input
                           type="text"
@@ -591,19 +702,17 @@ function AddPurchaseReturn() {
                         {searchResults.map((product, index) => (
                           <div
                             key={product.id}
-                            className={`product-row ${
-                              focusedIndex === index ? "focused" : ""
-                            } ${
-                              (
+                            className={`product-row ${focusedIndex === index ? "focused" : ""
+                              } ${(
                                 product.productVariations.length > 0
                                   ? product.productVariations.some(
-                                      (v) => selectedVariations[v.id]
-                                    )
+                                    (v) => selectedVariations[v.id]
+                                  )
                                   : selectedVariations[product.id]
                               )
                                 ? "selected"
                                 : ""
-                            }`}
+                              }`}
                             onClick={() => handleProductSelect(product)}
                           >
                             <div className="product-content flex justify-between items-start gap-4">
@@ -618,11 +727,10 @@ function AddPurchaseReturn() {
                                       {product.sku}
                                     </span>
                                     <span
-                                      className={`stock ${
-                                        product.stock > 0
-                                          ? "in-stock"
-                                          : "out-of-stock"
-                                      }`}
+                                      className={`stock ${product.stock > 0
+                                        ? "in-stock"
+                                        : "out-of-stock"
+                                        }`}
                                     >
                                       {product.stock > 0
                                         ? `Stock: ${product.stock}`
@@ -641,11 +749,10 @@ function AddPurchaseReturn() {
                                       (variation) => (
                                         <div
                                           key={variation.id}
-                                          className={`variation-item py-0 border rounded px-2 ${
-                                            selectedVariations[variation.id]
-                                              ? "selected"
-                                              : ""
-                                          }`}
+                                          className={`variation-item py-0 border rounded px-2 ${selectedVariations[variation.id]
+                                            ? "selected"
+                                            : ""
+                                            }`}
                                           onClick={(e) => {
                                             e.stopPropagation(); // Prevents parent onClick
                                             handleVariationSelect(
@@ -692,9 +799,8 @@ function AddPurchaseReturn() {
                                 product.quantity;
                               return (
                                 <tr
-                                  key={`${product.id}-${
-                                    product.variationId || "base"
-                                  }`}
+                                  key={`${product.id}-${product.variationId || "base"
+                                    }`}
                                 >
                                   <td>{index + 1}</td>
                                   <td>

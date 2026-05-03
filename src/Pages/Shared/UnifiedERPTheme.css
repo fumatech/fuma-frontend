@@ -1,0 +1,227 @@
+.contact-user-page .content {
+  padding-top: 0.25rem;
+  padding-bottom: 1rem;
+}
+
+.contact-user-page .all-heading,
+.contact-user-page .erp-page-title {
+  font-family: "Roboto", "Lato", sans-serif;
+  font-weight: 700;
+  color: #0c4461;
+  font-size: 1.8rem;
+  line-height: 1.2;
+  margin-bottom: 0;
+}
+
+.contact-user-page .sub-heading {
+  color: #6e8798;
+  font-size: 0.9rem;
+}
+
+.contact-user-page .cardHover,
+.contact-user-page .card-default {
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(12, 68, 97, 0.08);
+  border: 1px solid rgba(12, 68, 97, 0.08) !important;
+  border-radius: 16px !important;
+}
+
+.contact-user-page .btn-add {
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.52rem 1rem;
+  border: 1px solid transparent;
+  background: linear-gradient(120deg, #0c4461, #156587);
+  color: #fff !important;
+}
+
+.contact-user-page .Export-Btn {
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #dbe7ef;
+  background: #f7fbff;
+  color: #0c4461;
+}
+
+.contact-user-page .table thead th {
+  background: #0d4e6d;
+  color: #ffffff;
+  font-size: 0.9rem;
+  border-color: rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+}
+
+.contact-user-page .table tbody td {
+  font-size: 0.95rem;
+  color: #133042;
+  vertical-align: middle;
+}
+
+.contact-user-page .btn-edit,
+.contact-user-page .btn-delete,
+.contact-user-page .btn-view {
+  border-radius: 10px;
+  box-shadow: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-height: 32px;
+  padding: 0.32rem 0.72rem;
+  margin-right: 0;
+}
+
+.contact-user-page .btn-group.btn-icon-only {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.contact-user-page .btn-edit,
+.contact-user-page .btn-view {
+  border: 1px solid #cfe0ec;
+  color: #0c4461;
+  background: #f7fbff;
+}
+
+.contact-user-page .btn-edit:hover,
+.contact-user-page .btn-view:hover {
+  background: #edf5fc;
+  color: #07354d;
+}
+
+.contact-user-page .btn-delete {
+  border: 1px solid transparent;
+  color: #fff;
+  background: linear-gradient(120deg, #ab2232, #cf3d50);
+}
+
+.contact-user-page .btn-delete:hover {
+  color: #fff;
+  opacity: 0.93;
+}
+
+.contact-user-page .dropdown-item .btn-edit,
+.contact-user-page .dropdown-item .btn-view,
+.contact-user-page .dropdown-item .btn-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+}
+
+.contact-user-page .btn-outline-success.rounded-5.dropdown-toggle {
+  border-radius: 10px !important;
+  border: 1px solid #d5e5ef !important;
+  background: #f7fbff !important;
+  color: #0c4461 !important;
+  font-size: 0.9rem !important;
+  font-weight: 600;
+  padding: 0.38rem 0.88rem;
+}
+
+.contact-user-page .btn-outline-success.rounded-5.dropdown-toggle:hover {
+  background: #edf5fc !important;
+}
+
+.contact-user-page .dropdown-menu {
+  border-radius: 10px;
+  border: 1px solid #dbe7ef;
+  box-shadow: 0 10px 26px rgba(12, 68, 97, 0.12);
+}
+
+.users-compact-page #example1 {
+  min-width: 760px !important;
+}
+
+.users-compact-page .table thead th {
+  padding: 0.55rem 0.62rem;
+  font-size: 0.82rem;
+}
+
+.users-compact-page .table tbody td {
+  padding: 0.48rem 0.6rem;
+  font-size: 0.84rem;
+  line-height: 1.2;
+}
+
+.users-compact-page .btn-group.btn-icon-only {
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+}
+
+.users-compact-page .btn-edit,
+.users-compact-page .btn-view,
+.users-compact-page .btn-delete {
+  min-height: 29px;
+  padding: 0.24rem 0.55rem;
+  font-size: 0.76rem;
+}
+
+@media (max-width: 575.98px) {
+  .contact-user-page .all-heading,
+  .contact-user-page .erp-page-title {
+    font-size: 1.45rem;
+  }
+}
+
+.contact-view-page .content-header {
+  padding-top: 0.25rem;
+}
+
+.contact-view-page .content-header .all-heading {
+  margin-bottom: 0 !important;
+}
+
+.contact-view-page .card {
+  border-radius: 16px !important;
+  border: 1px solid rgba(12, 68, 97, 0.08) !important;
+  box-shadow: 0 10px 30px rgba(12, 68, 97, 0.08);
+}
+
+.contact-view-page .card-body {
+  color: #133042;
+}
+
+.contact-view-page .nav-tabs .nav-link {
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-weight: 600;
+  color: #335366;
+  border-radius: 0;
+}
+
+.contact-view-page .nav-tabs .nav-link.active {
+  border-bottom-color: #0c4461 !important;
+  color: #0c4461 !important;
+  background: transparent;
+}
+
+.contact-view-page .btn-primary {
+  background: linear-gradient(120deg, #0c4461, #156587);
+  border-color: transparent;
+  border-radius: 10px;
+}
+
+.contact-view-page .btn-outline-primary {
+  border-radius: 10px;
+}
+
+.contact-view-page .table thead th {
+  background: #0d4e6d;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+}
+
+.contact-view-page .table tbody td {
+  font-size: 0.9rem;
+}

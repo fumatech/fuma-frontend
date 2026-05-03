@@ -5,6 +5,15 @@
 		},
 		{
 			"path": "../../../../fuma-backend"
+		},
+		{
+			"path": "../../../../franchise-backend"
+		},
+		{
+			"path": "C:/Users/sonaw/OneDrive/Pictures/franchise-frontend-dev"
+		},
+		{
+			"path": "../../../../vendor-frontend"
 		}
 	],
 	"settings": {}
