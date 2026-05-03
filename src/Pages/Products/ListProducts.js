@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import "../../assets/dist/css/adminlte.min.css";
 import "../../assets/plugins/fontawesome-free/css/all.min.css";
 import "./ListProducts.css";
+import "./ProductAdminTheme.css";
 
 function ListProducts() {
     const [listProducts, setListProducts] = useState([]);
@@ -27,6 +28,7 @@ function ListProducts() {
     const [units, setUnits] = useState([]);
     const [taxes, setTaxes] = useState([]);
     const [businessLocations, setBusinessLocations] = useState([]);
+    const [warehouses, setWarehouses] = useState([]);
 
     const [categoryMap, setCategoryMap] = useState({});
     const [brandMap, setBrandMap] = useState({});
@@ -57,10 +59,26 @@ function ListProducts() {
         brand: "",
         tax: "",
         businessLocation: "",
+        stockScope: "all",
+        warehouseId: "",
         status: "",
     });
 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchWarehouses = async () => {
+            try {
+                const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/warehouse/getall`);
+                setWarehouses(Array.isArray(response.data) ? response.data : []);
+            } catch (error) {
+                console.error("Error fetching warehouses:", error);
+                setWarehouses([]);
+            }
+        };
+
+        fetchWarehouses();
+    }, []);
 
     useEffect(() => {
         const fetchMasterData = async () => {
@@ -135,17 +153,53 @@ function ListProducts() {
                 });
 
                 let stockMap = {};
+                const warehouseId =
+                    filterValues.stockScope === "warehouse" && filterValues.warehouseId
+                        ? Number(filterValues.warehouseId)
+                        : null;
+
                 try {
-                    const stockResponse = await fetch(
-                        `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/bulk`,
-                        {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(stockRequests),
-                        },
-                    );
-                    if (stockResponse.ok) {
-                        stockMap = await stockResponse.json();
+                    if (!warehouseId) {
+                        const stockResponse = await fetch(
+                            `${process.env.REACT_APP_BASE_URL}/stock-transactions/current-stock/bulk`,
+                            {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(stockRequests),
+                            },
+                        );
+                        if (stockResponse.ok) {
+                            stockMap = await stockResponse.json();
+                        }
+                    } else {
+                        const warehouseBulkResponse = await fetch(
+                            `${process.env.REACT_APP_BASE_URL}/warehouse-stock/current-stock/bulk?warehouseId=${warehouseId}`,
+                            {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(stockRequests),
+                            },
+                        );
+
+                        if (warehouseBulkResponse.ok) {
+                            stockMap = await warehouseBulkResponse.json();
+                        } else {
+                            const fallbackResponse = await fetch(
+                                `${process.env.REACT_APP_BASE_URL}/warehouse-stock/getall?warehouseId=${warehouseId}`,
+                            );
+
+                            if (fallbackResponse.ok) {
+                                const fallbackData = await fallbackResponse.json();
+                                stockMap = (Array.isArray(fallbackData) ? fallbackData : []).reduce(
+                                    (acc, row) => {
+                                        const key = `${row.productId}_${row.productVariationId ?? "null"}`;
+                                        acc[key] = Number(row.quantity || 0);
+                                        return acc;
+                                    },
+                                    {},
+                                );
+                            }
+                        }
                     }
                 } catch (error) {
                     console.error("Error fetching bulk stock:", error);
@@ -194,7 +248,7 @@ function ListProducts() {
         };
 
         fetchProducts();
-    }, [activeTab]);
+    }, [activeTab, filterValues.stockScope, filterValues.warehouseId]);
 
     const filteredProducts = useMemo(() => {
         return listProducts.filter((product) => {
@@ -232,6 +286,10 @@ function ListProducts() {
                 product.businessLocation === filterValues.businessLocation;
             const matchesStatus =
                 !filterValues.status || String(product.status) === String(filterValues.status);
+            const matchesWarehouseStock =
+                filterValues.stockScope !== "warehouse" ||
+                !filterValues.warehouseId ||
+                Number(product.currentStock) > 0;
 
             return (
                 matchesSearch &&
@@ -241,7 +299,8 @@ function ListProducts() {
                 matchesBrand &&
                 matchesTax &&
                 matchesLocation &&
-                matchesStatus
+                matchesStatus &&
+                matchesWarehouseStock
             );
         });
     }, [filterValues, listProducts, categoryMap, brandMap, taxMap]);
@@ -269,7 +328,16 @@ function ListProducts() {
 
     const handleFilterChange = (event) => {
         const { name, value } = event.target;
-        setFilterValues((prev) => ({ ...prev, [name]: value }));
+        setFilterValues((prev) => {
+            if (name === "stockScope") {
+                return {
+                    ...prev,
+                    stockScope: value,
+                    warehouseId: value === "warehouse" ? prev.warehouseId : "",
+                };
+            }
+            return { ...prev, [name]: value };
+        });
         setCurrentPage(1);
     };
 
@@ -282,6 +350,8 @@ function ListProducts() {
             brand: "",
             tax: "",
             businessLocation: "",
+            stockScope: "all",
+            warehouseId: "",
             status: "",
         });
     };
@@ -748,14 +818,14 @@ function ListProducts() {
     const skeletonRows = Array.from({ length: entriesPerPage }, (_, index) => index);
 
     return (
-        <div className="wrapper erp-product-page">
-            <div className="content-wrapper">
+        <div className="wrapper">
+            <div className="content-wrapper erp-product-page erp-master-page">
                 <section className="content">
                     <div className="container-fluid py-3">
                         <div className="erp-page-header card border-0 rounded-4">
                             <div className="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
                                 <div>
-                                    <h4 className="erp-page-title mb-1">List Products</h4>
+                                    <h1 className="erp-page-title mb-0">List Products</h1>
                                 </div>
 
                                 <div className="erp-action-group">
@@ -923,6 +993,37 @@ function ListProducts() {
                                                 {businessLocations.map((location, index) => (
                                                     <option key={`loc-${index}`} value={location}>
                                                         {location}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="col-xl-2 col-lg-4 col-md-6">
+                                            <label className="erp-label">Stock View</label>
+                                            <select
+                                                className="form-select"
+                                                name="stockScope"
+                                                value={filterValues.stockScope}
+                                                onChange={handleFilterChange}
+                                            >
+                                                <option value="all">All Stock</option>
+                                                <option value="warehouse">Warehouse-wise Stock</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="col-xl-2 col-lg-4 col-md-6">
+                                            <label className="erp-label">Warehouse</label>
+                                            <select
+                                                className="form-select"
+                                                name="warehouseId"
+                                                value={filterValues.warehouseId}
+                                                onChange={handleFilterChange}
+                                                disabled={filterValues.stockScope !== "warehouse"}
+                                            >
+                                                <option value="">All</option>
+                                                {warehouses.map((warehouse) => (
+                                                    <option key={warehouse.id} value={warehouse.id}>
+                                                        {warehouse.name}
                                                     </option>
                                                 ))}
                                             </select>

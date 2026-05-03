@@ -118,14 +118,6 @@ const ViewUser = () => {
       prev.includes(id) ? prev.filter((lid) => lid !== id) : [...prev, id]
     );
   };
-  useEffect(() => {
-    fetchUserData();
-    fetchRoles();
-    fetchDepartments();
-    fetchDesignations();
-    fetchPayComponents();
-  }, [id, fetchUserData]);
-
   const fetchUserData = useCallback(async () => {
     try {
       const response = await fetch(
@@ -277,6 +269,14 @@ const ViewUser = () => {
       })
       .catch((error) => console.error("Error fetching pay components:", error));
   };
+
+  useEffect(() => {
+    fetchUserData();
+    fetchRoles();
+    fetchDepartments();
+    fetchDesignations();
+    fetchPayComponents();
+  }, [id, fetchUserData]);
 
   const checkEmailExists = async (email) => {
     try {

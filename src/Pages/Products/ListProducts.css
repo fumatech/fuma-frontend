@@ -12,10 +12,7 @@
 }
 
 .erp-product-page {
-    background:
-        radial-gradient(circle at 12% 0%, rgba(27, 143, 151, 0.1), transparent 35%),
-        radial-gradient(circle at 95% 8%, rgba(120, 184, 51, 0.08), transparent 28%),
-        var(--erp-bg);
+    background: #eceff3;
     min-height: 100%;
     font-family: "Lato", "Segoe UI", sans-serif;
 }
@@ -24,14 +21,16 @@
 .erp-filter-card,
 .erp-table-card {
     background: var(--erp-card);
-    box-shadow: var(--erp-shadow);
-    border: 1px solid rgba(12, 68, 97, 0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #d5dce3;
 }
 
 .erp-page-title {
     font-family: "Roboto", "Lato", sans-serif;
     font-weight: 700;
     color: var(--erp-primary);
+    font-size: 2rem;
+    line-height: 1.2;
 }
 
 .erp-page-subtitle {
@@ -52,7 +51,7 @@
 }
 
 .erp-btn {
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 0.82rem;
     font-weight: 600;
     display: inline-flex;
@@ -69,7 +68,7 @@
 }
 
 .erp-btn-primary {
-    background: linear-gradient(120deg, var(--erp-primary), #156587);
+    background: #0c4461;
     color: #fff;
 }
 
@@ -88,9 +87,9 @@
 }
 
 .erp-btn-soft {
-    background: rgba(12, 68, 97, 0.06);
+    background: #f8f9fa;
     color: var(--erp-primary);
-    border-color: rgba(12, 68, 97, 0.08);
+    border-color: #ced4da;
 }
 
 .erp-btn-soft:hover {
@@ -130,11 +129,11 @@
 .erp-label {
     display: inline-block;
     margin-bottom: 0.35rem;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 700;
-    color: var(--erp-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    color: var(--erp-text);
+    text-transform: none;
+    letter-spacing: 0;
 }
 
 .erp-search-box {
@@ -219,8 +218,8 @@
 }
 
 .erp-table-wrap {
-    border: 1px solid var(--erp-border);
-    border-radius: 14px;
+    border: 1px solid #d5dce3;
+    border-radius: 8px;
     overflow: auto;
     max-height: 58vh;
 }
@@ -234,7 +233,7 @@
     position: sticky;
     top: 0;
     z-index: 2;
-    background: #0d4e6d;
+    background: #0c4461;
     color: #ffffff;
     font-size: 0.76rem;
     text-transform: none;
@@ -243,6 +242,10 @@
     border-right: 1px solid rgba(255, 255, 255, 0.2);
     padding: 0.62rem 0.65rem;
     white-space: nowrap;
+}
+
+.erp-page-header .card-body {
+    text-align: left;
 }
 
 .erp-product-table thead th:last-child {
@@ -479,7 +482,7 @@
 
 @media (max-width: 575.98px) {
     .erp-page-title {
-        font-size: 1.2rem;
+        font-size: 1.45rem;
     }
 
     .erp-page-subtitle {

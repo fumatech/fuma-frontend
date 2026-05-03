@@ -182,6 +182,11 @@ import PrintLabel from "./Pages/Products/PrintLabel";
 import ProductLabel from "./Pages/Products/ProductLabel";
 import EmployeeLayout from "./Pages/EmployeePortal/EmployeeLayout";
 import EmployeeLogin from "./Pages/EmployeePortal/EmployeeLogin";
+import WarehouseLogin from "./Pages/Warehouse/WarehouseLogin";
+import WarehouseDashboard from "./Pages/Warehouse/WarehouseDashboard";
+import WarehouseManagement from "./Pages/Warehouse/WarehouseManagement";
+import WarehouseInward from "./Pages/Warehouse/WarehouseInward";
+import WarehouseDispatch from "./Pages/Warehouse/WarehouseDispatch";
 import EmployeePortalWrapper from "./Pages/EmployeePortal/EmployeePortalWrapper";
 import EmployeeDashboard from "./Pages/EmployeePortal/EmployeeDashboard";
 import EmployeeFaceAttendance from "./Pages/EmployeePortal/EmployeeFaceAttendance";
@@ -386,6 +391,7 @@ const App = () => {
     "/MyViewPayslip": ["employee_portal.view"],
     "/MyNotices": ["employee_portal.view"],
     "/ServiceTickets": ["service_ticket.view"],
+    "/WarehouseManagement": ["warehouse.view"],
   };
 
   const hasPermission = (path) => {
@@ -420,7 +426,14 @@ const App = () => {
 
   const isCustomerPanelRoute =
     typeof window !== "undefined" && window.location.pathname.startsWith("/reward");
-  const routerBasename = isCustomerPanelRoute ? "/" : "/fumamain";
+  const isWarehousePanelRoute =
+    typeof window !== "undefined" && window.location.pathname.startsWith("/warehouse");
+  const hasWarehouseSession =
+    typeof window !== "undefined" && !!sessionStorage.getItem("warehouseAuth");
+  const hasAdminSession =
+    typeof window !== "undefined" && !!sessionStorage.getItem("userEmail");
+  const routerBasename =
+    isCustomerPanelRoute || isWarehousePanelRoute ? "/" : "/fumamain";
 
   return (
     <BrowserRouter basename={routerBasename}>
@@ -445,13 +458,31 @@ const App = () => {
           {/* Employee Portal - separate login for security */}
           <Route path="/employee/login" element={<EmployeeLogin />} />
           <Route path="/employee/*" element={<EmployeeLayout />} />
+          <Route path="/warehouse/login" element={<WarehouseLogin />} />
+          <Route path="/warehouse/dashboard" element={<WarehouseDashboard />} />
+          <Route path="/warehouse/inward" element={<WarehouseInward />} />
+          <Route path="/warehouse/dispatch" element={<WarehouseDispatch />} />
+          <Route path="/warehouse" element={<Navigate to="/warehouse/dashboard" />} />
 
           <Route
             path="*"
             element={
-              <Layout userRoles={userRoles}>
-                <Routes>
+              hasWarehouseSession && !hasAdminSession ? (
+                <Navigate to="/warehouse/dashboard" />
+              ) : (
+                <Layout userRoles={userRoles}>
+                  <Routes>
                   <Route path="/" element={<LoginPage />} />
+                  <Route
+                    path="/WarehouseManagement"
+                    element={
+                      hasPermission("/WarehouseManagement") ? (
+                        <WarehouseManagement />
+                      ) : (
+                        <Navigate to="/" />
+                      )
+                    }
+                  />
                   <Route
                     path="/Dashboard"
                     element={
@@ -1956,8 +1987,9 @@ const App = () => {
                       )
                     }
                   />
-                </Routes>
-              </Layout>
+                  </Routes>
+                </Layout>
+              )
             }
           />
         </Routes>
@@ -1971,8 +2003,9 @@ const Layout = ({ children, userRoles }) => {
 
   const isAuthPage = location.pathname === "/" || location.pathname === "/";
   const isEmployeePortal = location.pathname.startsWith("/employee");
+  const isWarehousePortal = location.pathname.startsWith("/warehouse");
 
-  if (isEmployeePortal) return null;
+  if (isEmployeePortal || isWarehousePortal) return null;
 
   return (
     <div className="wrapper">

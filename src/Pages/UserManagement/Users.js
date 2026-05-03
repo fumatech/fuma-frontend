@@ -8,6 +8,7 @@ import "../../assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css";
 // import "../../assets/plugins/datatables.net-dt/css/jquery.dataTables.min.css";
 // import "../../assets/plugins/datatables.net-buttons/css/buttons.dataTables.min.css";
 import "./Users.css";
+import "../Shared/UnifiedERPTheme.css";
 import "datatables.net";
 
 import "datatables.net-bs4";
@@ -249,8 +250,8 @@ const Users = ({ userRoles }) => {
   };
 
   return (
-    <div className="wrapper">
-      <div className="content-wrapper">
+    <div className="wrapper contact-user-page users-compact-page">
+      <div className="content-wrapper erp-product-page erp-master-page">
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">

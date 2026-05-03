@@ -16,6 +16,7 @@ import "bootstrap-daterangepicker";
 import moment from "moment";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
+import "../Shared/UnifiedERPTheme.css";
 
 const ViewCustomer = () => {
   const [sales, setSales] = useState([]);
@@ -360,7 +361,7 @@ const ViewCustomer = () => {
 
   useEffect(() => {
     axios
-      .get("${process.env.REACT_APP_BASE_URL}/payment-method/active-names")
+      .get(`${process.env.REACT_APP_BASE_URL}/payment-method/active-names`)
       .then((response) => {
         setPaymentMethods(response.data);
       })
@@ -371,7 +372,7 @@ const ViewCustomer = () => {
 
   useEffect(() => {
     axios
-      .get("${process.env.REACT_APP_BASE_URL}/payment-account/getall")
+      .get(`${process.env.REACT_APP_BASE_URL}/payment-account/getall`)
       .then((response) => {
         const activeAccounts = response.data.filter(
           (account) => account.status === 1
@@ -1426,8 +1427,8 @@ const ViewCustomer = () => {
   };
 
   return (
-    <div className="wrapper">
-      <div className="content-wrapper">
+    <div className="wrapper contact-user-page contact-view-page">
+      <div className="content-wrapper erp-product-page erp-master-page">
         <section className="content-header">
           <div className="container-fluid">
             <div className="row mb-2">

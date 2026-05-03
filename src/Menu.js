@@ -218,6 +218,8 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/ListStockTransfer")
     ) {
       setActiveMenu("stock");
+    } else if (path.startsWith("/WarehouseManagement")) {
+      setActiveMenu("warehouseManagement");
     } else if (
       path.startsWith("/AddStockAdjustment") ||
       path.startsWith("/ListStockAdjustment") ||
@@ -360,6 +362,8 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("ListStockTransfer");
     } else if (path === "/AddStockTransfer") {
       setActiveSubMenu("AddStockTransfer");
+    } else if (path === "/WarehouseManagement") {
+      setActiveSubMenu("WarehouseManagement");
     } else if (path === "/AddStockAdjustment") {
       setActiveSubMenu("AddStockAdjustment");
     } else if (path === "/ListStockAdjustment") {
@@ -1727,6 +1731,47 @@ const Menu = ({ userRoles }) => {
                       </li>
                     )}
                   </ul>
+                </li>
+              )}
+
+              {/* Warehouse Management */}
+              {(hasPermission("warehouse.view") || isAdminUser) && (
+                <li className={`nav-item mb-2`}>
+                  <Link
+                    to="/WarehouseManagement"
+                    className={getMenuItemClass("warehouseManagement")}
+                    style={{
+                      borderLeft:
+                        activeMenu === "warehouseManagement"
+                          ? "3px solid #0040C1"
+                          : "none",
+                      backgroundColor:
+                        activeMenu === "warehouseManagement"
+                          ? "rgba(0, 64, 193, 0.05)"
+                          : "transparent",
+                    }}
+                  >
+                    <i
+                      className="nav-icon fas fa-warehouse"
+                      style={{
+                        color:
+                          activeMenu === "warehouseManagement"
+                            ? "#0040C1"
+                            : "#4b5565",
+                      }}
+                    />
+                    <p
+                      className="ms-1"
+                      style={{
+                        color:
+                          activeMenu === "warehouseManagement"
+                            ? "#0040C1"
+                            : "#4b5565",
+                      }}
+                    >
+                      Warehouse Management
+                    </p>
+                  </Link>
                 </li>
               )}
 

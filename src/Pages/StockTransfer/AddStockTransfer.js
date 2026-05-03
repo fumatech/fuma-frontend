@@ -14,9 +14,12 @@ function AddStockTransfer() {
   const navigate = useNavigate();
 
   const [status, setStatus] = useState("");
+  const [transferType, setTransferType] = useState("shop");
   const [locations, setLocations] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
   const [locationFrom, setLocationFrom] = useState("");
   const [locationTo, setLocationTo] = useState("");
+  const [targetWarehouseId, setTargetWarehouseId] = useState("");
   const [transferDate, setTransferDate] = useState(new Date());
   const [referenceNumber, setReferenceNumber] = useState("");
 
@@ -39,6 +42,16 @@ function AddStockTransfer() {
       .then((res) => res.json())
       .then((data) => setLocations(data))
       .catch((err) => console.error("Error fetching locations:", err));
+  }, []);
+
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_BASE_URL}/warehouse/getall`)
+      .then((res) => res.json())
+      .then((data) => setWarehouses(Array.isArray(data) ? data : []))
+      .catch((err) => {
+        console.error("Error fetching warehouses:", err);
+        setWarehouses([]);
+      });
   }, []);
   const handleLocationFromChange = (e) => {
     const selectedFrom = e.target.value;
@@ -348,11 +361,40 @@ function AddStockTransfer() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setError("");
+
+    if (!locationFrom) {
+      setError("Please select location (From)");
+      return;
+    }
+
+    if (transferType === "shop" && !locationTo) {
+      setError("Please select location (To)");
+      return;
+    }
+
+    if (transferType === "shop" && String(locationFrom) === String(locationTo)) {
+      setError("From and To locations cannot be the same");
+      return;
+    }
+
+    if (transferType === "warehouse" && !targetWarehouseId) {
+      setError("Please select target warehouse");
+      return;
+    }
+
+    if (selectedProducts.length === 0) {
+      setError("Please add at least one product");
+      return;
+    }
 
     const stockTransferData = {
       status,
+      transferType: transferType === "warehouse" ? "to_warehouse" : "to_shop",
       locationFrom,
-      locationTo,
+      locationTo: transferType === "shop" ? locationTo : null,
+      targetWarehouseId:
+        transferType === "warehouse" ? Number(targetWarehouseId) : null,
       date: transferDate,
       referenceNumber,
       totalAmount: Number(totalShippingAmount),
@@ -483,8 +525,32 @@ function AddStockTransfer() {
                         </select>
                       </div>
 
+                      {/* Transfer Type */}
+                      <div className="form-group col-md-4">
+                        <label htmlFor="transfer_type">Transfer Type:*</label>
+                        <select
+                          id="transfer_type"
+                          name="transfer_type"
+                          className="form-control"
+                          required
+                          value={transferType}
+                          onChange={(e) => {
+                            const nextType = e.target.value;
+                            setTransferType(nextType);
+                            if (nextType === "shop") {
+                              setTargetWarehouseId("");
+                            } else {
+                              setLocationTo("");
+                            }
+                          }}
+                        >
+                          <option value="shop">To Shop</option>
+                          <option value="warehouse">To Warehouse</option>
+                        </select>
+                      </div>
+
                       {/* Location (From) */}
-                      <div className="form-group col-md-6">
+                      <div className="form-group col-md-4">
                         <label htmlFor="location_id">Location (From):*</label>
                         <select
                           id="location_id"
@@ -505,32 +571,58 @@ function AddStockTransfer() {
                         </select>
                       </div>
 
-                      {/* Location (To) */}
-                      <div className="form-group col-md-6">
-                        <label htmlFor="transfer_location_id">
-                          Location (To):*
-                        </label>
-                        <select
-                          id="transfer_location_id"
-                          className="form-control"
-                          required
-                          value={locationTo}
-                          onChange={handleLocationToChange}
-                          disabled={!locationFrom} // optional UX improvement
-                        >
-                          <option value="" disabled>
-                            Please Select
-                          </option>
+                      {transferType === "shop" ? (
+                        <div className="form-group col-md-4">
+                          <label htmlFor="transfer_location_id">
+                            Location (To):*
+                          </label>
+                          <select
+                            id="transfer_location_id"
+                            className="form-control"
+                            required={transferType === "shop"}
+                            value={locationTo}
+                            onChange={handleLocationToChange}
+                            disabled={!locationFrom}
+                          >
+                            <option value="" disabled>
+                              Please Select
+                            </option>
 
-                          {locations
-                            .filter((loc) => loc.id.toString() !== locationFrom)
-                            .map((loc) => (
-                              <option key={loc.id} value={loc.id}>
-                                {loc.name}
+                            {locations
+                              .filter((loc) => loc.id.toString() !== locationFrom)
+                              .map((loc) => (
+                                <option key={loc.id} value={loc.id}>
+                                  {loc.name}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                      ) : (
+                        <div className="form-group col-md-4">
+                          <label htmlFor="target_warehouse_id">
+                            Target Warehouse:*
+                          </label>
+                          <select
+                            id="target_warehouse_id"
+                            className="form-control"
+                            required={transferType === "warehouse"}
+                            value={targetWarehouseId}
+                            onChange={(e) => setTargetWarehouseId(e.target.value)}
+                          >
+                            <option value="" disabled>
+                              Please Select
+                            </option>
+                            {warehouses.map((warehouse) => (
+                              <option key={warehouse.id} value={warehouse.id}>
+                                {warehouse.name}
                               </option>
                             ))}
-                        </select>
-                      </div>
+                          </select>
+                          <small className="text-muted d-block mt-1">
+                            Warehouse allocation is logical mapping only; main stock remains unchanged.
+                          </small>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
