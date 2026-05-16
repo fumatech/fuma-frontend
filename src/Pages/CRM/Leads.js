@@ -440,6 +440,28 @@ const Leads = () => {
                       </select>
                     </div>
                   </div>
+                  <div className="row g-3">
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-bold small text-uppercase">Assigned To</label>
+                      <select className="form-select" name="employeeid" value={formData.employeeid} onChange={handleInputChange}>
+                        <option value="">Select Sales Person</option>
+                        {users.map(user => (
+                          <option key={user.id} value={user.id}>
+                            {user.firstname} {user.lastname}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-bold small text-uppercase">Priority</label>
+                      <select className="form-select" name="priority" value={formData.priority} onChange={handleInputChange}>
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                        <option value="URGENT">Urgent</option>
+                      </select>
+                    </div>
+                  </div>
                   <div className="modal-footer border-0 p-0 mt-4">
                     <button type="button" className="btn btn-light px-4" onClick={closeModal}>Cancel</button>
                     <button type="submit" className="btn btn-primary px-4 shadow-sm">{currentLead ? "Update Lead" : "Save Lead"}</button>

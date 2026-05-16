@@ -157,9 +157,9 @@ const EmployeeLayout = () => {
     const hasHRDocs = (employee.roles || []).some(role =>
         (role.permissions || []).some(perm => perm.name === "hr_docs.view")
     );
-    // Check CRM Pipeline permission
+    // Check CRM Pipeline permission (allowing both standard crm.view and specific crm_pipeline.view)
     const hasCrmPipeline = (employee.roles || []).some(role =>
-        (role.permissions || []).some(perm => perm.name === "crm_pipeline.view")
+        (role.permissions || []).some(perm => perm.name === "crm_pipeline.view" || perm.name === "crm.view")
     );
 
     return (
@@ -221,27 +221,29 @@ const EmployeeLayout = () => {
                 {/* Menu Items */}
                 <nav className="flex-grow-1 py-2">
                     {menuItems.map((item, idx) => {
-                        // Insert HR Docs after My Payslips (before Notices)
-                        const isAfterPayslips = item.path === "/employee/notices" && hasHRDocs;
+                        // Position logic for custom items (after Payslips, before Notices)
+                        const isInsertionPoint = item.path === "/employee/notices";
                         const isActive = location.pathname === item.path;
                         return (
                             <React.Fragment key={item.path}>
-                                {/* Insert HR Docs menu item before Notices if permission exists */}
-                                {isAfterPayslips && (
+                                {/* Insert HR Docs and CRM before Notices */}
+                                {isInsertionPoint && (
                                     <>
-                                        <Link
-                                            to="/employee/hr-docs"
-                                            className="d-flex align-items-center px-3 py-2 text-white text-decoration-none"
-                                            style={{
-                                                background: location.pathname === "/employee/hr-docs" ? "rgba(255,255,255,0.15)" : "transparent",
-                                                borderLeft: location.pathname === "/employee/hr-docs" ? "3px solid #fff" : "3px solid transparent",
-                                                transition: "all 0.2s ease",
-                                                fontSize: "0.95rem",
-                                            }}
-                                        >
-                                            <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ width: "20px", minWidth: "20px", textAlign: "center" }} />
-                                            {sidebarOpen && <span className="ml-3">HR Docs</span>}
-                                        </Link>
+                                        {hasHRDocs && (
+                                            <Link
+                                                to="/employee/hr-docs"
+                                                className="d-flex align-items-center px-3 py-2 text-white text-decoration-none"
+                                                style={{
+                                                    background: location.pathname === "/employee/hr-docs" ? "rgba(255,255,255,0.15)" : "transparent",
+                                                    borderLeft: location.pathname === "/employee/hr-docs" ? "3px solid #fff" : "3px solid transparent",
+                                                    transition: "all 0.2s ease",
+                                                    fontSize: "0.95rem",
+                                                }}
+                                            >
+                                                <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ width: "20px", minWidth: "20px", textAlign: "center" }} />
+                                                {sidebarOpen && <span className="ml-3">HR Docs</span>}
+                                            </Link>
+                                        )}
 
                                         {hasCrmPipeline && (
                                             <Link
@@ -298,9 +300,11 @@ const EmployeeLayout = () => {
                 className="flex-grow-1"
                 style={{
                     marginLeft: sidebarOpen ? "260px" : "70px",
-                    transition: "margin-left 0.3s ease",
+                    width: sidebarOpen ? "calc(100% - 260px)" : "calc(100% - 70px)",
+                    transition: "all 0.3s ease",
                     background: "#f4f6f9",
                     minHeight: "100vh",
+                    overflowX: "hidden",
                 }}
             >
                 {/* Top Header */}

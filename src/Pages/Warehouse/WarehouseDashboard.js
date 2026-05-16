@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./WarehouseDashboard.css";
@@ -24,6 +24,15 @@ function WarehouseDashboard() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [filterType, setFilterType] = useState("all"); // all, low_stock
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const filter = params.get("filter");
+    if (filter === "low_stock") {
+      setFilterType("low_stock");
+    }
+  }, [location]);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("warehouseAuth");
@@ -129,9 +138,8 @@ function WarehouseDashboard() {
 
   return (
     <div className="warehouse-dashboard-wrapper py-4 px-3">
-      {/* Header Section */}
       <div className="container-fluid mb-4">
-        <div className="d-flex justify-content-between align-items-center">
+        <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
           <div>
             <h2 className="fw-bold text-dark mb-0">{warehouseAuth.name || "Warehouse"} Dashboard</h2>
             <p className="text-muted mb-0">
@@ -149,10 +157,9 @@ function WarehouseDashboard() {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="container-fluid mb-4">
         <div className="row g-4">
-          <div className="col-md-3">
+          <div className="col-md-6 col-xl-3">
             <div className="card warehouse-summary-card bg-products">
               <div className="card-body">
                 <div>
@@ -165,7 +172,7 @@ function WarehouseDashboard() {
               </div>
             </div>
           </div>
-          <div className="col-md-3">
+          <div className="col-md-6 col-xl-3">
             <div className="card warehouse-summary-card bg-stock">
               <div className="card-body">
                 <div>
@@ -178,8 +185,8 @@ function WarehouseDashboard() {
               </div>
             </div>
           </div>
-          <div className="col-md-3">
-            <div className="card warehouse-summary-card bg-alerts" style={{ cursor: 'pointer' }} onClick={() => setFilterType("low_stock")}>
+          <div className="col-md-6 col-xl-3">
+            <div className="card warehouse-summary-card bg-alerts" style={{ cursor: "pointer" }} onClick={() => setFilterType("low_stock")}>
               <div className="card-body">
                 <div>
                   <p className="stat-label">Low Stock Alerts</p>
@@ -191,7 +198,7 @@ function WarehouseDashboard() {
               </div>
             </div>
           </div>
-          <div className="col-md-3">
+          <div className="col-md-6 col-xl-3">
             <div className="card warehouse-summary-card bg-activity">
               <div className="card-body">
                 <div>
@@ -208,24 +215,23 @@ function WarehouseDashboard() {
       </div>
 
       <div className="container-fluid">
-        <div className="row">
-          {/* Main Stock Table */}
-          <div className="col-lg-8">
-            <div className="card border-0 shadow-sm rounded-4 mb-4">
+        <div className="row g-4">
+          <div className="col-xl-8">
+            <div className="card border-0 shadow-sm rounded-4 h-100">
               <div className="card-header bg-white border-0 py-3">
                 <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
                   <h5 className="mb-0 fw-bold">Inventory Overview</h5>
                   <div className="d-flex gap-2 align-items-center">
                     <select
                       className="form-select form-select-sm"
-                      style={{ width: '150px' }}
+                      style={{ width: "150px" }}
                       value={filterType}
                       onChange={(e) => setFilterType(e.target.value)}
                     >
                       <option value="all">All Items</option>
                       <option value="low_stock">Low Stock Only</option>
                     </select>
-                    <div className="input-group input-group-sm" style={{ width: '250px' }}>
+                    <div className="input-group input-group-sm" style={{ width: "260px" }}>
                       <span className="input-group-text bg-white border-end-0"><i className="fa fa-search" /></span>
                       <input
                         type="text"
@@ -281,45 +287,8 @@ function WarehouseDashboard() {
             </div>
           </div>
 
-          {/* Sidebar Activity & Navigation */}
-          <div className="col-lg-4">
-            {/* Quick Navigation */}
-            <div className="card border-0 shadow-sm rounded-4 mb-4">
-              <div className="card-header bg-white border-0 py-3">
-                <h5 className="mb-0 fw-bold">Quick Navigation</h5>
-              </div>
-              <div className="card-body">
-                <div className="row g-3">
-                  <div className="col-6">
-                    <Link to="/warehouse/inward" className="quick-nav-btn">
-                      <i className="fa fa-arrow-down text-success" />
-                      <span>Inward</span>
-                    </Link>
-                  </div>
-                  <div className="col-6">
-                    <Link to="/warehouse/dispatch" className="quick-nav-btn">
-                      <i className="fa fa-truck text-info" />
-                      <span>Dispatch</span>
-                    </Link>
-                  </div>
-                  <div className="col-6">
-                    <Link to="#" className="quick-nav-btn" onClick={() => window.location.reload()}>
-                      <i className="fa fa-sync-alt text-primary" />
-                      <span>Refresh</span>
-                    </Link>
-                  </div>
-                  <div className="col-6">
-                    <Link to="#" className="quick-nav-btn" onClick={() => setFilterType("low_stock")}>
-                      <i className="fa fa-bell text-warning" />
-                      <span>Alerts</span>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="card border-0 shadow-sm rounded-4">
+          <div className="col-xl-4">
+            <div className="card border-0 shadow-sm rounded-4 h-100">
               <div className="card-header bg-white border-0 py-3">
                 <h5 className="mb-0 fw-bold">Recent Transfers</h5>
               </div>
@@ -338,9 +307,9 @@ function WarehouseDashboard() {
                       <p className="mb-1 fw-semibold text-dark">Stock Transfer Received</p>
                       <div className="d-flex justify-content-between align-items-center">
                         <small>{activity.itemCount} Items</small>
-                        <span className={`badge rounded-pill ${activity.status === 'completed' ? 'bg-success' :
-                            activity.status === 'pending' ? 'bg-warning text-dark' : 'bg-info'
-                          } py-1 px-2`} style={{ fontSize: '0.7rem' }}>
+                        <span className={`badge rounded-pill ${activity.status === "completed" ? "bg-success" :
+                          activity.status === "pending" ? "bg-warning text-dark" : "bg-info"
+                          } py-1 px-2`} style={{ fontSize: "0.7rem" }}>
                           {activity.status.toUpperCase()}
                         </span>
                       </div>
@@ -348,7 +317,7 @@ function WarehouseDashboard() {
                   ))
                 )}
                 {summary.recentActivity.length > 0 && (
-                  <button className="btn btn-link btn-sm w-100 text-decoration-none mt-2">View All Activity</button>
+                  <button onClick={() => navigate("/warehouse/inward")} className="btn btn-link btn-sm w-100 text-decoration-none mt-2">View All Activity</button>
                 )}
               </div>
             </div>
@@ -357,7 +326,7 @@ function WarehouseDashboard() {
       </div>
     </div>
   );
+
 }
 
 export default WarehouseDashboard;
-
