@@ -14,5 +14,15 @@ deployment:
 
     # Sync built files to public_html (change 'build/' to 'dist/' if using Vite)
     - /bin/rsync -av --delete build/ /home/fuma/public_html/fumamain/
+    - /bin/bash -lc "cat > /home/fuma/public_html/fumamain/.htaccess <<'EOF'
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /fumamain/
+  RewriteRule ^index\\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /fumamain/index.html [L]
+</IfModule>
+EOF"
 
     - /bin/echo "=== fuma-frontend deploy complete ==="

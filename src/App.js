@@ -183,10 +183,12 @@ import ProductLabel from "./Pages/Products/ProductLabel";
 import EmployeeLayout from "./Pages/EmployeePortal/EmployeeLayout";
 import EmployeeLogin from "./Pages/EmployeePortal/EmployeeLogin";
 import WarehouseLogin from "./Pages/Warehouse/WarehouseLogin";
+import WarehouseLayout from "./Pages/Warehouse/WarehouseLayout";
 import WarehouseDashboard from "./Pages/Warehouse/WarehouseDashboard";
 import WarehouseManagement from "./Pages/Warehouse/WarehouseManagement";
 import WarehouseInward from "./Pages/Warehouse/WarehouseInward";
 import WarehouseDispatch from "./Pages/Warehouse/WarehouseDispatch";
+import WarehouseTransferModule from "./Pages/Warehouse/WarehouseTransferModule";
 import EmployeePortalWrapper from "./Pages/EmployeePortal/EmployeePortalWrapper";
 import EmployeeDashboard from "./Pages/EmployeePortal/EmployeeDashboard";
 import EmployeeFaceAttendance from "./Pages/EmployeePortal/EmployeeFaceAttendance";
@@ -459,10 +461,11 @@ const App = () => {
           <Route path="/employee/login" element={<EmployeeLogin />} />
           <Route path="/employee/*" element={<EmployeeLayout />} />
           <Route path="/warehouse/login" element={<WarehouseLogin />} />
-          <Route path="/warehouse/dashboard" element={<WarehouseDashboard />} />
-          <Route path="/warehouse/inward" element={<WarehouseInward />} />
-          <Route path="/warehouse/dispatch" element={<WarehouseDispatch />} />
-          <Route path="/warehouse" element={<Navigate to="/warehouse/dashboard" />} />
+          <Route path="/warehouse/*" element={<WarehouseLayout />} />
+          <Route path="/StockInward" element={<Navigate to="/warehouse/inward" replace />} />
+          <Route path="/PutAway" element={<Navigate to="/warehouse/put-away" replace />} />
+          <Route path="/Dispatch" element={<Navigate to="/warehouse/dispatch" replace />} />
+          <Route path="/InternalTransfer" element={<Navigate to="/warehouse/transfer" replace />} />
 
           <Route
             path="*"
@@ -472,1521 +475,1531 @@ const App = () => {
               ) : (
                 <Layout userRoles={userRoles}>
                   <Routes>
-                  <Route path="/" element={<LoginPage />} />
-                  <Route
-                    path="/WarehouseManagement"
-                    element={
-                      hasPermission("/WarehouseManagement") ? (
-                        <WarehouseManagement />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Dashboard"
-                    element={
-                      hasPermission("/Dashboard") ? (
-                        <Dashboard />
-                      ) : (
-                        <Navigate to="/MyDashboard" />
-                      )
-                    }
-                  />
-                  <Route path="/Profile" element={<Profile />} />
-                  <Route
-                    path="/Users"
-                    element={
-                      hasPermission("/Users") ? (
-                        <Users userRoles={userRoles} />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddUser"
-                    element={
-                      hasPermission("/AddUser") ? (
-                        <AddUser />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Roles"
-                    element={
-                      hasPermission("/Roles") ? (
-                        <Roles userRoles={userRoles} />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddRoles"
-                    element={
-                      hasPermission("/AddRoles") ? (
-                        <AddRoles />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/EditRoles"
-                    element={
-                      hasPermission("/EditRoles") ? (
-                        <EditRoles />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ViewRole"
-                    element={
-                      hasPermission("/ViewRole") ? (
-                        <ViewRole />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/EditUser/:id"
-                    element={
-                      hasPermission("/EditUser") ? (
-                        <EditUser />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ViewUser/:id"
-                    element={
-                      hasPermission("/ViewUser") ? (
-                        <ViewUser />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Vendor"
-                    element={
-                      hasPermission("/Vendor") ? (
-                        <Vendor userRoles={userRoles} />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddVendor"
-                    element={
-                      hasPermission("/AddVendor") ? (
-                        <AddVendor />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/EditVendor/:id"
-                    element={
-                      hasPermission("/EditVendor") ? (
-                        <EditVendor />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ViewVendor/:id"
-                    element={
-                      hasPermission("/ViewVendor") ? (
-                        <ViewVendor />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Customer"
-                    element={
-                      hasPermission("/Customer") ? (
-                        <Customer userRoles={userRoles} />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddCustomer"
-                    element={
-                      hasPermission("/AddCustomer") ? (
-                        <AddCustomer />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/EditCustomer/:id"
-                    element={
-                      hasPermission("/EditCustomer") ? (
-                        <EditCustomer />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ViewCustomer/:id"
-                    element={
-                      hasPermission("/ViewCustomer") ? (
-                        <ViewCustomer />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ServiceTickets"
-                    element={
-                      hasPermission("/ServiceTickets") ? (
-                        <ServiceTickets />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Permission"
-                    element={
-                      hasPermission("/Permission") ? (
-                        <Permission />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ImageUpload"
-                    element={
-                      hasPermission("/ImageUpload") ? (
-                        <ImageUpload />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/SignatureUpload"
-                    element={
-                      hasPermission("/SignatureUpload") ? (
-                        <SignatureUpload />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ListProducts"
-                    element={
-                      hasPermission("/ListProducts") ? (
-                        <ListProducts />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddProducts"
-                    element={
-                      hasPermission("/AddProducts") ? (
-                        <AddProducts />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/opening-stock/:productId"
-                    element={<OpeningStockPage />}
-                  />
-                  <Route path="/EditList/:productId" element={<EditList />} />
-                  <Route path="/ViewList/:productId" element={<ViewList />} />
-                  <Route path="/PrintLabel" element={<PrintLabel />} />
-                  <Route
-                    path="/ProductLabel/:productId"
-                    element={<ProductLabel />}
-                  />
-                  <Route
-                    path="/Categories"
-                    element={
-                      hasPermission("/Categories") ? (
-                        <Categories />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Brands"
-                    element={
-                      hasPermission("/Brands") ? (
-                        <Brands />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Units"
-                    element={
-                      hasPermission("/Units") ? (
-                        <Units userRoles={userRoles} />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Variation"
-                    element={
-                      hasPermission("/Variation") ? (
-                        <Variation />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ListPurchase"
-                    element={
-                      hasPermission("/ListPurchase") ? (
-                        <ListPurchase />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route path="/AddNewItem" element={<AddNewItem />} />
-                  <Route path="/AddPoPurchase" element={<AddPoPurchase />} />
-                  <Route path="/AddDIPurchase" element={<AddDIPurchase />} />
-                  <Route path="/EditPurchase/:id" element={<EditPurchase />} />
-                  <Route path="/ViewPurchase/:id" element={<ViewPurchase />} />
-                  <Route
-                    path="/PurchaseOrder"
-                    element={
-                      hasPermission("/PurchaseOrder") ? (
-                        <PurchaseOrder />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddPoPurchaseOrder"
-                    element={
-                      hasPermission("/AddPoPurchaseOrder") ? (
-                        <AddPoPurchaseOrder />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ViewPoPurchaseOrder/:id"
-                    element={<ViewPoPurchaseOrder />}
-                  />
-                  <Route
-                    path="/EditPoPurchaseOrder/:id"
-                    element={<EditPoPurchaseOrder />}
-                  />
-                  <Route
-                    path="/AddDIPurchaseOrder"
-                    element={<AddDIPurchaseOrder />}
-                  />
-                  <Route
-                    path="/ListPurchaseOrder"
-                    element={
-                      hasPermission("/ListPurchaseOrder") ? (
-                        <ListPurchaseOrder />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ListPoPurchaseOrder"
-                    element={
-                      hasPermission("/ListPoPurchaseOrder") ? (
-                        <ListPoPurchaseOrder />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ListDIPurchaseOrder"
-                    element={
-                      hasPermission("/ListDIPurchaseOrder") ? (
-                        <ListDIPurchaseOrder />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ViewPurchaseOrder/:id"
-                    element={<ViewPurchaseOrder />}
-                  />
-                  <Route
-                    path="/ViewPurchaseReturn/:id"
-                    element={<ViewPurchaseReturn />}
-                  />
-                  <Route
-                    path="/EditPurchaseReturn/:id"
-                    element={<EditPurchaseReturn />}
-                  />
-                  <Route
-                    path="/EditDIPurchase/:id"
-                    element={<EditDIPurchase />}
-                  />
-                  <Route
-                    path="/ViewDIPurchase/:id"
-                    element={<ViewDIPurchase />}
-                  />
-                  <Route
-                    path="/EditPurchaseOrder/:id"
-                    element={<EditPurchaseOrder />}
-                  />
-                  <Route
-                    path="/ReturnPurchase"
-                    element={
-                      hasPermission("/ReturnPurchase") ? (
-                        <ReturnPurchase />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddPurchaseReturn"
-                    element={<AddPurchaseReturn />}
-                  />
-                  <Route
-                    path="/AllSaleOrders"
-                    element={
-                      hasPermission("/AllSaleOrders") ? (
-                        <AllSale />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route path="/AddSoSale" element={<AddSoSale />} />
-                  <Route
-                    path="/AddSoSale/:franchisePurchaseOrderId"
-                    element={<AddSoSale />}
-                  />
-                  <Route path="/AddDISale" element={<AddDISale />} />
-                  <Route
-                    path="/ListSoSale"
-                    element={
-                      hasPermission("/ListSoSale") ? (
-                        <ListSoSale />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ListDISale"
-                    element={
-                      hasPermission("/ListDISale") ? (
-                        <ListDISale />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route path="/ViewDISale/:id" element={<ViewDISale />} />
-                  <Route path="/ViewSoSale/:id" element={<ViewSoSale />} />
-                  <Route path="/EditSoSale/:id" element={<EditSoSale />} />
-                  <Route path="/EditDISale/:id" element={<EditDISale />} />
+                    <Route path="/" element={<LoginPage />} />
+                    <Route
+                      path="/WarehouseManagement"
+                      element={
+                        hasPermission("/WarehouseManagement") ? (
+                          <WarehouseManagement />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/WarehouseTransfer"
+                      element={
+                        hasPermission("/WarehouseManagement") ? (
+                          <WarehouseTransferModule />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Dashboard"
+                      element={
+                        hasPermission("/Dashboard") ? (
+                          <Dashboard />
+                        ) : (
+                          <Navigate to="/MyDashboard" />
+                        )
+                      }
+                    />
+                    <Route path="/Profile" element={<Profile />} />
+                    <Route
+                      path="/Users"
+                      element={
+                        hasPermission("/Users") ? (
+                          <Users userRoles={userRoles} />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddUser"
+                      element={
+                        hasPermission("/AddUser") ? (
+                          <AddUser />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Roles"
+                      element={
+                        hasPermission("/Roles") ? (
+                          <Roles userRoles={userRoles} />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddRoles"
+                      element={
+                        hasPermission("/AddRoles") ? (
+                          <AddRoles />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/EditRoles"
+                      element={
+                        hasPermission("/EditRoles") ? (
+                          <EditRoles />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ViewRole"
+                      element={
+                        hasPermission("/ViewRole") ? (
+                          <ViewRole />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/EditUser/:id"
+                      element={
+                        hasPermission("/EditUser") ? (
+                          <EditUser />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ViewUser/:id"
+                      element={
+                        hasPermission("/ViewUser") ? (
+                          <ViewUser />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Vendor"
+                      element={
+                        hasPermission("/Vendor") ? (
+                          <Vendor userRoles={userRoles} />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddVendor"
+                      element={
+                        hasPermission("/AddVendor") ? (
+                          <AddVendor />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/EditVendor/:id"
+                      element={
+                        hasPermission("/EditVendor") ? (
+                          <EditVendor />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ViewVendor/:id"
+                      element={
+                        hasPermission("/ViewVendor") ? (
+                          <ViewVendor />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Customer"
+                      element={
+                        hasPermission("/Customer") ? (
+                          <Customer userRoles={userRoles} />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddCustomer"
+                      element={
+                        hasPermission("/AddCustomer") ? (
+                          <AddCustomer />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/EditCustomer/:id"
+                      element={
+                        hasPermission("/EditCustomer") ? (
+                          <EditCustomer />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ViewCustomer/:id"
+                      element={
+                        hasPermission("/ViewCustomer") ? (
+                          <ViewCustomer />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ServiceTickets"
+                      element={
+                        hasPermission("/ServiceTickets") ? (
+                          <ServiceTickets />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Permission"
+                      element={
+                        hasPermission("/Permission") ? (
+                          <Permission />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ImageUpload"
+                      element={
+                        hasPermission("/ImageUpload") ? (
+                          <ImageUpload />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/SignatureUpload"
+                      element={
+                        hasPermission("/SignatureUpload") ? (
+                          <SignatureUpload />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ListProducts"
+                      element={
+                        hasPermission("/ListProducts") ? (
+                          <ListProducts />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddProducts"
+                      element={
+                        hasPermission("/AddProducts") ? (
+                          <AddProducts />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/opening-stock/:productId"
+                      element={<OpeningStockPage />}
+                    />
+                    <Route path="/EditList/:productId" element={<EditList />} />
+                    <Route path="/ViewList/:productId" element={<ViewList />} />
+                    <Route path="/PrintLabel" element={<PrintLabel />} />
+                    <Route
+                      path="/ProductLabel/:productId"
+                      element={<ProductLabel />}
+                    />
+                    <Route
+                      path="/Categories"
+                      element={
+                        hasPermission("/Categories") ? (
+                          <Categories />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Brands"
+                      element={
+                        hasPermission("/Brands") ? (
+                          <Brands />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Units"
+                      element={
+                        hasPermission("/Units") ? (
+                          <Units userRoles={userRoles} />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Variation"
+                      element={
+                        hasPermission("/Variation") ? (
+                          <Variation />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ListPurchase"
+                      element={
+                        hasPermission("/ListPurchase") ? (
+                          <ListPurchase />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route path="/AddNewItem" element={<AddNewItem />} />
+                    <Route path="/AddPoPurchase" element={<AddPoPurchase />} />
+                    <Route path="/AddDIPurchase" element={<AddDIPurchase />} />
+                    <Route path="/EditPurchase/:id" element={<EditPurchase />} />
+                    <Route path="/ViewPurchase/:id" element={<ViewPurchase />} />
+                    <Route
+                      path="/PurchaseOrder"
+                      element={
+                        hasPermission("/PurchaseOrder") ? (
+                          <PurchaseOrder />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddPoPurchaseOrder"
+                      element={
+                        hasPermission("/AddPoPurchaseOrder") ? (
+                          <AddPoPurchaseOrder />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ViewPoPurchaseOrder/:id"
+                      element={<ViewPoPurchaseOrder />}
+                    />
+                    <Route
+                      path="/EditPoPurchaseOrder/:id"
+                      element={<EditPoPurchaseOrder />}
+                    />
+                    <Route
+                      path="/AddDIPurchaseOrder"
+                      element={<AddDIPurchaseOrder />}
+                    />
+                    <Route
+                      path="/ListPurchaseOrder"
+                      element={
+                        hasPermission("/ListPurchaseOrder") ? (
+                          <ListPurchaseOrder />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ListPoPurchaseOrder"
+                      element={
+                        hasPermission("/ListPoPurchaseOrder") ? (
+                          <ListPoPurchaseOrder />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ListDIPurchaseOrder"
+                      element={
+                        hasPermission("/ListDIPurchaseOrder") ? (
+                          <ListDIPurchaseOrder />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ViewPurchaseOrder/:id"
+                      element={<ViewPurchaseOrder />}
+                    />
+                    <Route
+                      path="/ViewPurchaseReturn/:id"
+                      element={<ViewPurchaseReturn />}
+                    />
+                    <Route
+                      path="/EditPurchaseReturn/:id"
+                      element={<EditPurchaseReturn />}
+                    />
+                    <Route
+                      path="/EditDIPurchase/:id"
+                      element={<EditDIPurchase />}
+                    />
+                    <Route
+                      path="/ViewDIPurchase/:id"
+                      element={<ViewDIPurchase />}
+                    />
+                    <Route
+                      path="/EditPurchaseOrder/:id"
+                      element={<EditPurchaseOrder />}
+                    />
+                    <Route
+                      path="/ReturnPurchase"
+                      element={
+                        hasPermission("/ReturnPurchase") ? (
+                          <ReturnPurchase />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddPurchaseReturn"
+                      element={<AddPurchaseReturn />}
+                    />
+                    <Route
+                      path="/AllSaleOrders"
+                      element={
+                        hasPermission("/AllSaleOrders") ? (
+                          <AllSale />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route path="/AddSoSale" element={<AddSoSale />} />
+                    <Route
+                      path="/AddSoSale/:franchisePurchaseOrderId"
+                      element={<AddSoSale />}
+                    />
+                    <Route path="/AddDISale" element={<AddDISale />} />
+                    <Route
+                      path="/ListSoSale"
+                      element={
+                        hasPermission("/ListSoSale") ? (
+                          <ListSoSale />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ListDISale"
+                      element={
+                        hasPermission("/ListDISale") ? (
+                          <ListDISale />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route path="/ViewDISale/:id" element={<ViewDISale />} />
+                    <Route path="/ViewSoSale/:id" element={<ViewSoSale />} />
+                    <Route path="/EditSoSale/:id" element={<EditSoSale />} />
+                    <Route path="/EditDISale/:id" element={<EditDISale />} />
 
-                  <Route
-                    path="/EditSaleReturnOrder/:id"
-                    element={<EditSaleReturnOrder />}
-                  />
-                  <Route
-                    path="/ViewSaleReturn/:id"
-                    element={<ViewSaleReturn />}
-                  />
-                  <Route path="/SaleEntry" element={<SaleEntry />} />
-                  <Route path="/SaleReturn" element={<SaleReturn />} />
-                  <Route path="/ListShipReturn" element={<ListShipReturn />} />
-                  <Route
-                    path="/ListAcceptedReturn"
-                    element={<ListAcceptedReturn />}
-                  />
-                  <Route
-                    path="/OrderList"
-                    element={
-                      hasPermission("/OrderList") ? (
-                        <OrderList />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/SoldOrders"
-                    element={
-                      hasPermission("/SoldOrders") ? (
-                        <SoldOrders />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ViewOrders"
-                    element={
-                      hasPermission("/ViewOrders") ? (
-                        <ViewOrders />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AcceptedOrders"
-                    element={
-                      hasPermission("/AcceptedOrders") ? (
-                        <AcceptedOrders />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/RejectedOrders"
-                    element={
-                      hasPermission("/RejectedOrders") ? (
-                        <RejectedOrders />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ShipOrders"
-                    element={
-                      hasPermission("/ShipOrders") ? (
-                        <ShipOrders />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route path="/ViewOrders/:id" element={<ViewOd />} />
-                  <Route path="/EditOrders/:id" element={<EditOd />} />
-                  <Route
-                    path="/EditAcceptedOrder/:id"
-                    element={<EditAcceptedOrder />}
-                  />
-                  <Route
-                    path="/ViewShipOrders/:id"
-                    element={<ViewShipOrders />}
-                  />
-                  <Route
-                    path="/ListStockTransfer"
-                    element={
-                      hasPermission("/ListStockTransfer") ? (
-                        <ListStockTransfer />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddStockTransfer"
-                    element={
-                      hasPermission("/AddStockTransfer") ? (
-                        <AddStockTransfer />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/EditStockTransfer/:id"
-                    element={
-                      hasPermission("/EditStockTransfer") ? (
-                        <EditStockTransfer />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ViewStockTransfer/:id"
-                    element={
-                      hasPermission("/ViewStockTransfer") ? (
-                        <ViewStockTransfer />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddStockAdjustment/:id"
-                    element={
-                      hasPermission("/AddStockAdjustment") ? (
-                        <AddStockAdjustment />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddStockAdjustment"
-                    element={
-                      hasPermission("/AddStockAdjustment") ? (
-                        <AddStockAdjustment />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ViewStockAdjustment/:id"
-                    element={
-                      hasPermission("/ViewStockAdjustment") ? (
-                        <ViewStockAdjustment />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ListWarrantyClaim"
-                    element={
-                      hasPermission("/ListWarrantyClaim") ? (
-                        <ListWarrantyClaim />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ListVendorWarrantyClaim"
-                    element={
-                      hasPermission("/ListVendorWarrantyClaim") ? (
-                        <ListVendorWarrantyClaim />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ListShippedWarrantyClaim"
-                    element={
-                      hasPermission("/ListShippedWarrantyClaim") ? (
-                        <ListShippedWarrantyClaim />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddWarrantyClaim"
-                    element={
-                      hasPermission("/AddWarrantyClaim") ? (
-                        <AddWarrantyClaim />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ViewWarrantyClaim/:id"
-                    element={
-                      hasPermission("/ViewWarrantyClaim") ? (
-                        <ViewWarrantyClaim />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/VendorViewWarrantyClaim/:id"
-                    element={
-                      hasPermission("/VendorViewWarrantyClaim") ? (
-                        <VendorViewWarrantyClaim />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ShipWarrantyClaim/:id"
-                    element={
-                      hasPermission("/ShipWarrantyClaim") ? (
-                        <ShipWarrantyClaim />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ListStockAdjustment"
-                    element={
-                      hasPermission("/ListStockAdjustment") ? (
-                        <ListStockAdjustment />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddExpense"
-                    element={
-                      hasPermission("/AddExpense") ? (
-                        <AddExpense />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/EditExpense/:id"
-                    element={
-                      hasPermission("/EditExpense") ? (
-                        <EditExpense />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ViewExpense/:id"
-                    element={
-                      hasPermission("/ViewExpense") ? (
-                        <ViewExpense />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ListExpense"
-                    element={
-                      hasPermission("/ListExpense") ? (
-                        <ListExpense />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ExpenseCategories"
-                    element={
-                      hasPermission("/ExpenseCategories") ? (
-                        <ExpenseCategories />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/PaymentReport"
-                    element={
-                      hasPermission("/PaymentReport") ? (
-                        <PaymentReport />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddAccount"
-                    element={
-                      hasPermission("/AddAccount") ? (
-                        <AddAccount />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/PaymentMethod"
-                    element={
-                      hasPermission("/PaymentMethod") ? (
-                        <PaymentMethod />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ListPaymentMethod"
-                    element={
-                      hasPermission("/ListPaymentMethod") ? (
-                        <ListPaymentMethod />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Accounts"
-                    element={
-                      hasPermission("/Accounts") ? (
-                        <Accounts />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AccountBook/:id"
-                    element={
-                      hasPermission("/AccountBook") ? (
-                        <AccountBook />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/CashFlow"
-                    element={
-                      hasPermission("/CashFlow") ? (
-                        <CashFlow />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/TrialBalance"
-                    element={
-                      hasPermission("/TrialBalance") ? (
-                        <TrialBalance />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ProductStockHistory /:id"
-                    element={
-                      hasPermission("/ProductStockHistory") ? (
-                        <ProductStockHistory />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route path="/ListAllElement" element={<ListAllElement />} />
-                  <Route
-                    path="/AllFormElements"
-                    element={<AllFormElements />}
-                  />
-                  <Route
-                    path="/PurchaseAndSale"
-                    element={
-                      hasPermission("/PurchaseAndSale") ? (
-                        <PurchaseAndSale />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/TaxReport"
-                    element={
-                      hasPermission("/TaxReport") ? (
-                        <TaxReport />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/TaxRate"
-                    element={
-                      hasPermission("/TaxRate") ? (
-                        <TaxRate />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route path="/Test" element={<Test />} />
-                  <Route
-                    path="/BusinessLocations"
-                    element={
-                      hasPermission("/BusinessLocations") ? (
-                        <BusinessLocations />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/BusinessCategory"
-                    element={
-                      hasPermission("/BusinessCategory") ? (
-                        <BusinessCategory />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/BusinessDetails"
-                    element={
-                      hasPermission("/BusinessDetails") ? (
-                        <BusinessDetails />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/CustomersAndSuppliers"
-                    element={
-                      hasPermission("/CustomersAndSuppliers") ? (
-                        <CustomersAndSuppliers />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/StockReport"
-                    element={
-                      hasPermission("/StockReport") ? (
-                        <StockReport />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ItemReport"
-                    element={
-                      hasPermission("/ItemReport") ? (
-                        <ItemReport />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/StockAdjustmentReport"
-                    element={
-                      hasPermission("/StockAdjustmentReport") ? (
-                        <StockAdjustmentReport />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ProductPurchaseReport"
-                    element={
-                      hasPermission("/ProductPurchaseReport") ? (
-                        <ProductPurchaseReport />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ProductSellReport"
-                    element={
-                      hasPermission("/ProductSellReport") ? (
-                        <ProductSellReport />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Detailed"
-                    element={
-                      hasPermission("/Detailed") ? (
-                        <Detailed />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/DetailedPurchase"
-                    element={
-                      hasPermission("/DetailedPurchase") ? (
-                        <DetailedPurchase />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/GroupedDate"
-                    element={
-                      hasPermission("/GroupedDate") ? (
-                        <GroupedDate />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ByCategory"
-                    element={
-                      hasPermission("/ByCategory") ? (
-                        <ByCategory />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ByBrand"
-                    element={
-                      hasPermission("/ByBrand") ? (
-                        <ByBrand />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/PurchasePaymentReport"
-                    element={
-                      hasPermission("/PurchasePaymentReport") ? (
-                        <PurchasePaymentReport />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/SalePaymentReport"
-                    element={
-                      hasPermission("/SalePaymentReport") ? (
-                        <SalePaymentReport />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
+                    <Route
+                      path="/EditSaleReturnOrder/:id"
+                      element={<EditSaleReturnOrder />}
+                    />
+                    <Route
+                      path="/ViewSaleReturn/:id"
+                      element={<ViewSaleReturn />}
+                    />
+                    <Route path="/SaleEntry" element={<SaleEntry />} />
+                    <Route path="/SaleReturn" element={<SaleReturn />} />
+                    <Route path="/ListShipReturn" element={<ListShipReturn />} />
+                    <Route
+                      path="/ListAcceptedReturn"
+                      element={<ListAcceptedReturn />}
+                    />
+                    <Route
+                      path="/OrderList"
+                      element={
+                        hasPermission("/OrderList") ? (
+                          <OrderList />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/SoldOrders"
+                      element={
+                        hasPermission("/SoldOrders") ? (
+                          <SoldOrders />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ViewOrders"
+                      element={
+                        hasPermission("/ViewOrders") ? (
+                          <ViewOrders />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AcceptedOrders"
+                      element={
+                        hasPermission("/AcceptedOrders") ? (
+                          <AcceptedOrders />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/RejectedOrders"
+                      element={
+                        hasPermission("/RejectedOrders") ? (
+                          <RejectedOrders />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ShipOrders"
+                      element={
+                        hasPermission("/ShipOrders") ? (
+                          <ShipOrders />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route path="/ViewOrders/:id" element={<ViewOd />} />
+                    <Route path="/EditOrders/:id" element={<EditOd />} />
+                    <Route
+                      path="/EditAcceptedOrder/:id"
+                      element={<EditAcceptedOrder />}
+                    />
+                    <Route
+                      path="/ViewShipOrders/:id"
+                      element={<ViewShipOrders />}
+                    />
+                    <Route
+                      path="/ListStockTransfer"
+                      element={
+                        hasPermission("/ListStockTransfer") ? (
+                          <ListStockTransfer />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddStockTransfer"
+                      element={
+                        hasPermission("/AddStockTransfer") ? (
+                          <AddStockTransfer />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/EditStockTransfer/:id"
+                      element={
+                        hasPermission("/EditStockTransfer") ? (
+                          <EditStockTransfer />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ViewStockTransfer/:id"
+                      element={
+                        hasPermission("/ViewStockTransfer") ? (
+                          <ViewStockTransfer />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddStockAdjustment/:id"
+                      element={
+                        hasPermission("/AddStockAdjustment") ? (
+                          <AddStockAdjustment />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddStockAdjustment"
+                      element={
+                        hasPermission("/AddStockAdjustment") ? (
+                          <AddStockAdjustment />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ViewStockAdjustment/:id"
+                      element={
+                        hasPermission("/ViewStockAdjustment") ? (
+                          <ViewStockAdjustment />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ListWarrantyClaim"
+                      element={
+                        hasPermission("/ListWarrantyClaim") ? (
+                          <ListWarrantyClaim />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ListVendorWarrantyClaim"
+                      element={
+                        hasPermission("/ListVendorWarrantyClaim") ? (
+                          <ListVendorWarrantyClaim />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ListShippedWarrantyClaim"
+                      element={
+                        hasPermission("/ListShippedWarrantyClaim") ? (
+                          <ListShippedWarrantyClaim />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddWarrantyClaim"
+                      element={
+                        hasPermission("/AddWarrantyClaim") ? (
+                          <AddWarrantyClaim />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ViewWarrantyClaim/:id"
+                      element={
+                        hasPermission("/ViewWarrantyClaim") ? (
+                          <ViewWarrantyClaim />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/VendorViewWarrantyClaim/:id"
+                      element={
+                        hasPermission("/VendorViewWarrantyClaim") ? (
+                          <VendorViewWarrantyClaim />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ShipWarrantyClaim/:id"
+                      element={
+                        hasPermission("/ShipWarrantyClaim") ? (
+                          <ShipWarrantyClaim />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ListStockAdjustment"
+                      element={
+                        hasPermission("/ListStockAdjustment") ? (
+                          <ListStockAdjustment />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddExpense"
+                      element={
+                        hasPermission("/AddExpense") ? (
+                          <AddExpense />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/EditExpense/:id"
+                      element={
+                        hasPermission("/EditExpense") ? (
+                          <EditExpense />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ViewExpense/:id"
+                      element={
+                        hasPermission("/ViewExpense") ? (
+                          <ViewExpense />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ListExpense"
+                      element={
+                        hasPermission("/ListExpense") ? (
+                          <ListExpense />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ExpenseCategories"
+                      element={
+                        hasPermission("/ExpenseCategories") ? (
+                          <ExpenseCategories />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/PaymentReport"
+                      element={
+                        hasPermission("/PaymentReport") ? (
+                          <PaymentReport />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddAccount"
+                      element={
+                        hasPermission("/AddAccount") ? (
+                          <AddAccount />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/PaymentMethod"
+                      element={
+                        hasPermission("/PaymentMethod") ? (
+                          <PaymentMethod />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ListPaymentMethod"
+                      element={
+                        hasPermission("/ListPaymentMethod") ? (
+                          <ListPaymentMethod />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Accounts"
+                      element={
+                        hasPermission("/Accounts") ? (
+                          <Accounts />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AccountBook/:id"
+                      element={
+                        hasPermission("/AccountBook") ? (
+                          <AccountBook />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/CashFlow"
+                      element={
+                        hasPermission("/CashFlow") ? (
+                          <CashFlow />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/TrialBalance"
+                      element={
+                        hasPermission("/TrialBalance") ? (
+                          <TrialBalance />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ProductStockHistory /:id"
+                      element={
+                        hasPermission("/ProductStockHistory") ? (
+                          <ProductStockHistory />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route path="/ListAllElement" element={<ListAllElement />} />
+                    <Route
+                      path="/AllFormElements"
+                      element={<AllFormElements />}
+                    />
+                    <Route
+                      path="/PurchaseAndSale"
+                      element={
+                        hasPermission("/PurchaseAndSale") ? (
+                          <PurchaseAndSale />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/TaxReport"
+                      element={
+                        hasPermission("/TaxReport") ? (
+                          <TaxReport />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/TaxRate"
+                      element={
+                        hasPermission("/TaxRate") ? (
+                          <TaxRate />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route path="/Test" element={<Test />} />
+                    <Route
+                      path="/BusinessLocations"
+                      element={
+                        hasPermission("/BusinessLocations") ? (
+                          <BusinessLocations />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/BusinessCategory"
+                      element={
+                        hasPermission("/BusinessCategory") ? (
+                          <BusinessCategory />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/BusinessDetails"
+                      element={
+                        hasPermission("/BusinessDetails") ? (
+                          <BusinessDetails />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/CustomersAndSuppliers"
+                      element={
+                        hasPermission("/CustomersAndSuppliers") ? (
+                          <CustomersAndSuppliers />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/StockReport"
+                      element={
+                        hasPermission("/StockReport") ? (
+                          <StockReport />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ItemReport"
+                      element={
+                        hasPermission("/ItemReport") ? (
+                          <ItemReport />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/StockAdjustmentReport"
+                      element={
+                        hasPermission("/StockAdjustmentReport") ? (
+                          <StockAdjustmentReport />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ProductPurchaseReport"
+                      element={
+                        hasPermission("/ProductPurchaseReport") ? (
+                          <ProductPurchaseReport />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ProductSellReport"
+                      element={
+                        hasPermission("/ProductSellReport") ? (
+                          <ProductSellReport />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Detailed"
+                      element={
+                        hasPermission("/Detailed") ? (
+                          <Detailed />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/DetailedPurchase"
+                      element={
+                        hasPermission("/DetailedPurchase") ? (
+                          <DetailedPurchase />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/GroupedDate"
+                      element={
+                        hasPermission("/GroupedDate") ? (
+                          <GroupedDate />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ByCategory"
+                      element={
+                        hasPermission("/ByCategory") ? (
+                          <ByCategory />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ByBrand"
+                      element={
+                        hasPermission("/ByBrand") ? (
+                          <ByBrand />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/PurchasePaymentReport"
+                      element={
+                        hasPermission("/PurchasePaymentReport") ? (
+                          <PurchasePaymentReport />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/SalePaymentReport"
+                      element={
+                        hasPermission("/SalePaymentReport") ? (
+                          <SalePaymentReport />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
 
-                  <Route
-                    path="/ProductStockHistory"
-                    element={
-                      hasPermission("/ProductStockHistory") ? (
-                        <ProductStockHistory />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/InputTaxPurchase"
-                    element={
-                      hasPermission("/InputTaxPurchase") ? (
-                        <InputTaxPurchase />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/OutputTaxSales"
-                    element={
-                      hasPermission("/OutputTaxSales") ? (
-                        <OutputTaxSales />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ExpenseTax"
-                    element={
-                      hasPermission("/ExpenseTax") ? (
-                        <ExpenseTax />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/HRMDashboard"
-                    element={
-                      hasPermission("/HRMDashboard") ? (
-                        <HRMDashboard />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/LeaveType"
-                    element={
-                      hasPermission("/LeaveType") ? (
-                        <LeaveType />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Leave"
-                    element={
-                      hasPermission("/Leave") ? (
-                        <Leave />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Designations"
-                    element={
-                      hasPermission("/Designations") ? (
-                        <Designations />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/SalesTargets"
-                    element={
-                      hasPermission("/SalesTargets") ? (
-                        <SalesTargets />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Holiday"
-                    element={
-                      hasPermission("/Holiday") ? (
-                        <Holiday />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Department"
-                    element={
-                      hasPermission("/Department") ? (
-                        <Department />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Attendance"
-                    element={
-                      hasPermission("/Attendance") ? (
-                        <Attendance />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Payroll"
-                    element={
-                      hasPermission("/Payroll") ? (
-                        <Payroll />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AllPayrolls"
-                    element={
-                      hasPermission("/AllPayrolls") ? (
-                        <AllPayrolls />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/payroll/view"
-                    element={
-                      hasPermission("/payroll/view") ? (
-                        <ViewPayslip />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddPayroll"
-                    element={
-                      hasPermission("/AddPayroll") ? (
-                        <AddPayroll />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/EditPayroll/:id"
-                    element={
-                      hasPermission("/EditPayroll") ? (
-                        <EditPayroll />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/EditPayrolls/:id"
-                    element={
-                      hasPermission("/EditPayrolls") ? (
-                        <EditPayrolls />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AddPayment/:id"
-                    element={
-                      hasPermission("/AddPayment") ? (
-                        <AddPayment />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ViewPayrollGroups/:id"
-                    element={
-                      hasPermission("/ViewPayrollGroups") ? (
-                        <ViewPayrollGroups />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/AllPayrollGroups"
-                    element={
-                      hasPermission("/AllPayrollGroups") ? (
-                        <AllPayrollGroups />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/PayComponents"
-                    element={
-                      hasPermission("/PayComponents") ? (
-                        <PayComponents />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/HRMSettings"
-                    element={
-                      hasPermission("/HRMSettings") ? (
-                        <HRMSettings />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/EmployeeGrievance"
-                    element={
-                      hasPermission("/EmployeeGrievance") ? (
-                        <EmployeeGrievance />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/NoticeBoard"
-                    element={
-                      hasPermission("/NoticeBoard") ? (
-                        <NoticeBoard />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/HRDocs"
-                    element={
-                      hasPermission("/HRDocs") ? (
-                        <HRDocs />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/FaceAttendance"
-                    element={
-                      hasPermission("/FaceAttendance") ? (
-                        <FaceAttendancePage />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/WorkingHoursReport"
-                    element={
-                      hasPermission("/WorkingHoursReport") ? (
-                        <WorkingHoursReport />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/CRMDashboard"
-                    element={
-                      hasPermission("/CRMDashboard") ? (
-                        <CRMDashboard />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Campaigns"
-                    element={
-                      hasPermission("/Campaigns") ? (
-                        <Campaigns />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/ContactLogin"
-                    element={
-                      hasPermission("/ContactLogin") ? (
-                        <ContactLogin />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/Leads"
-                    element={
-                      hasPermission("/Leads") ? (
-                        <Leads />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/FollowUps"
-                    element={
-                      hasPermission("/FollowUps") ? (
-                        <FollowUps />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/LoyaltyScan"
-                    element={
-                      hasPermission("/LoyaltyScan") ? (
-                        <LoyaltyScanner />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/LoyaltyWallet"
-                    element={
-                      hasPermission("/LoyaltyWallet") ? (
-                        <LoyaltyWallet />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/LoyaltyReferral"
-                    element={
-                      hasPermission("/LoyaltyReferral") ? (
-                        <LoyaltyReferral />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/LoyaltyAdmin"
-                    element={
-                      hasPermission("/LoyaltyAdmin") ? (
-                        <LoyaltyAdmin />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/sales/create-quotation"
-                    element={
-                      hasPermission("/sales/create-quotation") ? (
-                        <QuotationProposalGenerator mode="create" />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/sales/quotation-list"
-                    element={
-                      hasPermission("/sales/quotation-list") ? (
-                        <QuotationProposalGenerator mode="list" />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  {/* <Route path="/" element={<div>No Access</div>} /> */}
-                  <Route path="/Reporting" element={<Reporting />} />
+                    <Route
+                      path="/ProductStockHistory"
+                      element={
+                        hasPermission("/ProductStockHistory") ? (
+                          <ProductStockHistory />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/InputTaxPurchase"
+                      element={
+                        hasPermission("/InputTaxPurchase") ? (
+                          <InputTaxPurchase />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/OutputTaxSales"
+                      element={
+                        hasPermission("/OutputTaxSales") ? (
+                          <OutputTaxSales />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ExpenseTax"
+                      element={
+                        hasPermission("/ExpenseTax") ? (
+                          <ExpenseTax />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/HRMDashboard"
+                      element={
+                        hasPermission("/HRMDashboard") ? (
+                          <HRMDashboard />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/LeaveType"
+                      element={
+                        hasPermission("/LeaveType") ? (
+                          <LeaveType />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Leave"
+                      element={
+                        hasPermission("/Leave") ? (
+                          <Leave />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Designations"
+                      element={
+                        hasPermission("/Designations") ? (
+                          <Designations />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/SalesTargets"
+                      element={
+                        hasPermission("/SalesTargets") ? (
+                          <SalesTargets />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Holiday"
+                      element={
+                        hasPermission("/Holiday") ? (
+                          <Holiday />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Department"
+                      element={
+                        hasPermission("/Department") ? (
+                          <Department />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Attendance"
+                      element={
+                        hasPermission("/Attendance") ? (
+                          <Attendance />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Payroll"
+                      element={
+                        hasPermission("/Payroll") ? (
+                          <Payroll />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AllPayrolls"
+                      element={
+                        hasPermission("/AllPayrolls") ? (
+                          <AllPayrolls />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/payroll/view"
+                      element={
+                        hasPermission("/payroll/view") ? (
+                          <ViewPayslip />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddPayroll"
+                      element={
+                        hasPermission("/AddPayroll") ? (
+                          <AddPayroll />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/EditPayroll/:id"
+                      element={
+                        hasPermission("/EditPayroll") ? (
+                          <EditPayroll />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/EditPayrolls/:id"
+                      element={
+                        hasPermission("/EditPayrolls") ? (
+                          <EditPayrolls />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AddPayment/:id"
+                      element={
+                        hasPermission("/AddPayment") ? (
+                          <AddPayment />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ViewPayrollGroups/:id"
+                      element={
+                        hasPermission("/ViewPayrollGroups") ? (
+                          <ViewPayrollGroups />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/AllPayrollGroups"
+                      element={
+                        hasPermission("/AllPayrollGroups") ? (
+                          <AllPayrollGroups />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/PayComponents"
+                      element={
+                        hasPermission("/PayComponents") ? (
+                          <PayComponents />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/HRMSettings"
+                      element={
+                        hasPermission("/HRMSettings") ? (
+                          <HRMSettings />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/EmployeeGrievance"
+                      element={
+                        hasPermission("/EmployeeGrievance") ? (
+                          <EmployeeGrievance />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/NoticeBoard"
+                      element={
+                        hasPermission("/NoticeBoard") ? (
+                          <NoticeBoard />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/HRDocs"
+                      element={
+                        hasPermission("/HRDocs") ? (
+                          <HRDocs />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/FaceAttendance"
+                      element={
+                        hasPermission("/FaceAttendance") ? (
+                          <FaceAttendancePage />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/WorkingHoursReport"
+                      element={
+                        hasPermission("/WorkingHoursReport") ? (
+                          <WorkingHoursReport />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/CRMDashboard"
+                      element={
+                        hasPermission("/CRMDashboard") ? (
+                          <CRMDashboard />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Campaigns"
+                      element={
+                        hasPermission("/Campaigns") ? (
+                          <Campaigns />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/ContactLogin"
+                      element={
+                        hasPermission("/ContactLogin") ? (
+                          <ContactLogin />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/Leads"
+                      element={
+                        hasPermission("/Leads") ? (
+                          <Leads />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/FollowUps"
+                      element={
+                        hasPermission("/FollowUps") ? (
+                          <FollowUps />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/LoyaltyScan"
+                      element={
+                        hasPermission("/LoyaltyScan") ? (
+                          <LoyaltyScanner />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/LoyaltyWallet"
+                      element={
+                        hasPermission("/LoyaltyWallet") ? (
+                          <LoyaltyWallet />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/LoyaltyReferral"
+                      element={
+                        hasPermission("/LoyaltyReferral") ? (
+                          <LoyaltyReferral />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/LoyaltyAdmin"
+                      element={
+                        hasPermission("/LoyaltyAdmin") ? (
+                          <LoyaltyAdmin />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/sales/create-quotation"
+                      element={
+                        hasPermission("/sales/create-quotation") ? (
+                          <QuotationProposalGenerator mode="create" />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/sales/quotation-list"
+                      element={
+                        hasPermission("/sales/quotation-list") ? (
+                          <QuotationProposalGenerator mode="list" />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    {/* <Route path="/" element={<div>No Access</div>} /> */}
+                    <Route path="/Reporting" element={<Reporting />} />
 
-                  {/* Employee Portal Routes (inside admin panel) */}
-                  <Route
-                    path="/MyDashboard"
-                    element={
-                      hasPermission("/MyDashboard") ? (
-                        <EmployeePortalWrapper Component={EmployeeDashboard} />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/MyFaceAttendance"
-                    element={
-                      hasPermission("/MyFaceAttendance") ? (
-                        <EmployeePortalWrapper Component={EmployeeFaceAttendance} />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/MyAttendance"
-                    element={
-                      hasPermission("/MyAttendance") ? (
-                        <EmployeePortalWrapper Component={EmployeeMyAttendance} />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/MyLeave"
-                    element={
-                      hasPermission("/MyLeave") ? (
-                        <EmployeePortalWrapper Component={EmployeeMyLeave} />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/MyPayslips"
-                    element={
-                      hasPermission("/MyPayslips") ? (
-                        <EmployeePortalWrapper Component={EmployeeMyPayslips} />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/MyViewPayslip"
-                    element={
-                      hasPermission("/MyViewPayslip") ? (
-                        <EmployeePortalWrapper Component={EmployeeViewPayslip} />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/MyNotices"
-                    element={
-                      hasPermission("/MyNotices") ? (
-                        <EmployeePortalWrapper Component={EmployeeNotices} />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/EmployeeAttendanceAdmin"
-                    element={
-                      hasPermission("/MyAttendance") && isAdminUser ? (
-                        <EmployeeAttendanceView />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/EmployeePayslipsAdmin"
-                    element={
-                      hasPermission("/MyPayslips") && isAdminUser ? (
-                        <AdminEmployeePayslips />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
-                  <Route
-                    path="/EmployeeViewPayslipAdmin"
-                    element={
-                      hasPermission("/MyPayslips") && isAdminUser ? (
-                        <EmployeeViewPayslip />
-                      ) : (
-                        <Navigate to="/" />
-                      )
-                    }
-                  />
+                    {/* Employee Portal Routes (inside admin panel) */}
+                    <Route
+                      path="/MyDashboard"
+                      element={
+                        hasPermission("/MyDashboard") ? (
+                          <EmployeePortalWrapper Component={EmployeeDashboard} />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/MyFaceAttendance"
+                      element={
+                        hasPermission("/MyFaceAttendance") ? (
+                          <EmployeePortalWrapper Component={EmployeeFaceAttendance} />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/MyAttendance"
+                      element={
+                        hasPermission("/MyAttendance") ? (
+                          <EmployeePortalWrapper Component={EmployeeMyAttendance} />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/MyLeave"
+                      element={
+                        hasPermission("/MyLeave") ? (
+                          <EmployeePortalWrapper Component={EmployeeMyLeave} />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/MyPayslips"
+                      element={
+                        hasPermission("/MyPayslips") ? (
+                          <EmployeePortalWrapper Component={EmployeeMyPayslips} />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/MyViewPayslip"
+                      element={
+                        hasPermission("/MyViewPayslip") ? (
+                          <EmployeePortalWrapper Component={EmployeeViewPayslip} />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/MyNotices"
+                      element={
+                        hasPermission("/MyNotices") ? (
+                          <EmployeePortalWrapper Component={EmployeeNotices} />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/EmployeeAttendanceAdmin"
+                      element={
+                        hasPermission("/MyAttendance") && isAdminUser ? (
+                          <EmployeeAttendanceView />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/EmployeePayslipsAdmin"
+                      element={
+                        hasPermission("/MyPayslips") && isAdminUser ? (
+                          <AdminEmployeePayslips />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/EmployeeViewPayslipAdmin"
+                      element={
+                        hasPermission("/MyPayslips") && isAdminUser ? (
+                          <EmployeeViewPayslip />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
                   </Routes>
                 </Layout>
               )
@@ -2003,7 +2016,14 @@ const Layout = ({ children, userRoles }) => {
 
   const isAuthPage = location.pathname === "/" || location.pathname === "/";
   const isEmployeePortal = location.pathname.startsWith("/employee");
-  const isWarehousePortal = location.pathname.startsWith("/warehouse");
+  const hasWarehouseSession =
+    typeof window !== "undefined" && !!sessionStorage.getItem("warehouseAuth");
+  const hasAdminSession =
+    typeof window !== "undefined" && !!sessionStorage.getItem("userEmail");
+  const isWarehousePortal =
+    location.pathname.startsWith("/warehouse") &&
+    hasWarehouseSession &&
+    !hasAdminSession;
 
   if (isEmployeePortal || isWarehousePortal) return null;
 

@@ -2,16 +2,40 @@
    Lead Pipeline – Kanban Board
    ============================ */
 
+.lead-pipeline-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  padding: 0 4px;
+}
+
 /* ---------- Analytics cards ---------- */
 .pipeline-analytics {
   display: flex;
   flex-wrap: nowrap;
   gap: 16px;
   margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 8px; /* Space for scrollbar */
+  scrollbar-width: thin;
+}
+
+.pipeline-analytics::-webkit-scrollbar {
+  height: 6px;
+}
+
+.pipeline-analytics::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.05);
+  border-radius: 10px;
+}
+
+.pipeline-analytics::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.1);
+  border-radius: 10px;
 }
 
 .analytics-card {
-  flex: 1;
+  flex: 0 0 240px; /* Fixed width for horizontal scroll */
   border-radius: 16px;
   padding: 20px 24px;
   color: #fff;

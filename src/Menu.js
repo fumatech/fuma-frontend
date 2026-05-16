@@ -218,7 +218,10 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/ListStockTransfer")
     ) {
       setActiveMenu("stock");
-    } else if (path.startsWith("/WarehouseManagement")) {
+    } else if (
+      path.startsWith("/WarehouseManagement") ||
+      path.startsWith("/WarehouseTransfer")
+    ) {
       setActiveMenu("warehouseManagement");
     } else if (
       path.startsWith("/AddStockAdjustment") ||
@@ -364,6 +367,8 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("AddStockTransfer");
     } else if (path === "/WarehouseManagement") {
       setActiveSubMenu("WarehouseManagement");
+    } else if (path === "/WarehouseTransfer") {
+      setActiveSubMenu("WarehouseTransfer");
     } else if (path === "/AddStockAdjustment") {
       setActiveSubMenu("AddStockAdjustment");
     } else if (path === "/ListStockAdjustment") {
@@ -1734,12 +1739,14 @@ const Menu = ({ userRoles }) => {
                 </li>
               )}
 
+
               {/* Warehouse Management */}
               {(hasPermission("warehouse.view") || isAdminUser) && (
-                <li className={`nav-item mb-2`}>
-                  <Link
-                    to="/WarehouseManagement"
+                <li className={`nav-item mb-2 menu-open`}>
+                  <a
+                    href="#"
                     className={getMenuItemClass("warehouseManagement")}
+                    onClick={e => { e.preventDefault(); setActiveMenu("warehouseManagement"); }}
                     style={{
                       borderLeft:
                         activeMenu === "warehouseManagement"
@@ -1770,8 +1777,48 @@ const Menu = ({ userRoles }) => {
                       }}
                     >
                       Warehouse Management
+                      <i className="right fas fa-angle-left" style={{ color: activeMenu === "warehouseManagement" ? "#0040C1" : "#4b5565" }} />
                     </p>
-                  </Link>
+                  </a>
+                  <ul
+                    className="nav nav-treeview"
+                    style={{
+                      display: activeMenu === "warehouseManagement" ? "block" : "none",
+                      backgroundColor:
+                        activeMenu === "warehouseManagement"
+                          ? "rgba(0, 64, 193, 0.05)"
+                          : "transparent",
+                    }}
+                  >
+                    <li className="nav-item">
+                      <Link
+                        to="/WarehouseManagement"
+                        className={getSubMenuItemClass("WarehouseManagement")}
+                        style={{
+                          color: activeSubMenu === "WarehouseManagement" ? "#0040C1" : "#4b5565",
+                          backgroundColor: activeSubMenu === "WarehouseManagement" ? "rgba(0, 64, 193, 0.08)" : "transparent",
+                          paddingLeft: "52px",
+                        }}
+                        onClick={() => setActiveSubMenu("WarehouseManagement")}
+                      >
+                        <p>Warehouse Master</p>
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link
+                        to="/WarehouseTransfer"
+                        className={getSubMenuItemClass("WarehouseTransfer")}
+                        style={{
+                          color: activeSubMenu === "WarehouseTransfer" ? "#0040C1" : "#4b5565",
+                          backgroundColor: activeSubMenu === "WarehouseTransfer" ? "rgba(0, 64, 193, 0.08)" : "transparent",
+                          paddingLeft: "52px",
+                        }}
+                        onClick={() => setActiveSubMenu("WarehouseTransfer")}
+                      >
+                        <p>Warehouse Transfer</p>
+                      </Link>
+                    </li>
+                  </ul>
                 </li>
               )}
 

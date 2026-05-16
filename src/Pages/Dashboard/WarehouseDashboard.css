@@ -1,0 +1,57 @@
+.dashboard-card {
+    border-radius: 18px;
+    padding: 22px;
+    height: 140px;
+    color: #fff;
+    position: relative;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.dashboard-card h3 {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-card p {
+    opacity: 0.85;
+    font-size: 15px;
+    margin-bottom: 0;
+}
+
+.users {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.vendors {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+}
+
+.warning {
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    color: #333;
+}
+
+.info {
+    background: linear-gradient(135deg, #43cea2, #185a9d);
+}
+
+.card {
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.btn {
+    min-width: 120px;
+}

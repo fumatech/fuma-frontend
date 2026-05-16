@@ -1,5 +1,98 @@
+.warehouse-app-shell {
+  min-height: 100vh;
+  background-color: #f1f5f9;
+  display: flex;
+}
+
+.warehouse-sidebar {
+  width: 290px;
+  background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+  color: #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.warehouse-sidebar-brand {
+  padding: 0.5rem 0.75rem 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.warehouse-sidebar-brand h5 {
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+.warehouse-sidebar-brand small {
+  color: #94a3b8;
+}
+
+.warehouse-sidebar-nav {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.warehouse-side-link {
+  text-decoration: none;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.72rem 0.8rem;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: 0.2s ease;
+}
+
+.warehouse-side-link i {
+  width: 18px;
+  text-align: center;
+}
+
+.warehouse-side-link:hover {
+  background: rgba(59, 130, 246, 0.17);
+  color: #f8fafc;
+}
+
+.warehouse-side-link.active {
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.28), rgba(37, 99, 235, 0.12));
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  color: #f8fafc;
+}
+
+.warehouse-sidebar-actions {
+  margin-top: auto;
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+  padding-top: 0.95rem;
+}
+
+.warehouse-sidebar-actions h6 {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.quick-nav-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.warehouse-main-content {
+  flex: 1;
+  min-width: 0;
+}
+
 .warehouse-dashboard-wrapper {
-  background-color: #f4f7fa;
+  background-color: #f1f5f9;
   min-height: 100vh;
 }
 
@@ -67,28 +160,35 @@
 
 .quick-nav-btn {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  border-radius: 12px;
-  background: white;
-  border: 1px solid #e0e6ed;
+  justify-content: flex-start;
+  gap: 0.65rem;
+  padding: 0.7rem 0.75rem;
+  border-radius: 10px;
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.2);
   transition: all 0.2s;
-  color: #334155;
+  color: #dbeafe;
   text-decoration: none;
+  text-align: left;
+  width: 100%;
 }
 
 .quick-nav-btn:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(96, 165, 250, 0.45);
   text-decoration: none;
-  color: #1e293b;
+  color: #ffffff;
 }
 
 .quick-nav-btn i {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.quick-nav-btn-action {
+  background: rgba(148, 163, 184, 0.12);
+  outline: none;
 }
 
 .advanced-filters-bar {
@@ -97,4 +197,37 @@
   border-radius: 12px;
   margin-bottom: 1.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.table > :not(caption) > * > * {
+  vertical-align: middle;
+}
+
+@media (max-width: 1199.98px) {
+  .warehouse-sidebar {
+    width: 250px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .warehouse-app-shell {
+    display: block;
+  }
+
+  .warehouse-sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+  }
+
+  .quick-nav-stack {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 575.98px) {
+  .quick-nav-stack {
+    grid-template-columns: 1fr;
+  }
 }
