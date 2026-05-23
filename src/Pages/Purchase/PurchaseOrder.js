@@ -142,8 +142,7 @@ function PurchaseOrder() {
   const searchProducts = async (query) => {
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_BASE_URL
+        `${process.env.REACT_APP_BASE_URL
         }/product/search/active?query=${encodeURIComponent(query)}`
       );
       const data = await response.json();
@@ -314,7 +313,7 @@ function PurchaseOrder() {
     setSelectedProducts((prev) =>
       prev.map((product) =>
         getProductId(product) === normalizeId(productId) &&
-        getVariationId(product) === normalizeId(variationId)
+          getVariationId(product) === normalizeId(variationId)
           ? { ...product, quantity: Math.max(1, parseInt(value) || 1) }
           : product
       )
@@ -597,19 +596,17 @@ function PurchaseOrder() {
                       {searchResults.map((product, index) => (
                         <div
                           key={product.id}
-                          className={`product-row ${
-                            focusedIndex === index ? "focused" : ""
-                          } ${
-                            (
+                          className={`product-row ${focusedIndex === index ? "focused" : ""
+                            } ${(
                               product.productVariations.length > 0
                                 ? product.productVariations.some(
-                                    (v) => selectedVariations[v.id]
-                                  )
+                                  (v) => selectedVariations[v.id]
+                                )
                                 : selectedVariations[product.id]
                             )
                               ? "selected"
                               : ""
-                          }`}
+                            }`}
                           onClick={() => handleProductSelect(product)}
                         >
                           <div className="product-content flex justify-between items-start gap-4">
@@ -636,11 +633,10 @@ function PurchaseOrder() {
                                     (variation) => (
                                       <div
                                         key={variation.id}
-                                        className={`variation-item py-0 border rounded px-2 ${
-                                          selectedVariations[variation.id]
-                                            ? "selected"
-                                            : ""
-                                        }`}
+                                        className={`variation-item py-0 border rounded px-2 ${selectedVariations[variation.id]
+                                          ? "selected"
+                                          : ""
+                                          }`}
                                         onClick={(e) => {
                                           e.stopPropagation(); // Prevents parent onClick
                                           handleVariationSelect(
@@ -679,9 +675,8 @@ function PurchaseOrder() {
                         <tbody>
                           {selectedProducts.map((product, index) => (
                             <tr
-                              key={`${getProductId(product)}-${
-                                getVariationId(product) || "base"
-                              }`}
+                              key={`${getProductId(product)}-${getVariationId(product) || "base"
+                                }`}
                             >
                               <td>{index + 1}</td>
                               <td>
@@ -690,7 +685,7 @@ function PurchaseOrder() {
                               <td>{product.variationValue || "N/A"}</td>
                               <td>
                                 {currentStocks[getStockKey(product)] !==
-                                undefined
+                                  undefined
                                   ? currentStocks[getStockKey(product)]
                                   : "Loading..."}
                               </td>

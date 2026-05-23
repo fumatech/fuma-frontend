@@ -17,6 +17,7 @@ import {
 
 import WarehouseDashboard from "./WarehouseDashboard";
 import WarehouseInward from "./WarehouseInward";
+import WarehousePutAway from "./WarehousePutAway";
 import WarehouseDispatch from "./WarehouseDispatch";
 import WarehouseTransferModule from "./WarehouseTransferModule";
 
@@ -235,7 +236,7 @@ const WarehouseLayout = () => {
                     <Routes>
                         <Route path="dashboard" element={<WarehouseDashboard />} />
                         <Route path="inward" element={<WarehouseInward />} />
-                        <Route path="put-away" element={<WarehouseInward />} />
+                        <Route path="put-away" element={<WarehousePutAway />} />
                         <Route path="dispatch" element={<WarehouseDispatch />} />
                         <Route path="transfer" element={<WarehouseTransferModule />} />
                         <Route path="*" element={<Navigate to="dashboard" replace />} />
