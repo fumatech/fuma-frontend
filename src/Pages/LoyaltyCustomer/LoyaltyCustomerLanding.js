@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import "../LoginPage/LoginPage.css";
 import { isLoyaltyLoggedIn } from "./authStorage";
-import FumaLogo from "../../assets/Fuma1.jpeg";
+import FumaLogo from "../../assets/fuma-logo-lockup.svg";
 
 const LoyaltyCustomerLanding = () => {
     const navigate = useNavigate();

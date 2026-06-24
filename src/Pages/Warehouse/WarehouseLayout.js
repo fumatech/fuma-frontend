@@ -8,6 +8,8 @@ import {
     faPeopleCarry,
     faTruck,
     faExchangeAlt,
+    faChartBar,
+    faChartLine,
     faBars,
     faUser,
     faSignOutAlt,
@@ -29,10 +31,19 @@ const menuItems = [
     { path: "/warehouse/transfer", label: "Internal Transfer", icon: faExchangeAlt },
 ];
 
+const warehouseReportItems = [
+    { path: "/warehouse/reports/analytics", label: "Analytics Dashboard" },
+    { path: "/warehouse/reports/stock", label: "Stock Report" },
+    { path: "/warehouse/reports/movement-logs", label: "Movement Logs" },
+    { path: "/warehouse/reports/aging", label: "Aging Report" },
+    { path: "/warehouse/reports/turnover", label: "Turnover Analysis" },
+];
+
 const WarehouseLayout = () => {
     const [warehouseAuth, setWarehouseAuth] = useState(null);
     const [loading, setLoading] = useState(true);
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [reportsOpen, setReportsOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -54,6 +65,12 @@ const WarehouseLayout = () => {
         }
         setLoading(false);
     }, [navigate]);
+
+    useEffect(() => {
+        if (location.pathname.startsWith("/warehouse/reports/")) {
+            setReportsOpen(true);
+        }
+    }, [location.pathname]);
 
     const handleLogout = () => {
         sessionStorage.removeItem("warehouseAuth");
@@ -155,6 +172,53 @@ const WarehouseLayout = () => {
                         );
                     })}
 
+                    <button
+                        type="button"
+                        className="d-flex align-items-center px-3 py-2 text-white text-decoration-none w-100 border-0"
+                        onClick={() => setReportsOpen((prev) => !prev)}
+                        style={{
+                            background: location.pathname.startsWith("/warehouse/reports/") ? "rgba(255,255,255,0.15)" : "transparent",
+                            borderLeft: location.pathname.startsWith("/warehouse/reports/") ? "3px solid #fff" : "3px solid transparent",
+                            transition: "all 0.2s ease",
+                            fontSize: "0.95rem",
+                            textAlign: "left",
+                        }}
+                    >
+                        <FontAwesomeIcon
+                            icon={faChartBar}
+                            style={{ width: "20px", minWidth: "20px", textAlign: "center" }}
+                        />
+                        {sidebarOpen && (
+                            <>
+                                <span className="ml-3">Reports</span>
+                                <FontAwesomeIcon icon={faChartLine} className="ml-auto" />
+                            </>
+                        )}
+                    </button>
+                    {reportsOpen && sidebarOpen && (
+                        <div className="mb-2">
+                            {warehouseReportItems.map((item) => {
+                                const isActive = location.pathname === item.path;
+                                return (
+                                    <Link
+                                        key={item.path}
+                                        to={item.path}
+                                        className="d-flex align-items-center px-3 py-2 text-white text-decoration-none"
+                                        style={{
+                                            background: isActive ? "rgba(255,255,255,0.15)" : "transparent",
+                                            borderLeft: isActive ? "3px solid #fff" : "3px solid transparent",
+                                            transition: "all 0.2s ease",
+                                            fontSize: "0.9rem",
+                                            paddingLeft: "2.7rem",
+                                        }}
+                                    >
+                                        <span className="ml-4">{item.label}</span>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    )}
+
                     {/* Quick Navigation Section */}
                     {sidebarOpen && (
                         <div className="mt-4 px-3">
@@ -213,15 +277,17 @@ const WarehouseLayout = () => {
                     style={{ height: "60px", position: "sticky", top: 0, zIndex: 999 }}
                 >
                     <div className="d-flex align-items-center">
-                        <button 
-                            className="btn btn-link text-dark p-0 mr-3" 
+                        <button
+                            className="btn btn-link text-dark p-0 mr-3"
                             onClick={() => navigate(-1)}
                             style={{ fontSize: "1.2rem", border: "none" }}
                         >
                             <i className="fa fa-arrow-left" />
                         </button>
                         <h5 className="m-0 text-dark font-weight-bold">
-                            {menuItems.find((m) => m.path === location.pathname)?.label || "Warehouse Dashboard"}
+                            {menuItems.find((m) => m.path === location.pathname)?.label ||
+                                warehouseReportItems.find((m) => m.path === location.pathname)?.label ||
+                                "Warehouse Dashboard"}
                         </h5>
                     </div>
                     <div className="ml-auto d-flex align-items-center">
@@ -239,6 +305,12 @@ const WarehouseLayout = () => {
                         <Route path="put-away" element={<WarehousePutAway />} />
                         <Route path="dispatch" element={<WarehouseDispatch />} />
                         <Route path="transfer" element={<WarehouseTransferModule />} />
+                        {/* Warehouse Reports & Analytics */}
+                        <Route path="reports/analytics" element={React.createElement(require("../WarehouseReports/AnalyticsDashboard").default)} />
+                        <Route path="reports/stock" element={React.createElement(require("../WarehouseReports/StockReport").default)} />
+                        <Route path="reports/movement-logs" element={React.createElement(require("../WarehouseReports/MovementLogs").default)} />
+                        <Route path="reports/aging" element={React.createElement(require("../WarehouseReports/AgingReport").default)} />
+                        <Route path="reports/turnover" element={React.createElement(require("../WarehouseReports/TurnoverAnalysis").default)} />
                         <Route path="*" element={<Navigate to="dashboard" replace />} />
                     </Routes>
                 </div>

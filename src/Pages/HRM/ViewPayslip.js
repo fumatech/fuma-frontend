@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import fumaLogo from "../../assets/fuma.png";
+import fumaLogo from "../../assets/fuma-logo-lockup.svg";
 
 const ViewPayslip = () => {
   const { state } = useLocation();

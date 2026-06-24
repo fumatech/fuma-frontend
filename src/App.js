@@ -42,6 +42,7 @@ import Brands from "./Pages/Products/Brands";
 import Units from "./Pages/Products/Units";
 import EditList from "./Pages/Products/EditList";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 import "bootstrap/dist/js/bootstrap.bundle.min";
 import ViewList from "./Pages/Products/ViewList";
 import Variation from "./Pages/Products/Variation";
@@ -189,6 +190,11 @@ import WarehouseManagement from "./Pages/Warehouse/WarehouseManagement";
 import WarehouseInward from "./Pages/Warehouse/WarehouseInward";
 import WarehouseDispatch from "./Pages/Warehouse/WarehouseDispatch";
 import WarehouseTransferModule from "./Pages/Warehouse/WarehouseTransferModule";
+import WarehouseAnalyticsDashboard from "./Pages/WarehouseReports/AnalyticsDashboard";
+import WarehouseStockReport from "./Pages/WarehouseReports/StockReport";
+import WarehouseMovementLogs from "./Pages/WarehouseReports/MovementLogs";
+import WarehouseAgingReport from "./Pages/WarehouseReports/AgingReport";
+import WarehouseTurnoverAnalysis from "./Pages/WarehouseReports/TurnoverAnalysis";
 import EmployeePortalWrapper from "./Pages/EmployeePortal/EmployeePortalWrapper";
 import EmployeeDashboard from "./Pages/EmployeePortal/EmployeeDashboard";
 import EmployeeFaceAttendance from "./Pages/EmployeePortal/EmployeeFaceAttendance";
@@ -394,6 +400,11 @@ const App = () => {
     "/MyNotices": ["employee_portal.view"],
     "/ServiceTickets": ["service_ticket.view"],
     "/WarehouseManagement": ["warehouse.view"],
+    "/WarehouseReports/AnalyticsDashboard": ["warehouse.view"],
+    "/WarehouseReports/StockReport": ["warehouse.view"],
+    "/WarehouseReports/MovementLogs": ["warehouse.view"],
+    "/WarehouseReports/AgingReport": ["warehouse.view"],
+    "/WarehouseReports/TurnoverAnalysis": ["warehouse.view"],
   };
 
   const hasPermission = (path) => {
@@ -491,6 +502,56 @@ const App = () => {
                       element={
                         hasPermission("/WarehouseManagement") ? (
                           <WarehouseTransferModule />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/WarehouseReports/AnalyticsDashboard"
+                      element={
+                        hasPermission("/WarehouseReports/AnalyticsDashboard") ? (
+                          <WarehouseAnalyticsDashboard />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/WarehouseReports/StockReport"
+                      element={
+                        hasPermission("/WarehouseReports/StockReport") ? (
+                          <WarehouseStockReport />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/WarehouseReports/MovementLogs"
+                      element={
+                        hasPermission("/WarehouseReports/MovementLogs") ? (
+                          <WarehouseMovementLogs />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/WarehouseReports/AgingReport"
+                      element={
+                        hasPermission("/WarehouseReports/AgingReport") ? (
+                          <WarehouseAgingReport />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/WarehouseReports/TurnoverAnalysis"
+                      element={
+                        hasPermission("/WarehouseReports/TurnoverAnalysis") ? (
+                          <WarehouseTurnoverAnalysis />
                         ) : (
                           <Navigate to="/" />
                         )
@@ -844,6 +905,10 @@ const App = () => {
                           <Navigate to="/" />
                         )
                       }
+                    />
+                    <Route
+                      path="/ListPoPurchaseOrder/:id"
+                      element={<ViewPoPurchaseOrder />}
                     />
                     <Route
                       path="/ListDIPurchaseOrder"

@@ -67,6 +67,15 @@ function AddPoPurchase() {
   const [searchResults, setSearchResults] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showCustomItemModal, setShowCustomItemModal] = useState(false);
+  const [customItemForm, setCustomItemForm] = useState({
+    productName: "",
+    description: "",
+    quantity: 1,
+    unit: "",
+    unitPrice: 0,
+    taxRateId: "",
+  });
   const [selectedVariations, setSelectedVariations] = useState({});
   const [vendorlist, setVendorList] = useState([]);
   const [unitCostBeforeDiscount, setUnitCostBeforeDiscount] = useState("");
@@ -726,6 +735,47 @@ function AddPoPurchase() {
     setSearchTerm("");
   };
 
+  const handleAddCustomItem = () => {
+    if (!customItemForm.productName || customItemForm.quantity <= 0 || customItemForm.unitPrice < 0) {
+      toast.warning("Please fill valid custom item details.");
+      return;
+    }
+
+    const selectedTaxOption = taxOptions.find((opt) => opt.value === customItemForm.taxRateId);
+    const taxRate = selectedTaxOption ? selectedTaxOption.rate : 0;
+
+    const newCustomItem = {
+      id: "custom-" + Date.now(),
+      productId: null,
+      productVariationId: null,
+      variationId: null,
+      productName: customItemForm.productName,
+      description: customItemForm.description,
+      unit: customItemForm.unit,
+      sku: "CUSTOM",
+      quantity: parseFloat(customItemForm.quantity),
+      defaultPurchasePriceExcTax: parseFloat(customItemForm.unitPrice),
+      discountPercent: 0,
+      taxRate: taxRate,
+      taxAmount: 0,
+      taxRateId: customItemForm.taxRateId,
+      selectedTax: selectedTaxOption || null,
+      profitMargin: 0,
+      isCustomItem: true,
+    };
+
+    setSelectedProducts((prev) => [...prev, newCustomItem]);
+    setShowCustomItemModal(false);
+    setCustomItemForm({
+      productName: "",
+      description: "",
+      quantity: 1,
+      unit: "",
+      unitPrice: 0,
+      taxRateId: "",
+    });
+  };
+
   const handleTaxRateChange = (productId, selectedOption) => {
     // If no tax selected, set both taxRate and taxRateId to 0 and null respectively
     const taxRateId = selectedOption ? selectedOption.value : null;
@@ -942,7 +992,7 @@ function AddPoPurchase() {
       ).toFixed(2);
 
       return {
-        productId: product.productId,
+        productId: product.productId || null,
         productName: product.productName,
         productSku: product.sku,
         productVariationId: product.productVariationId,
@@ -958,12 +1008,17 @@ function AddPoPurchase() {
         profitMargin: profitMargin,
         profitAmount: profitAmount,
         unitSellingPrice: unitSellingPriceIncTax,
+        isCustomItem: product.isCustomItem || false,
+        description: product.description || null,
+        unit: product.unit || null,
       };
     });
 
     // Prepare stock transactions
 
-    const productStocks = purchaseItems.map((item) => ({
+    const productStocks = purchaseItems
+      .filter((item) => !item.isCustomItem && item.productId)
+      .map((item) => ({
       productId: item.productId,
       variationId: item.productVariationId || null,
       price: parseFloat(item.unitSellingPrice), // ✅ CORRECT VALUE
@@ -1358,6 +1413,70 @@ function AddPoPurchase() {
                             </div>
                           )}
                         </div>
+
+                        {selectedProducts.length > 0 && (
+                          <div className="mb-3 d-flex justify-content-end">
+                            <button
+                              type="button"
+                              className="btn"
+                              style={{ backgroundColor: "#0c4461", color: "white" }}
+                              onClick={() => setShowCustomItemModal(true)}
+                            >
+                              <i className="fas fa-plus"></i> Add Custom Item
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Custom Item Modal */}
+                        {showCustomItemModal && (
+                          <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} tabIndex="-1">
+                            <div className="modal-dialog">
+                              <div className="modal-content">
+                                <div className="modal-header">
+                                  <h5 className="modal-title">Add Custom Item</h5>
+                                  <button type="button" className="btn-close" onClick={() => setShowCustomItemModal(false)}></button>
+                                </div>
+                                <div className="modal-body">
+                                  <div className="form-group mb-2">
+                                    <label>Item Name <span className="text-danger">*</span></label>
+                                    <input type="text" className="form-control" value={customItemForm.productName} onChange={(e) => setCustomItemForm({ ...customItemForm, productName: e.target.value })} />
+                                  </div>
+                                  <div className="form-group mb-2">
+                                    <label>Description</label>
+                                    <input type="text" className="form-control" value={customItemForm.description} onChange={(e) => setCustomItemForm({ ...customItemForm, description: e.target.value })} />
+                                  </div>
+                                  <div className="row mb-2">
+                                    <div className="col-md-6 form-group">
+                                      <label>Quantity <span className="text-danger">*</span></label>
+                                      <input type="number" className="form-control" value={customItemForm.quantity} onChange={(e) => setCustomItemForm({ ...customItemForm, quantity: e.target.value })} />
+                                    </div>
+                                    <div className="col-md-6 form-group">
+                                      <label>Unit (e.g., pcs, kg)</label>
+                                      <input type="text" className="form-control" value={customItemForm.unit} onChange={(e) => setCustomItemForm({ ...customItemForm, unit: e.target.value })} />
+                                    </div>
+                                  </div>
+                                  <div className="row mb-2">
+                                    <div className="col-md-6 form-group">
+                                      <label>Unit Price <span className="text-danger">*</span></label>
+                                      <input type="number" className="form-control" value={customItemForm.unitPrice} onChange={(e) => setCustomItemForm({ ...customItemForm, unitPrice: e.target.value })} />
+                                    </div>
+                                    <div className="col-md-6 form-group">
+                                      <label>Tax Rate</label>
+                                      <select className="form-control" value={customItemForm.taxRateId} onChange={(e) => setCustomItemForm({ ...customItemForm, taxRateId: e.target.value })}>
+                                        <option value="">None</option>
+                                        {taxOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                      </select>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="modal-footer">
+                                  <button type="button" className="btn btn-secondary" onClick={() => setShowCustomItemModal(false)}>Cancel</button>
+                                  <button type="button" className="btn" style={{ backgroundColor: "#0c4461", color: "white" }} onClick={handleAddCustomItem}>Add Item</button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         {selectedProducts.length > 0 && (
                           <div className="table-responsive">
