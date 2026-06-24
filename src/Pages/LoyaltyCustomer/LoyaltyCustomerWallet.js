@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import "../LoginPage/LoginPage.css";
 import { clearLoyaltyAuth, getLoyaltyUser, isLoyaltyLoggedIn } from "./authStorage";
-import FumaLogo from "../../assets/Fuma1.jpeg";
+import FumaLogo from "../../assets/fuma-logo-lockup.svg";
 
 const LoyaltyCustomerWallet = () => {
     const navigate = useNavigate();

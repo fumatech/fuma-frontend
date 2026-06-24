@@ -61,7 +61,9 @@ const Menu = ({ userRoles }) => {
     setExtraOpen(
       path.startsWith("/Permission") ||
       path.startsWith("/ImageUpload") ||
-      path.startsWith("/SignatureUpload")
+      path.startsWith("/SignatureUpload") ||
+      path.startsWith("/Users") ||
+      path.startsWith("/Roles")
     );
     setPurchaseOpen(
       path.startsWith("/PurchaseOrder") ||
@@ -219,6 +221,11 @@ const Menu = ({ userRoles }) => {
     ) {
       setActiveMenu("stock");
     } else if (
+      path.startsWith("/Users") ||
+      path.startsWith("/Roles")
+    ) {
+      setActiveMenu("extra");
+    } else if (
       path.startsWith("/WarehouseManagement") ||
       path.startsWith("/WarehouseTransfer")
     ) {
@@ -259,6 +266,7 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/SalePaymentReport") ||
       path.startsWith("/StockAdjustmentReport") ||
       path.startsWith("/StockReport") ||
+      path.startsWith("/WarehouseReports") ||
       path.startsWith("/TaxReport")
     ) {
       setActiveMenu("report");
@@ -405,6 +413,16 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("CustomersAndSuppliers");
     } else if (path === "/StockReport") {
       setActiveSubMenu("StockReport");
+    } else if (path === "/WarehouseReports/AnalyticsDashboard") {
+      setActiveSubMenu("AnalyticsDashboard");
+    } else if (path === "/WarehouseReports/StockReport") {
+      setActiveSubMenu("WarehouseStockReport");
+    } else if (path === "/WarehouseReports/MovementLogs") {
+      setActiveSubMenu("MovementLogs");
+    } else if (path === "/WarehouseReports/AgingReport") {
+      setActiveSubMenu("AgingReport");
+    } else if (path === "/WarehouseReports/TurnoverAnalysis") {
+      setActiveSubMenu("TurnoverAnalysis");
     } else if (path === "/StockAdjustmentReport") {
       setActiveSubMenu("StockAdjustmentReport");
     } else if (path === "/ItemReport") {
@@ -464,7 +482,9 @@ const Menu = ({ userRoles }) => {
     );
     setContactOpen(dropdown === "contact" ? !isContactOpen : false);
     setProductOpen(dropdown === "product" ? !isProductOpen : false);
-    setExtraOpen(dropdown === "extra" ? !isExtraOpen : false);
+    setExtraOpen(
+      dropdown === "extra" ? !isExtraOpen : dropdown === "userManagement" ? true : false
+    );
     setPurchaseOpen(dropdown === "purchase" ? !isPurchaseOpen : false);
     setSellOpen(dropdown === "sell" ? !isSellOpen : false);
     setStockOpen(dropdown === "stock" ? !isStockOpen : false);
@@ -531,6 +551,29 @@ const Menu = ({ userRoles }) => {
     );
   };
 
+  const canViewWarehouseReports =
+    hasPermission("warehouse.view") ||
+    hasPermission("stock_report.view") ||
+    hasPermission("stock_adjustment_report.view") ||
+    hasPermission("item_report.view") ||
+    hasPermission("product_purchase_report.view") ||
+    hasPermission("product_sell_report.view") ||
+    hasPermission("purchase_and_sale_report.view") ||
+    isAdminUser;
+
+  const canViewMainReportMenu =
+    hasPermission("purchase_and_sale_report.view") ||
+    hasPermission("tax_report.view") ||
+    hasPermission("customers_and_suppliers_report.view") ||
+    hasPermission("stock_report.view") ||
+    hasPermission("stock_adjustment_report.view") ||
+    hasPermission("item_report.view") ||
+    hasPermission("product_purchase_report.view") ||
+    hasPermission("product_sell_report.view") ||
+    hasPermission("purchase_payment_report.view") ||
+    hasPermission("sale_payment_report.view") ||
+    isAdminUser;
+
   return (
     <div>
       <aside
@@ -592,57 +635,53 @@ const Menu = ({ userRoles }) => {
                 </li>
               )}
 
-              {/* User management */}
-              {(hasPermission("user.view") ||
+
+              {/* Administration */}
+              {(hasPermission("permission.view") ||
+                hasPermission("image_upload.view") ||
+                hasPermission("signature_upload.view") ||
+                hasPermission("user.view") ||
                 hasPermission("roles.view")) && (
                   <li
-                    className={`nav-item ${activeMenu === "userManagement" ? "menu-open" : ""
+                    className={`nav-item ${activeMenu === "extra" ? "menu-open" : ""
                       } mb-2`}
                   >
                     <a
                       href="#"
-                      className={getMenuItemClass("userManagement")}
+                      className={getMenuItemClass("extra")}
                       onClick={(e) => {
                         e.preventDefault();
-                        toggleDropdown("userManagement");
+                        toggleDropdown("extra");
+                        if (window.innerWidth < 768) {
+                          handleSidebarCollapse();
+                        }
                       }}
                       style={{
                         borderLeft:
-                          activeMenu === "userManagement"
-                            ? "3px solid #0040C1"
-                            : "none",
+                          activeMenu === "extra" ? "3px solid #0040C1" : "none",
                         backgroundColor:
-                          activeMenu === "userManagement"
+                          activeMenu === "extra"
                             ? "rgba(0, 64, 193, 0.05)"
                             : "transparent",
                       }}
                     >
                       <i
-                        className="nav-icon fas fa-users-cog"
+                        className="nav-icon fas fa-shield-alt"
                         style={{
-                          color:
-                            activeMenu === "userManagement"
-                              ? "#0040C1"
-                              : "#4b5565",
+                          color: activeMenu === "extra" ? "#0040C1" : "#4b5565",
                         }}
                       />
                       <p
                         style={{
-                          color:
-                            activeMenu === "userManagement"
-                              ? "#0040C1"
-                              : "#4b5565",
+                          color: activeMenu === "extra" ? "#0040C1" : "#4b5565",
                         }}
                         className="ms-1"
                       >
-                        User Management
+                        Administration
                         <i
                           className="right fas fa-angle-left"
                           style={{
-                            color:
-                              activeMenu === "userManagement"
-                                ? "#0040C1"
-                                : "#4b5565",
+                            color: activeMenu === "extra" ? "#0040C1" : "#4b5565",
                           }}
                         />
                       </p>
@@ -650,60 +689,180 @@ const Menu = ({ userRoles }) => {
                     <ul
                       className="nav nav-treeview"
                       style={{
-                        display: isUserManagementOpen ? "block" : "none",
+                        display: isExtraOpen ? "block" : "none",
                         backgroundColor:
-                          activeMenu === "userManagement"
+                          activeMenu === "extra"
                             ? "rgba(0, 64, 193, 0.05)"
                             : "transparent",
                       }}
                     >
-                      {(hasPermission("user.add") ||
-                        hasPermission("user.view") ||
-                        hasPermission("user.delete") ||
-                        hasPermission("user.edit")) && (
-                          <li className="nav-item">
-                            <Link
-                              to="/Users"
-                              className={getSubMenuItemClass("Users")}
+                      {(hasPermission("user.view") || hasPermission("roles.view")) && (
+                        <li
+                          className={`nav-item ${isUserManagementOpen ? "menu-open" : ""}`}
+                        >
+                          <a
+                            href="#"
+                            className={getMenuItemClass("userManagement")}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              toggleDropdown("userManagement");
+                            }}
+                            style={{
+                              borderLeft:
+                                isUserManagementOpen
+                                  ? "3px solid #0040C1"
+                                  : "none",
+                              backgroundColor:
+                                isUserManagementOpen
+                                  ? "rgba(0, 64, 193, 0.05)"
+                                  : "transparent",
+                            }}
+                          >
+                            <i
+                              className="nav-icon fas fa-users-cog"
                               style={{
-                                color:
-                                  activeSubMenu === "Users" ? "#0040C1" : "#4b5565",
-                                backgroundColor:
-                                  activeSubMenu === "Users"
-                                    ? "rgba(0, 64, 193, 0.08)"
-                                    : "transparent",
-                                paddingLeft: "52px",
+                                color: isUserManagementOpen ? "#0040C1" : "#4b5565",
                               }}
-                            >
-                              <p>User</p>
-                            </Link>
-                          </li>
-                        )}
-                      {(hasPermission("roles.add") ||
-                        hasPermission("roles.view") ||
-                        hasPermission("roles.delete") ||
-                        hasPermission("roles.edit")) && (
-                          <li className="nav-item">
-                            <Link
-                              to="/Roles"
-                              className={getSubMenuItemClass("Roles")}
+                            />
+                            <p
                               style={{
-                                color:
-                                  activeSubMenu === "Roles" ? "#0040C1" : "#4b5565",
-                                backgroundColor:
-                                  activeSubMenu === "Roles"
-                                    ? "rgba(0, 64, 193, 0.08)"
-                                    : "transparent",
-                                paddingLeft: "52px",
+                                color: isUserManagementOpen ? "#0040C1" : "#4b5565",
                               }}
+                              className="ms-1"
                             >
-                              <p>Roles</p>
-                            </Link>
-                          </li>
-                        )}
+                              User Management
+                              <i
+                                className="right fas fa-angle-left"
+                                style={{
+                                  color: isUserManagementOpen ? "#0040C1" : "#4b5565",
+                                }}
+                              />
+                            </p>
+                          </a>
+                          <ul
+                            className="nav nav-treeview"
+                            style={{
+                              display: isUserManagementOpen ? "block" : "none",
+                              backgroundColor:
+                                isUserManagementOpen
+                                  ? "rgba(0, 64, 193, 0.05)"
+                                  : "transparent",
+                            }}
+                          >
+                            {(hasPermission("user.add") ||
+                              hasPermission("user.view") ||
+                              hasPermission("user.delete") ||
+                              hasPermission("user.edit")) && (
+                                <li className="nav-item">
+                                  <Link
+                                    to="/Users"
+                                    className={getSubMenuItemClass("Users")}
+                                    style={{
+                                      color:
+                                        activeSubMenu === "Users" ? "#0040C1" : "#4b5565",
+                                      backgroundColor:
+                                        activeSubMenu === "Users"
+                                          ? "rgba(0, 64, 193, 0.08)"
+                                          : "transparent",
+                                      paddingLeft: "72px",
+                                    }}
+                                  >
+                                    <p>User</p>
+                                  </Link>
+                                </li>
+                              )}
+                            {(hasPermission("roles.add") ||
+                              hasPermission("roles.view") ||
+                              hasPermission("roles.delete") ||
+                              hasPermission("roles.edit")) && (
+                                <li className="nav-item">
+                                  <Link
+                                    to="/Roles"
+                                    className={getSubMenuItemClass("Roles")}
+                                    style={{
+                                      color:
+                                        activeSubMenu === "Roles" ? "#0040C1" : "#4b5565",
+                                      backgroundColor:
+                                        activeSubMenu === "Roles"
+                                          ? "rgba(0, 64, 193, 0.08)"
+                                          : "transparent",
+                                      paddingLeft: "72px",
+                                    }}
+                                  >
+                                    <p>Roles</p>
+                                  </Link>
+                                </li>
+                              )}
+                          </ul>
+                        </li>
+                      )}
+                      {hasPermission("permission.view") && (
+                        <li className="nav-item">
+                          <Link
+                            to="/Permission"
+                            className={getSubMenuItemClass("Permission")}
+                            style={{
+                              color:
+                                activeSubMenu === "Permission"
+                                  ? "#0040C1"
+                                  : "#4b5565",
+                              backgroundColor:
+                                activeSubMenu === "Permission"
+                                  ? "rgba(0, 64, 193, 0.08)"
+                                  : "transparent",
+                              paddingLeft: "52px",
+                            }}
+                          >
+                            <p>Permission</p>
+                          </Link>
+                        </li>
+                      )}
+                      {hasPermission("image_upload.view") && (
+                        <li className="nav-item">
+                          <Link
+                            to="/ImageUpload"
+                            className={getSubMenuItemClass("ImageUpload")}
+                            style={{
+                              color:
+                                activeSubMenu === "ImageUpload"
+                                  ? "#0040C1"
+                                  : "#4b5565",
+                              backgroundColor:
+                                activeSubMenu === "ImageUpload"
+                                  ? "rgba(0, 64, 193, 0.08)"
+                                  : "transparent",
+                              paddingLeft: "52px",
+                            }}
+                          >
+                            <p>Upload Image</p>
+                          </Link>
+                        </li>
+                      )}
+                      {hasPermission("signature_upload.view") && (
+                        <li className="nav-item">
+                          <Link
+                            to="/SignatureUpload"
+                            className={getSubMenuItemClass("SignatureUpload")}
+                            style={{
+                              color:
+                                activeSubMenu === "SignatureUpload"
+                                  ? "#0040C1"
+                                  : "#4b5565",
+                              backgroundColor:
+                                activeSubMenu === "SignatureUpload"
+                                  ? "rgba(0, 64, 193, 0.08)"
+                                  : "transparent",
+                              paddingLeft: "52px",
+                            }}
+                          >
+                            <p>Signature Upload</p>
+                          </Link>
+                        </li>
+                      )}
                     </ul>
                   </li>
                 )}
+
 
               {/* Contacts */}
               {(hasPermission("vendor.view") ||
@@ -1741,7 +1900,7 @@ const Menu = ({ userRoles }) => {
 
 
               {/* Warehouse Management */}
-              {(hasPermission("warehouse.view") || isAdminUser) && (
+              {canViewWarehouseReports && (
                 <li className={`nav-item mb-2 menu-open`}>
                   <a
                     href="#"
@@ -2307,7 +2466,7 @@ const Menu = ({ userRoles }) => {
                 </li>
               )}
               {/* Report */}
-              {hasPermission("purchase_and_sale_report.view") && (
+              {canViewMainReportMenu && (
                 <li
                   className={`nav-item ${activeMenu === "report" ? "menu-open" : ""
                     } mb-2`}
@@ -2443,6 +2602,106 @@ const Menu = ({ userRoles }) => {
                           <p>Stock Report</p>
                         </Link>
                       </li>
+                    )}
+                    {canViewWarehouseReports && (
+                      <>
+                        <li className="nav-item">
+                          <Link
+                            to="/WarehouseReports/AnalyticsDashboard"
+                            className={getSubMenuItemClass("AnalyticsDashboard")}
+                            style={{
+                              color:
+                                activeSubMenu === "AnalyticsDashboard"
+                                  ? "#0040C1"
+                                  : "#4b5565",
+                              backgroundColor:
+                                activeSubMenu === "AnalyticsDashboard"
+                                  ? "rgba(0, 64, 193, 0.08)"
+                                  : "transparent",
+                              paddingLeft: "52px",
+                            }}
+                          >
+                            <p>Warehouse Analytics</p>
+                          </Link>
+                        </li>
+                        <li className="nav-item">
+                          <Link
+                            to="/WarehouseReports/StockReport"
+                            className={getSubMenuItemClass("WarehouseStockReport")}
+                            style={{
+                              color:
+                                activeSubMenu === "WarehouseStockReport"
+                                  ? "#0040C1"
+                                  : "#4b5565",
+                              backgroundColor:
+                                activeSubMenu === "WarehouseStockReport"
+                                  ? "rgba(0, 64, 193, 0.08)"
+                                  : "transparent",
+                              paddingLeft: "52px",
+                            }}
+                            onClick={() => setActiveSubMenu("WarehouseStockReport")}
+                          >
+                            <p>Warehouse Stock Report</p>
+                          </Link>
+                        </li>
+                        <li className="nav-item">
+                          <Link
+                            to="/WarehouseReports/MovementLogs"
+                            className={getSubMenuItemClass("MovementLogs")}
+                            style={{
+                              color:
+                                activeSubMenu === "MovementLogs"
+                                  ? "#0040C1"
+                                  : "#4b5565",
+                              backgroundColor:
+                                activeSubMenu === "MovementLogs"
+                                  ? "rgba(0, 64, 193, 0.08)"
+                                  : "transparent",
+                              paddingLeft: "52px",
+                            }}
+                          >
+                            <p>Warehouse Movement Logs</p>
+                          </Link>
+                        </li>
+                        <li className="nav-item">
+                          <Link
+                            to="/WarehouseReports/AgingReport"
+                            className={getSubMenuItemClass("AgingReport")}
+                            style={{
+                              color:
+                                activeSubMenu === "AgingReport"
+                                  ? "#0040C1"
+                                  : "#4b5565",
+                              backgroundColor:
+                                activeSubMenu === "AgingReport"
+                                  ? "rgba(0, 64, 193, 0.08)"
+                                  : "transparent",
+                              paddingLeft: "52px",
+                            }}
+                          >
+                            <p>Warehouse Aging Report</p>
+                          </Link>
+                        </li>
+                        <li className="nav-item">
+                          <Link
+                            to="/WarehouseReports/TurnoverAnalysis"
+                            className={getSubMenuItemClass("TurnoverAnalysis")}
+                            style={{
+                              color:
+                                activeSubMenu === "TurnoverAnalysis"
+                                  ? "#0040C1"
+                                  : "#4b5565",
+                              backgroundColor:
+                                activeSubMenu === "TurnoverAnalysis"
+                                  ? "rgba(0, 64, 193, 0.08)"
+                                  : "transparent",
+                              paddingLeft: "52px",
+                            }}
+                          >
+                            <p>Warehouse Turnover</p>
+                          </Link>
+                        </li>
+                      </>
                     )}
                     {hasPermission("stock_adjustment_report.view") && (
                       <li className="nav-item">
@@ -2712,131 +2971,6 @@ const Menu = ({ userRoles }) => {
                             }}
                           >
                             <p>Business Category</p>
-                          </Link>
-                        </li>
-                      )}
-                    </ul>
-                  </li>
-                )}
-
-              {/* Permissions */}
-              {(hasPermission("permission.view") ||
-                hasPermission("image_upload.view") ||
-                hasPermission("signature_upload.view")) && (
-                  <li
-                    className={`nav-item ${activeMenu === "extra" ? "menu-open" : ""
-                      } mb-2`}
-                  >
-                    <a
-                      href="#"
-                      className={getMenuItemClass("extra")}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        toggleDropdown("extra");
-                        if (window.innerWidth < 768) {
-                          handleSidebarCollapse();
-                        }
-                      }}
-                      style={{
-                        borderLeft:
-                          activeMenu === "extra" ? "3px solid #0040C1" : "none",
-                        backgroundColor:
-                          activeMenu === "extra"
-                            ? "rgba(0, 64, 193, 0.05)"
-                            : "transparent",
-                      }}
-                    >
-                      <i
-                        className="nav-icon fas fa-shield-alt"
-                        style={{
-                          color: activeMenu === "extra" ? "#0040C1" : "#4b5565",
-                        }}
-                      />
-                      <p
-                        style={{
-                          color: activeMenu === "extra" ? "#0040C1" : "#4b5565",
-                        }}
-                        className="ms-1"
-                      >
-                        Extra
-                        <i
-                          className="right fas fa-angle-left"
-                          style={{
-                            color: activeMenu === "extra" ? "#0040C1" : "#4b5565",
-                          }}
-                        />
-                      </p>
-                    </a>
-                    <ul
-                      className="nav nav-treeview"
-                      style={{
-                        display: isExtraOpen ? "block" : "none",
-                        backgroundColor:
-                          activeMenu === "setting"
-                            ? "rgba(0, 64, 193, 0.05)"
-                            : "transparent",
-                      }}
-                    >
-                      {hasPermission("permission.view") && (
-                        <li className="nav-item">
-                          <Link
-                            to="/Permission"
-                            className={getSubMenuItemClass("Permission")}
-                            style={{
-                              color:
-                                activeSubMenu === "Permission"
-                                  ? "#0040C1"
-                                  : "#4b5565",
-                              backgroundColor:
-                                activeSubMenu === "Permission"
-                                  ? "rgba(0, 64, 193, 0.08)"
-                                  : "transparent",
-                              paddingLeft: "52px",
-                            }}
-                          >
-                            <p>Permission</p>
-                          </Link>
-                        </li>
-                      )}
-                      {hasPermission("image_upload.view") && (
-                        <li className="nav-item">
-                          <Link
-                            to="/ImageUpload"
-                            className={getSubMenuItemClass("ImageUpload")}
-                            style={{
-                              color:
-                                activeSubMenu === "ImageUpload"
-                                  ? "#0040C1"
-                                  : "#4b5565",
-                              backgroundColor:
-                                activeSubMenu === "ImageUpload"
-                                  ? "rgba(0, 64, 193, 0.08)"
-                                  : "transparent",
-                              paddingLeft: "52px",
-                            }}
-                          >
-                            <p>Upload Image</p>
-                          </Link>
-                        </li>
-                      )}
-                      {hasPermission("signature_upload.view") && (
-                        <li className="nav-item">
-                          <Link
-                            to="/SignatureUpload"
-                            className={getSubMenuItemClass("SignatureUpload")}
-                            style={{
-                              color:
-                                activeSubMenu === "SignatureUpload"
-                                  ? "#0040C1"
-                                  : "#4b5565",
-                              backgroundColor:
-                                activeSubMenu === "SignatureUpload"
-                                  ? "rgba(0, 64, 193, 0.08)"
-                                  : "transparent",
-                              paddingLeft: "52px",
-                            }}
-                          >
-                            <p>Signature Upload</p>
                           </Link>
                         </li>
                       )}

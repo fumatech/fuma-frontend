@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import "../LoginPage/LoginPage.css";
 import { getLoyaltyUser } from "./authStorage";
-import FumaLogo from "../../assets/Fuma1.jpeg";
+import FumaLogo from "../../assets/fuma-logo-lockup.svg";
 
 const playSuccessSound = () => {
     try {

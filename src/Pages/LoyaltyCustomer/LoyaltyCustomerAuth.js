@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import "../LoginPage/LoginPage.css";
 import { saveLoyaltyAuth } from "./authStorage";
-import FumaLogo from "../../assets/Fuma1.jpeg";
+import FumaLogo from "../../assets/fuma-logo-lockup.svg";
 
 const EmailIcon = () => (
     <svg className="input-icon" viewBox="0 0 18 18" fill="none">

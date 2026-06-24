@@ -6,6 +6,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPurchase.css"; // Ensure this file contains the appropriate styles
 import { toast } from "react-toastify";
+import fumaLogo from "../../assets/fuma-logo-lockup.svg";
 
 function EditPoPurchaseOrder() {
   const { id } = useParams();
@@ -874,15 +875,174 @@ function EditPoPurchaseOrder() {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    const html2canvas = (await import("html2canvas")).default;
+    const { jsPDF } = await import("jspdf");
+    
+    // Temporarily show the hidden content for rendering
+    const element = document.getElementById("payslip-content");
+    element.style.display = "block";
+    
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+    });
+    
+    // Hide it back
+    element.style.display = "none";
+    
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`PO-${purchaseReferenceNumber}.pdf`);
+  };
+
+  const styles = {
+    container: {
+      maxWidth: "900px",
+      margin: "0 auto",
+      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      fontSize: "13px",
+      color: "#333",
+      backgroundColor: "#fff",
+      padding: "20px"
+    },
+    header: {
+      display: "flex",
+      justifyContent: "flex-start",
+      alignItems: "center",
+      padding: "16px 20px",
+      backgroundColor: "#ffffff",
+      borderBottom: "2px solid #1e3a5f",
+      marginBottom: "20px",
+      gap: "12px",
+      flexWrap: "nowrap",
+    },
+    headerLeft: {
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      flex: "0 0 auto",
+    },
+    logo: {
+      width: "100px",
+      maxWidth: "100%",
+      height: "auto",
+      objectFit: "contain",
+      flexShrink: 0,
+    },
+    companyGroup: {
+      display: "flex",
+      alignItems: "stretch",
+      gap: "10px",
+    },
+    companyDivider: {
+      width: "2px",
+      backgroundColor: "#1e3a5f",
+      alignSelf: "stretch",
+      flexShrink: 0,
+    },
+    companyBlock: {
+      textAlign: "left",
+      maxWidth: "420px",
+      whiteSpace: "normal",
+    },
+    companyName: {
+      margin: "0 0 2px 0",
+      fontWeight: "800",
+      fontSize: "19px",
+      color: "#1e3a5f",
+      textTransform: "uppercase",
+      textAlign: "left",
+      lineHeight: "1.25",
+    },
+    companyAddress: {
+      margin: 0,
+      fontSize: "12px",
+      color: "#6b7280",
+      lineHeight: "1.4",
+      textAlign: "left",
+    },
+    headerRight: {
+      textAlign: "right",
+      flex: "0 0 auto",
+      marginLeft: "auto",
+      minWidth: "120px",
+    },
+    payslipTitle: {
+      margin: 0,
+      fontWeight: "800",
+      textTransform: "uppercase",
+      color: "#1e3a5f",
+      letterSpacing: "0.4px",
+    },
+    payslipMonth: {
+      marginTop: "4px",
+      fontSize: "12px",
+      color: "#4b5563",
+    },
+    sectionTitle: {
+      backgroundColor: "#0c4166",
+      color: "#fff",
+      padding: "6px 12px",
+      fontSize: "13px",
+      fontWeight: "bold",
+      marginBottom: "0",
+    },
+    table: {
+      width: "100%",
+      borderCollapse: "collapse",
+      fontSize: "13px",
+    },
+    td: {
+      border: "1px solid #dee2e6",
+      padding: "6px 10px",
+    },
+    th: {
+      border: "1px solid #dee2e6",
+      padding: "6px 10px",
+      backgroundColor: "#f8f9fa",
+      fontWeight: "bold"
+    },
+    netPayBox: {
+      background: "linear-gradient(135deg, #0c4166, #1a6ba3)",
+      color: "#fff",
+      padding: "15px 20px",
+      borderRadius: "8px",
+      textAlign: "center",
+      marginTop: "20px",
+    },
+  };
+
   return (
     <>
       <div className="wrapper">
         <div className="content-wrapper">
-          <section className="content-header">
+          <section className="content-header no-print">
             <div className="container-fluid">
               <div className="row mb-2">
                 <div className="col-sm-6">
                   <h1 className="all-heading">View Po Purchase</h1>
+                </div>
+                <div className="col-sm-6 text-right d-flex justify-content-end align-items-center">
+                  <button
+                    className="btn btn-outline-secondary me-2"
+                    onClick={() => navigate(-1)}
+                  >
+                    <i className="fas fa-arrow-left mr-1"></i> Back
+                  </button>
+                  <button
+                    className="btn btn-outline-primary me-2"
+                    onClick={() => window.print()}
+                  >
+                    <i className="fas fa-print mr-1"></i> Print
+                  </button>
+                  <button className="btn btn-success" onClick={handleDownloadPDF}>
+                    <i className="fas fa-file-pdf mr-1"></i> Download PDF
+                  </button>
                 </div>
               </div>
             </div>
@@ -1582,6 +1742,116 @@ function EditPoPurchaseOrder() {
               </form>
             </div>
           </section>
+        </div>
+      </div>
+
+      {/* PDF Template (Hidden) */}
+      <div
+        id="payslip-content"
+        style={{ display: "none", ...styles.container }}
+      >
+        <div style={styles.header}>
+          <div style={styles.headerLeft}>
+            <img src={fumaLogo} alt="FUMA Logo" style={styles.logo} />
+            <div style={styles.companyDivider}></div>
+            <div style={styles.companyBlock}>
+              <h1 style={styles.companyName}>Fusion Master Tech Innovation And</h1>
+              <h1 style={styles.companyName}>Development Private Limited</h1>
+              <p style={styles.companyAddress}>
+                Office No.6, Sr. No. 23/2 Barne Estate, Opp. Padamji Papermill, Thergaon, Chinchwad, Pune - 411033, Maharashtra, India
+              </p>
+            </div>
+          </div>
+          <div style={styles.headerRight}>
+            <h2 style={styles.payslipTitle}>PURCHASE ORDER</h2>
+            <div style={styles.payslipMonth}>Date: {purchaseDate ? new Date(purchaseDate).toLocaleDateString() : ""}</div>
+            <div style={styles.payslipMonth}>PO No: {purchaseReferenceNumber}</div>
+          </div>
+        </div>
+
+        <div className="row mb-4">
+          <div className="col-6">
+            <h6 style={styles.sectionTitle}>VENDOR</h6>
+            <div className="p-3 border">
+              <strong>{vendor}</strong>
+            </div>
+          </div>
+          <div className="col-6">
+            <h6 style={styles.sectionTitle}>SHIP TO</h6>
+            <div className="p-3 border">
+              <strong>Fusion Master Tech</strong><br/>
+              {location}<br/>
+              Maharashtra, India
+            </div>
+          </div>
+        </div>
+
+        <table style={styles.table} className="mb-4">
+          <thead>
+            <tr>
+              <th style={styles.th}>SR NO</th>
+              <th style={styles.th}>DESCRIPTION</th>
+              <th style={styles.th}>QTY</th>
+              <th style={styles.th}>UNIT PRICE</th>
+              <th style={styles.th}>TOTAL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {selectedProducts.map((item, idx) => {
+              const qty = item.quantity || 0;
+              const price = parseFloat(item.defaultPurchasePriceExcTax || item.unitCostBeforeDiscount || 0);
+              const lineTot = qty * price;
+              return (
+                <tr key={idx}>
+                  <td style={styles.td}>{idx + 1}</td>
+                  <td style={styles.td}>
+                    {item.productName || item.description}
+                    {item.sku && item.sku !== 'CUSTOM' ? ` (${item.sku})` : ""}
+                  </td>
+                  <td style={styles.td}>{qty} {item.unit || "pcs"}</td>
+                  <td style={styles.td}>₹{price.toFixed(2)}</td>
+                  <td style={styles.td}>₹{lineTot.toFixed(2)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        <div className="row">
+          <div className="col-6">
+            <h6 style={styles.sectionTitle}>COMMENTS / SPECIAL INSTRUCTIONS</h6>
+            <div className="p-3 border" style={{ minHeight: "100px" }}>
+              {additionalNotes || "N/A"}
+            </div>
+          </div>
+          <div className="col-6">
+            <table style={styles.table}>
+              <tbody>
+                <tr>
+                  <td style={styles.tdLabel}>SUBTOTAL</td>
+                  <td style={styles.td}>₹{subtotalAmount}</td>
+                </tr>
+                <tr>
+                  <td style={styles.tdLabel}>GST ({taxAmount}%)</td>
+                  <td style={styles.td}>₹{taxOnSubtotal}</td>
+                </tr>
+                <tr>
+                  <td style={styles.tdLabel}>SHIPPING</td>
+                  <td style={styles.td}>₹{shippingCharges || "0.00"}</td>
+                </tr>
+                <tr>
+                  <td style={styles.tdLabel}>GRAND TOTAL</td>
+                  <td style={styles.td}><strong>₹{finalPurchaseAmount}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="mt-5 pt-4 text-right">
+          <p className="mb-0"><strong>For Fusion Master Tech Innovation And Dev Pvt. Ltd.</strong></p>
+          <br/><br/><br/>
+          <p>Authorized Signatory</p>
         </div>
       </div>
     </>

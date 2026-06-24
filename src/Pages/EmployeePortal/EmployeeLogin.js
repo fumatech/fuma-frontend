@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../LoginPage/LoginPage.css";
 import axios from "axios";
 import { toast } from "react-toastify";
-import FumaLogo from "../../assets/Fuma1.jpeg";
+import FumaLogo from "../../assets/fuma-logo-lockup.svg";
 
 /* ── Icon Components (same as LoginPage) ── */
 const EyeOpenIcon = () => (
