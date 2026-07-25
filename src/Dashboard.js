@@ -1281,8 +1281,8 @@ const Dashboard = () => {
   return (
     <div className="fuma-wrapper">
 
-      {/* ══════════ SIDEBAR ══════════ */}
-      <aside className="fuma-sidebar">
+
+      {/* <aside className="fuma-sidebar">
         <div className="sidebar-logo-area">
           <div className="sidebar-logo-icon">FM</div>
           <div className="sidebar-logo-text">
@@ -1356,7 +1356,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-      </aside>
+      </aside> */}
 
       {/* ══════════ MAIN ══════════ */}
       <main className="fuma-main">

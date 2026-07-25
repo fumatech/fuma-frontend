@@ -10,7 +10,6 @@ import "summernote/dist/summernote-bs4.min.css";
 
 const Menu = ({ userRoles }) => {
   const location = useLocation();
-  const [sideBarCollapsed, setSideBarCollapsed] = useState(true);
   const [activeMenu, setActiveMenu] = useState("");
   const [activeSubMenu, setActiveSubMenu] = useState("");
   const isAdminUser = (userRoles || []).some(
@@ -93,7 +92,9 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/EditAcceptedOrder") ||
       path.startsWith("/RejectedOrders") ||
       path.startsWith("/sales/create-quotation") ||
-      path.startsWith("/sales/quotation-list")
+      path.startsWith("/sales/quotation-list") ||
+      path.startsWith("/CustomInvoice") ||
+      path.startsWith("/InvoiceForm")
     );
     setStockOpen(
       path.startsWith("/AddStockTransfer") ||
@@ -212,7 +213,9 @@ const Menu = ({ userRoles }) => {
       path.startsWith("/EditAcceptedOrder") ||
       path.startsWith("/RejectedOrders") ||
       path.startsWith("/sales/create-quotation") ||
-      path.startsWith("/sales/quotation-list")
+      path.startsWith("/sales/quotation-list") ||
+      path.startsWith("/CustomInvoice") ||
+      path.startsWith("/InvoiceForm")
     ) {
       setActiveMenu("sell");
     } else if (
@@ -369,6 +372,10 @@ const Menu = ({ userRoles }) => {
       setActiveSubMenu("CreateQuotation");
     } else if (path === "/sales/quotation-list") {
       setActiveSubMenu("QuotationList");
+    } else if (path === "/CustomInvoice") {
+      setActiveSubMenu("CustomInvoice");
+    } else if (path === "/InvoiceForm") {
+      setActiveSubMenu("InvoiceForm");
     } else if (path === "/ListStockTransfer") {
       setActiveSubMenu("ListStockTransfer");
     } else if (path === "/AddStockTransfer") {
@@ -519,16 +526,18 @@ const Menu = ({ userRoles }) => {
     }
   };
 
-  const handleSidebarCollapse = () => {
-    setSideBarCollapsed((prev) => !prev);
-  };
-
   const getMenuItemClass = (menuName) => {
     return activeMenu === menuName ? "nav-link active" : "nav-link";
   };
 
   const getSubMenuItemClass = (subMenuName) => {
     return activeSubMenu === subMenuName ? "nav-link active" : "nav-link";
+  };
+
+  const handleSidebarCollapse = () => {
+    if (typeof document !== "undefined") {
+      document.body.classList.toggle("sidebar-collapse");
+    }
   };
 
   const hasPermission = (permissionName) => {
@@ -577,8 +586,7 @@ const Menu = ({ userRoles }) => {
   return (
     <div>
       <aside
-        className={`main-sidebar sidebar-elevation-1 sidebar menuSidebar p-0 ${sideBarCollapsed ? "sidebar-collapse" : ""
-          }`}
+        className="main-sidebar sidebar-elevation-1 sidebar menuSidebar p-0"
         style={{ minHeight: "100vh", backgroundColor: "#0C4461" }}
       >
         <div className="sidebar p-0 ">
@@ -1343,6 +1351,12 @@ const Menu = ({ userRoles }) => {
                               <p>List Po Purchase</p>
                             </Link>
                           </li>
+                          <li className="nav-item">
+                            <Link to="/CustomPOPurchase" className="nav-link">
+                              <i className="nav-icon fas fa-pencil-alt"></i>
+                              <p>Custom PO Purchase</p>
+                            </Link>
+                          </li>
                         </>
                       )}
                       {hasPermission("di_purchase.view") && (
@@ -1724,6 +1738,50 @@ const Menu = ({ userRoles }) => {
                                 }}
                               >
                                 <p>Quotation List</p>
+                              </Link>
+                            </li>
+                            <li className="nav-item">
+                              <Link to="/CustomQuotation" className="nav-link">
+                                <i className="nav-icon fas fa-pencil-alt"></i>
+                                <p>Custom Quotation</p>
+                              </Link>
+                            </li>
+                            {/* <li className="nav-item">
+                              <Link
+                                to="/CustomInvoice"
+                                className={getSubMenuItemClass("CustomInvoice")}
+                                style={{
+                                  color:
+                                    activeSubMenu === "CustomInvoice"
+                                      ? "#0040C1"
+                                      : "#4b5565",
+                                  backgroundColor:
+                                    activeSubMenu === "CustomInvoice"
+                                      ? "rgba(0, 64, 193, 0.08)"
+                                      : "transparent",
+                                  paddingLeft: "52px",
+                                }}
+                              >
+                                <p>Custom Invoice</p>
+                              </Link>
+                            </li> */}
+                            <li className="nav-item">
+                              <Link
+                                to="/InvoiceForm"
+                                className={getSubMenuItemClass("InvoiceForm")}
+                                style={{
+                                  color:
+                                    activeSubMenu === "InvoiceForm"
+                                      ? "#0040C1"
+                                      : "#4b5565",
+                                  backgroundColor:
+                                    activeSubMenu === "InvoiceForm"
+                                      ? "rgba(0, 64, 193, 0.08)"
+                                      : "transparent",
+                                  paddingLeft: "52px",
+                                }}
+                              >
+                                <p>Invoice</p>
                               </Link>
                             </li>
                           </>
