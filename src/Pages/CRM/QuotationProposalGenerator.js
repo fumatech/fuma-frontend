@@ -1187,10 +1187,22 @@ const QuotationProposalGenerator = ({ mode = "all" }) => {
           )}
 
           {documentModal.open && (
-            <div className="modal-overlay">
+            <div
+              className="modal-overlay"
+              style={{
+                position: "fixed",
+                inset: 0,
+                backgroundColor: "rgba(0,0,0,0.5)",
+                zIndex: 1040,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "1rem",
+              }}
+            >
               <div
                 className="modal d-block"
-                style={{ maxWidth: "1000px", margin: "20px auto" }}
+                style={{ maxWidth: "1000px", width: "100%", margin: "0 auto" }}
               >
                 <div className="modal-content">
                   <div className="modal-header">

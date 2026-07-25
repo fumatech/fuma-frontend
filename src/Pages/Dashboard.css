@@ -373,11 +373,25 @@ h6 {
    MAIN CONTENT
 ═══════════════════════════════════════════════════════════ */
 .fuma-main {
-  margin-left: 240px;
+  margin-left: 250px;
+  width: calc(100% - 250px);
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+body.sidebar-collapse .fuma-main {
+  margin-left: 0;
+  width: 100%;
+}
+
+@media (max-width: 991.98px) {
+  .fuma-main {
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
 /* ── TOPBAR — matches HRM content-header style ── */

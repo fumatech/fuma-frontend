@@ -158,13 +158,20 @@ const generateFUMAPdf = (po) => {
     doc.setLineWidth(0.4);
     doc.rect(x, y + 6, half, boxH, "S");
 
-    let ly = y + 6 + boxH - 4;
-    lines.forEach((line, i) => {
+    // Skip any blank/empty lines so missing fields don't leave gaps
+    const filledLines = lines.filter((line) => line && line.trim());
+
+    let ly = y + 6 + 5; // start near the TOP of the box, not the bottom
+    filledLines.forEach((line, i) => {
       doc.setFont("helvetica", i === 0 ? "bold" : "normal");
       doc.setFontSize(7.5);
       doc.setTextColor(20, 20, 20);
-      doc.text(line, x + 3, ly);
-      ly -= 3.8;
+      
+      const splitLines = doc.splitTextToSize(line, half - 6);
+      splitLines.forEach((splitLine) => {
+          doc.text(splitLine, x + 3, ly);
+          ly += 3.8; // move DOWN for each subsequent line
+      });
     });
   };
 
@@ -305,7 +312,8 @@ const generateFUMAPdf = (po) => {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(80, 80, 80);
-  doc.text(po.notes, L + 3, noteY + 12);
+  const splitNotes = doc.splitTextToSize(po.notes, noteW - 6);
+  doc.text(splitNotes, L + 3, noteY + 12);
 
   // ── Footer
   const footerY = H - 20;

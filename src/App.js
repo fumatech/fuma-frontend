@@ -65,6 +65,9 @@ import ViewPurchaseOrder from "./Pages/Purchase/ViewPurchaseOrder";
 import ViewPurchaseReturn from "./Pages/Purchase/ViewPurchaseReturn";
 import EditPurchaseReturn from "./Pages/Purchase/EditPurchaseReturn";
 import EditDIPurchase from "./Pages/Purchase/EditDIPurchase";
+import CustomPOPurchasePage from "./Pages/Purchase/CustomPOPurchasePage";
+import CustomQuotationPage from "./Pages/Sale/CustomQuotationPage";
+import InvoiceForm from "./Pages/invoice/InvoiceForm";
 import AllSale from "./Pages/Sale/AllSale";
 import AddSoSale from "./Pages/Sale/AddSoSale";
 import AddDISale from "./Pages/Sale/AddDISale";
@@ -366,6 +369,28 @@ const App = () => {
       "sale_return.view",
     ],
     "/sales/quotation-list": [
+      "sale_entry.view",
+      "so_sale.view",
+      "di_sale.view",
+      "all_sale_orders.view",
+      "sale_return.view",
+    ],
+    "/CustomPOPurchase": ["purchase_order.add"],
+    "/CustomQuotation": [
+      "sale_entry.view",
+      "so_sale.view",
+      "di_sale.view",
+      "all_sale_orders.view",
+      "sale_return.view",
+    ],
+    "/CustomInvoice": [
+      "sale_entry.view",
+      "so_sale.view",
+      "di_sale.view",
+      "all_sale_orders.view",
+      "sale_return.view",
+    ],
+    "/InvoiceForm": [
       "sale_entry.view",
       "so_sale.view",
       "di_sale.view",
@@ -859,6 +884,26 @@ const App = () => {
                       element={
                         hasPermission("/PurchaseOrder") ? (
                           <PurchaseOrder />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/CustomPOPurchase"
+                      element={
+                        hasPermission("/CustomPOPurchase") ? (
+                          <CustomPOPurchasePage />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/CustomQuotation"
+                      element={
+                        hasPermission("/CustomQuotation") ? (
+                          <CustomQuotationPage />
                         ) : (
                           <Navigate to="/" />
                         )
@@ -1956,6 +2001,26 @@ const App = () => {
                       element={
                         hasPermission("/sales/quotation-list") ? (
                           <QuotationProposalGenerator mode="list" />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/CustomInvoice"
+                      element={
+                        hasPermission("/CustomInvoice") ? (
+                          <InvoiceForm />
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/InvoiceForm"
+                      element={
+                        hasPermission("/InvoiceForm") ? (
+                          <InvoiceForm />
                         ) : (
                           <Navigate to="/" />
                         )
